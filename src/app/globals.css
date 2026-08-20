@@ -1,0 +1,223 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FCFBF7;      /* Warm Ivory */
+  --foreground: #1C1C1E;      /* Near Black */
+  
+  --color-bg-primary: #FCFBF7;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #F7F5F0;
+  
+  --color-text-primary: #1C1C1E;
+  --color-text-secondary: #636366;
+  --color-text-tertiary: #8E8E93;
+  
+  --color-brand-primary: #0A369D; /* Royal Blue */
+  --color-brand-primary-hover: #082C80;
+  
+  --color-brand-crimson: #C81D45;  /* Rose/Ruby Crimson from reference */
+  --color-brand-crimson-hover: #A51436;
+  --color-brand-navy: #0A1F44;     /* Deep Navy from admin reference */
+  --color-brand-navy-dark: #07152E;
+
+  --color-accent-rose: #E0A899;   /* Rose Gold */
+  --color-accent-gold: #D4AF37;   /* Classic Gold */
+  
+  --color-border-subtle: rgba(28, 28, 30, 0.08);
+  --color-border-hover: rgba(28, 28, 30, 0.16);
+  
+  --shadow-premium: 0 4px 30px rgba(0, 0, 0, 0.015), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --shadow-premium-hover: 0 10px 40px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0A0A0C;      /* Obsidian */
+    --foreground: #F2F2F7;
+    
+    --color-bg-primary: #0A0A0C;
+    --color-bg-secondary: #141416;
+    --color-bg-tertiary: #1C1C1E;
+    
+    --color-text-primary: #F2F2F7;
+    --color-text-secondary: #AEAEB2;
+    --color-text-tertiary: #636366;
+    
+    --color-brand-primary: #3A7DFF;
+    --color-brand-primary-hover: #5A93FF;
+    
+    --color-accent-rose: #F2C1B6;
+    --color-accent-gold: #E5C158;
+    
+    --color-border-subtle: rgba(242, 242, 247, 0.08);
+    --color-border-hover: rgba(242, 242, 247, 0.16);
+    
+    --shadow-premium: 0 4px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-premium-hover: 0 10px 40px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+}
+
+@theme {
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-secondary: var(--color-bg-secondary);
+  --color-bg-tertiary: var(--color-bg-tertiary);
+  
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary: var(--color-text-tertiary);
+  
+  --color-brand-primary: var(--color-brand-primary);
+  --color-brand-primary-hover: var(--color-brand-primary-hover);
+  
+  --color-brand-crimson: var(--color-brand-crimson);
+  --color-brand-crimson-hover: var(--color-brand-crimson-hover);
+  --color-brand-navy: var(--color-brand-navy);
+  --color-brand-navy-dark: var(--color-brand-navy-dark);
+
+  --color-accent-rose: var(--color-accent-rose);
+  --color-accent-gold: var(--color-accent-gold);
+  
+  --color-border-subtle: var(--color-border-subtle);
+  --color-border-hover: var(--color-border-hover);
+  
+  --shadow-premium: var(--shadow-premium);
+  --shadow-premium-hover: var(--shadow-premium-hover);
+  
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Outfit", "SF Pro Display", -apple-system, sans-serif;
+  
+  --radius-premium: 20px;
+  --radius-premium-lg: 24px;
+}
+
+/* Base Body Styles */
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Utilities */
+.premium-card {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-premium);
+  border-radius: var(--radius-premium);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-card:hover {
+  box-shadow: var(--shadow-premium-hover);
+  border-color: var(--color-border-hover);
+}
+
+.breathing-padding {
+  padding: 32px;
+}
+
+@media (min-width: 768px) {
+  .breathing-padding {
+    padding: 48px;
+  }
+}
+
+/* ── Accessibility ─────────────────────────────────────────── */
+
+/* Screen reader only — visually hidden but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only.focus\:not-sr-only:focus,
+.focus\:not-sr-only:focus {
+  position: fixed;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 1rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Skip navigation link */
+.skip-nav {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: var(--color-brand-primary);
+  color: white;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-100px);
+  transition: transform 0.2s;
+}
+
+.skip-nav:focus {
+  transform: translateY(0);
+}
+
+/* Keyboard focus ring — gold outline for brand consistency */
+:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove focus ring from mouse clicks only */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Reduced Motion ──────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Performance Utilities ────────────────────────────────────── */
+
+/* Prevent layout shift on images */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Optimize text rendering */
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Smooth scrolling — respects reduced motion */
+html:not([data-reduced-motion]) {
+  scroll-behavior: smooth;
+}
+

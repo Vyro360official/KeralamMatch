@@ -1,0 +1,678 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+  VENDOR
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum DiscountType {
+  PERCENT
+  AMOUNT
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum QueueStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  PUSH
+  SMS
+}
+
+enum EventType {
+  WEDDING
+  ENGAGEMENT
+  HOROSCOPE_MEETING
+  VIDEO_CALL
+  ANNIVERSARY
+  OTHER
+}
+
+// ==========================================
+// USER & PROFILE MODULES
+// ==========================================
+
+model User {
+  id                   String               @id @default(uuid())
+  firebaseUid          String               @unique
+  email                String               @unique
+  phone                String               @unique
+  encryptedPhone       String?
+  encryptedEmail       String?
+  role                 Role                 @default(USER)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  
+  // Profile & Core Settings
+  profile              Profile?
+  notificationSettings NotificationSetting?
+  wallet               Wallet?
+  
+  // Parent Delegation Links
+  parentProfileId      String?
+  parentProfile        User?                @relation("FamilyDelegation", fields: [parentProfileId], references: [id], onDelete: SetNull)
+  childrenProfiles     User[]               @relation("FamilyDelegation")
+  
+  // Relations
+  sentRequests         ContactRequest[]     @relation("SentRequests")
+  receivedRequests     ContactRequest[]     @relation("ReceivedRequests")
+  sentMessages         Message[]            @relation("SentMessages")
+  receivedMessages     Message[]            @relation("ReceivedMessages")
+  notifications        Notification[]
+  payments             Payment[]
+  savedSearches        SavedSearch[]
+  auditLogs            AuditLog[]
+  subscriptions        Subscription[]
+  referralsAsReferrer  Referral[]           @relation("Referrer")
+  referralsAsReferee   Referral[]           @relation("Referee")
+  visitors             ProfileVisitor[]     @relation("Visitor")
+  visited              ProfileVisitor[]     @relation("Visited")
+  blockedBy            BlockedUser[]        @relation("Blocker")
+  blockedUsers         BlockedUser[]        @relation("Blocked")
+  reportedBy           Report[]             @relation("Reporter")
+  reportedUsers        Report[]             @relation("Reported")
+  pushSubscriptions    PushSubscription[]
+  searchHistories      SearchHistory[]
+  recentlyViewed       RecentlyViewed[]
+  matchScoresAsA       MatchScore[]         @relation("UserA")
+  matchScoresAsB       MatchScore[]         @relation("UserB")
+  aiSuggestions        AiSuggestion[]
+  vendorBookings       VendorBooking[]
+  vendors              Vendor?
+  calendarEvents       CalendarEvent[]
+  videoCallInitiated   VideoCallSession[]   @relation("CallCaller")
+  videoCallReceived    VideoCallSession[]   @relation("CallReceiver")
+}
+
+model Profile {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  firstName          String
+  lastName           String
+  gender             Gender
+  dateOfBirth        DateTime
+  height             Float
+  maritalStatus      String
+  motherTongue       String             @default("Malayalam")
+  
+  religion           String
+  caste              String?
+  subCaste           String?
+  horoscopeRequired  Boolean            @default(false)
+  horoscopeImage     String?
+  
+  education          String
+  profession         String
+  company            String?
+  incomeBracket      String
+  
+  district           String
+  state              String             @default("Kerala")
+  country            String             @default("India")
+  city               String
+  
+  bio                String             @db.Text
+  voiceIntroduction  String?            // Cloudinary URL for 10-20 second audio introduction
+  
+  // Modular Verification Levels
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  verifiedMobile     Boolean            @default(false)
+  verifiedEmail      Boolean            @default(false)
+  verifiedSelfie     Boolean            @default(false)
+  verifiedAadhaar    Boolean            @default(false)
+  verifiedEmployment Boolean            @default(false)
+  verifiedIncome     Boolean            @default(false)
+  verifiedAddress    Boolean            @default(false)
+  
+  // Custom Profile Indexes & Metrics
+  profileStrength    Int                @default(0)  // Completion % (0-100)
+  qualityScore       Int                @default(0)  // AI Content Quality %
+  trustScore         Int                @default(0)  // Verification points weight %
+  visibilityScore    Int                @default(0)  // Overall match-ranking priority
+  reputationRating   Float              @default(5.0)// User responsiveness and politeness rating
+  
+  isPublic           Boolean            @default(true)
+  showInSearch       Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  
+  media              Media[]
+  
+  @@index([district])
+  @@index([religion])
+  @@index([caste])
+  @@index([gender])
+}
+
+model Media {
+  id             String   @id @default(uuid())
+  profileId      String
+  profile        Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  url            String
+  watermarkedUrl String
+  type           String   // PHOTO, VIDEO, VOICE
+  order          Int      @default(0)
+  isApproved     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+}
+
+// ==========================================
+// PRIVACY & CONTACT REQUEST MODULES
+// ==========================================
+
+model ContactRequest {
+  id          String        @id @default(uuid())
+  senderId    String
+  sender      User          @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User          @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  status      RequestStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  acceptedAt  DateTime?
+  expiresAt   DateTime?
+  
+  auditLogs   AuditLog[]
+
+  @@unique([senderId, receiverId])
+  @@index([expiresAt])
+}
+
+model Message {
+  id          String    @id @default(uuid())
+  senderId    String
+  sender      User      @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User      @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  content     String    @db.Text
+  createdAt   DateTime  @default(now())
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  
+  @@index([senderId, receiverId])
+}
+
+model VideoCallSession {
+  id          String    @id @default(uuid())
+  callerId    String
+  caller      User      @relation("CallCaller", fields: [callerId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User      @relation("CallReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  channelName String    @unique // Agora or WebRTC session name
+  status      String    // INITIATED, CONNECTED, DISCONNECTED, MISSED
+  duration    Int       @default(0) // in seconds
+  createdAt   DateTime  @default(now())
+  endedAt     DateTime?
+}
+
+// ==========================================
+// INTERACTIVE ENGINE MODULES
+// ==========================================
+
+model CalendarEvent {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?   @db.Text
+  type        EventType @default(OTHER)
+  eventDate   DateTime
+  createdAt   DateTime  @default(now())
+}
+
+model ProfileVisitor {
+  id         String   @id @default(uuid())
+  visitorId  String
+  visitor    User     @relation("Visitor", fields: [visitorId], references: [id], onDelete: Cascade)
+  visitedId  String
+  visited    User     @relation("Visited", fields: [visitedId], references: [id], onDelete: Cascade)
+  visitedAt  DateTime @default(now())
+
+  @@index([visitedId])
+}
+
+model BlockedUser {
+  id         String   @id @default(uuid())
+  blockerId  String
+  blocker    User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId  String
+  blocked    User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  reporterId  String
+  reporter    User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedId  String
+  reported    User     @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
+  reason      String
+  details     String?  @db.Text
+  status      String   @default("PENDING") // PENDING, INVESTIGATING, RESOLVED
+  createdAt   DateTime @default(now())
+}
+
+model MatchScore {
+  id         String   @id @default(uuid())
+  userAId    String
+  userA      User     @relation("UserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userBId    String
+  userB      User     @relation("UserB", fields: [userBId], references: [id], onDelete: Cascade)
+  score      Int      // 0 - 100
+  breakdown  Json     // 7-dimension match scoring breakdown JSON object
+  createdAt  DateTime @default(now())
+
+  @@unique([userAId, userBId])
+}
+
+model AiSuggestion {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String   // BIO, PHOTO_QUALITY, SECURITY
+  suggestion String   @db.Text
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+// ==========================================
+// SUBSCRIPTION & WALLET MODULES
+// ==========================================
+
+model Plan {
+  id            String         @id @default(uuid())
+  name          String
+  description   String
+  price         Int            // in Paise
+  features      Json
+  durationDays  Int
+  active        Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId       String
+  plan         Plan      @relation(fields: [planId], references: [id])
+  status       String    // ACTIVE, EXPIRED, CANCELLED
+  startDate    DateTime  @default(now())
+  endDate      DateTime
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Coupon {
+  id            String       @id @default(uuid())
+  code          String       @unique
+  discountType  DiscountType
+  discountValue Int          // Amount in Paise or Percentage
+  maxUses       Int          @default(100)
+  uses          Int          @default(0)
+  active        Boolean      @default(true)
+  expiryDate    DateTime?
+  createdAt     DateTime     @default(now())
+}
+
+model Wallet {
+  id           String              @id @default(uuid())
+  userId       String              @unique
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance      Int                 @default(0) // in Paise
+  currency     String              @default("INR")
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  transactions WalletTransaction[]
+}
+
+model WalletTransaction {
+  id          String          @id @default(uuid())
+  walletId    String
+  wallet      Wallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  amount      Int             // in Paise
+  type        TransactionType
+  description String
+  referenceId String?
+  createdAt   DateTime        @default(now())
+}
+
+model Referral {
+  id          String   @id @default(uuid())
+  referrerId  String
+  referrer    User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  refereeId   String   @unique
+  referee     User     @relation("Referee", fields: [refereeId], references: [id], onDelete: Cascade)
+  status      String   // PENDING, COMPLETED, SUSPICIOUS
+  rewardValue Int      @default(10000) // ₹100.00
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==========================================
+// WEDDING SERVICES MARKETPLACE
+// ==========================================
+
+model Vendor {
+  id         String          @id @default(uuid())
+  userId     String          @unique
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  category   String          // PHOTOGRAPHY, DECOR, CATERING
+  pricing    Int             // Starting price in Paise
+  details    String          @db.Text
+  status     String          @default("PENDING")
+  bookings   VendorBooking[]
+  events     Event[]
+  createdAt  DateTime        @default(now())
+}
+
+model VendorBooking {
+  id          String        @id @default(uuid())
+  vendorId    String
+  vendor      Vendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookingDate DateTime
+  status      BookingStatus @default(PENDING)
+  amount      Int
+  invoiceUrl  String?
+  createdAt   DateTime      @default(now())
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  vendorId    String
+  vendor      Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  title       String
+  description String   @db.Text
+  date        DateTime
+  location    String
+  createdAt   DateTime @default(now())
+}
+
+// ==========================================
+// QUEUE & NOTIFICATION SERVICE ENTITIES
+// ==========================================
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  message     String
+  type        String
+  link        String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+}
+
+model NotificationSetting {
+  id          String  @id @default(uuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inApp       Boolean @default(true)
+  email       Boolean @default(true)
+  push        Boolean @default(true)
+  sms         Boolean @default(false)
+}
+
+model PushSubscription {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint   String   @unique
+  keys       Json     // Store auth and p256dh keys
+  createdAt  DateTime @default(now())
+}
+
+model NotificationQueue {
+  id          String              @id @default(uuid())
+  userId      String
+  title       String
+  message     String
+  channel     NotificationChannel
+  status      QueueStatus         @default(PENDING)
+  retries     Int                 @default(0)
+  errorLog    String?             @db.Text
+  createdAt   DateTime            @default(now())
+}
+
+model EmailQueue {
+  id         String      @id @default(uuid())
+  recipient  String
+  subject    String
+  bodyHtml   String      @db.Text
+  status     QueueStatus @default(PENDING)
+  retries    Int         @default(0)
+  errorLog   String?     @db.Text
+  sentAt     DateTime?
+  createdAt  DateTime    @default(now())
+}
+
+// ==========================================
+// SYSTEM SETTINGS & CMS MODULES
+// ==========================================
+
+model SeoPage {
+  id           String   @id @default(uuid())
+  slug         String   @unique
+  title        String
+  description  String
+  keywords     String
+  h1           String
+  bodyContent  String   @db.Text
+  schemaMarkup Json
+  type         String   // DISTRICT, RELIGION, PROFESSION, COMMUNITY
+  createdAt    DateTime @default(now())
+}
+
+model BlogCategory {
+  id          String      @id @default(uuid())
+  name        String
+  slug        String      @unique
+  description String?
+  posts       BlogPost[]
+}
+
+model BlogPost {
+  id          String       @id @default(uuid())
+  title       String
+  slug        String       @unique
+  content     String       @db.Text
+  categoryId  String
+  category    BlogCategory @relation(fields: [categoryId], references: [id])
+  featured    Boolean      @default(false)
+  published   Boolean      @default(false)
+  comments    BlogPostComment[]
+  createdAt   DateTime     @default(now())
+}
+
+model BlogPostComment {
+  id          String   @id @default(uuid())
+  postId      String
+  post        BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorName  String
+  authorEmail String
+  content     String   @db.Text
+  approved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+model FeatureFlag {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  enabled     Boolean  @default(false)
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  title     String
+  message   String   @db.Text
+  active    Boolean  @default(true)
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+}
+
+model Advertisement {
+  id          String   @id @default(uuid())
+  title       String
+  imageUrl    String
+  linkUrl     String
+  position    String   // SIDEBAR, TOP_BANNER
+  active      Boolean  @default(true)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime @default(now())
+}
+
+// ==========================================
+// METADATA & OPERATIONS LOGS
+// ==========================================
+
+model Country {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  code   String  @unique
+  states State[]
+}
+
+model State {
+  id        String     @id @default(uuid())
+  name      String
+  countryId String
+  country   Country    @relation(fields: [countryId], references: [id])
+  districts District[]
+}
+
+model District {
+  id      String @id @default(uuid())
+  name    String @unique
+  stateId String
+  state   State  @relation(fields: [stateId], references: [id])
+}
+
+model SearchHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query     String
+  filters   Json
+  createdAt DateTime @default(now())
+}
+
+model RecentlyViewed {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId String
+  viewedAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id               String          @id @default(uuid())
+  userId           String?
+  user             User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  contactRequestId String?
+  contactRequest   ContactRequest? @relation(fields: [contactRequestId], references: [id], onDelete: SetNull)
+  action           String
+  ipAddress        String?
+  userAgent        String?
+  timestamp        DateTime        @default(now())
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId       String        @unique
+  paymentId     String?       @unique
+  amount        Int
+  gstAmount     Int
+  currency      String        @default("INR")
+  status        PaymentStatus @default(PENDING)
+  tierName      String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model SavedSearch {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  filters   Json
+  createdAt DateTime @default(now())
+}
