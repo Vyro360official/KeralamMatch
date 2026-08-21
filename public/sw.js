@@ -1,4 +1,4 @@
-const CACHE_NAME = "keralammatch-cache-v1";
+const CACHE_NAME = "keralammatch-cache-v2";
 const OFFLINE_URL = "/offline.html";
 
 const ASSETS_TO_CACHE = [
@@ -6,7 +6,8 @@ const ASSETS_TO_CACHE = [
   "/manifest.json",
   "/assets/icon-192.png",
   "/assets/icon-512.png",
-  "/globals.css"
+  "/globals.css",
+  OFFLINE_URL
 ];
 
 // Install Service Worker and cache core static assets
@@ -35,20 +36,23 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Serve cached assets when offline
+// Serve cached assets
 self.addEventListener("fetch", (event) => {
-  // Only cache GET requests
   if (event.request.method !== "GET") return;
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  const url = new URL(event.request.url);
 
-      return fetch(event.request)
+  // Network-First for HTML/JS/CSS/API to guarantee fresh code
+  if (
+    url.origin === self.location.origin &&
+    (event.request.mode === "navigate" ||
+      url.pathname.endsWith(".js") ||
+      url.pathname.endsWith(".json") ||
+      url.pathname.includes("/_next/"))
+  ) {
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
-          // If response is valid, clone and cache it
           if (response && response.status === 200 && response.type === "basic") {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -58,7 +62,34 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-          // Fallback if offline
+          return caches.match(event.request).then((cachedResponse) => {
+            return cachedResponse || caches.match(OFFLINE_URL);
+          });
+        })
+    );
+    return;
+  }
+
+  // Cache-First for static assets (images, fonts, icons)
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          if (event.request.destination === "image") {
+            return caches.match("/assets/icon-192.png");
+          }
           return caches.match(OFFLINE_URL);
         });
     })
