@@ -18,8 +18,25 @@ export const adminAuth = {
 
     if (!authInstance) {
       const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-      const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+      const clientEmailRaw = process.env.FIREBASE_CLIENT_EMAIL;
+      const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY;
+
+      let clientEmail = clientEmailRaw ? clientEmailRaw.trim() : "";
+      if (clientEmail.startsWith('"') && clientEmail.endsWith('"')) {
+        clientEmail = clientEmail.slice(1, -1).trim();
+      }
+      if (clientEmail.startsWith("'") && clientEmail.endsWith("'")) {
+        clientEmail = clientEmail.slice(1, -1).trim();
+      }
+
+      let privateKey = privateKeyRaw ? privateKeyRaw.trim() : "";
+      if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+        privateKey = privateKey.slice(1, -1).trim();
+      }
+      if (privateKey.startsWith("'") && privateKey.endsWith("'")) {
+        privateKey = privateKey.slice(1, -1).trim();
+      }
+      privateKey = privateKey.replace(/\\n/g, "\n");
 
       if (!projectId || !clientEmail || !privateKey) {
         if (isProduction) {
@@ -61,7 +78,7 @@ export const adminAuth = {
               credential: cert({
                 projectId: projectId!,
                 clientEmail: clientEmail!,
-                privateKey: privateKey.replace(/\\n/g, "\n"),
+                privateKey: privateKey,
               }),
             });
         authInstance = getAuth(adminApp);
