@@ -98,7 +98,7 @@ export class AuthService {
         throw new Error(AUTH_ERRORS.TOKEN_EXPIRED);
       }
       
-      throw new Error(AUTH_ERRORS.UNAUTHORIZED);
+      throw new Error(`DEBUG_ERROR: ${error.message || error.toString()}`);
     }
   }
 
