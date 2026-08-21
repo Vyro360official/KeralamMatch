@@ -66,20 +66,6 @@ function AuthForm() {
       return;
     }
 
-    const isPlaceholderKey =
-      process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "AIzaSyA-dummy-key" ||
-      !process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
-      process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes("dummy");
-
-    if (isPlaceholderKey) {
-      console.log("Sandbox environment detected. Simulating OTP code delivery to:", formattedPhone);
-      setTimeout(() => {
-        setStep("otp");
-        setLoading(false);
-      }, 800);
-      return;
-    }
-
     try {
       if (!recaptchaVerifier) {
         throw new Error("Recaptcha verifier has not been loaded yet.");
@@ -103,23 +89,6 @@ function AuthForm() {
 
     if (otpCode.length !== 6) {
       setError("Verification code must be exactly 6 digits.");
-      setLoading(false);
-      return;
-    }
-
-    const isPlaceholderKey =
-      process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "AIzaSyA-dummy-key" ||
-      !process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
-      process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes("dummy");
-
-    if (isPlaceholderKey) {
-      const mockToken = "mock-id-token-12345";
-      const result = await loginAction(mockToken);
-      if (result.success) {
-        router.push(isRegister ? "/join" : "/dashboard");
-      } else {
-        setError(result.error || "Failed to establish secure session.");
-      }
       setLoading(false);
       return;
     }
