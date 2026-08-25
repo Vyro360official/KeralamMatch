@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search, Filter, Plus, UserCheck, UserX, Shield, Edit3, Trash2, X,
   CheckCircle2, AlertCircle, Eye, Heart, Star, MessageSquare, PhoneCall,
@@ -425,6 +425,25 @@ const INITIAL_USERS: UserItem[] = [
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserItem[]>(INITIAL_USERS);
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive" | "blocked" | "premium">("all");
+
+  useEffect(() => {
+    fetch("/api/admin/users?limit=100")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && d.users) {
+          const dbUsers = d.users;
+          const dbEmails = new Set(dbUsers.map((u: any) => u.email.toLowerCase()));
+          const dbContacts = new Set(dbUsers.map((u: any) => u.contact));
+
+          const filteredMocks = INITIAL_USERS.filter(
+            (m) => !dbEmails.has(m.email.toLowerCase()) && !dbContacts.has(m.contact)
+          );
+
+          setUsers([...dbUsers, ...filteredMocks]);
+        }
+      })
+      .catch((err) => console.error("Failed to load live database users:", err));
+  }, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [notification, setNotification] = useState<string | null>(null);
 
@@ -547,6 +566,7 @@ export default function AdminUsersPage() {
       u.contact.includes(searchTerm) ||
       u.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.caste.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (u.subCaste && u.subCaste.toLowerCase().includes(searchTerm.toLowerCase())) ||
       u.profession.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!matchesSearch) return false;

@@ -35,9 +35,22 @@ export async function GET(req: NextRequest) {
               firstName: true,
               lastName: true,
               gender: true,
-              verificationStatus: true,
+              dateOfBirth: true,
+              height: true,
+              maritalStatus: true,
+              religion: true,
+              caste: true,
+              subCaste: true,
+              horoscopeRequired: true,
+              education: true,
+              profession: true,
+              company: true,
+              incomeBracket: true,
               district: true,
               state: true,
+              city: true,
+              bio: true,
+              verificationStatus: true,
             },
           },
           subscriptions: {
@@ -58,19 +71,76 @@ export async function GET(req: NextRequest) {
       prisma.user.count(),
     ]);
 
-    const formattedUsers = users.map((u) => ({
-      id: u.id,
-      firstName: u.profile?.firstName || "Member",
-      lastName: u.profile?.lastName || "",
-      email: u.email,
-      phone: u.phone,
-      role: u.role,
-      plan: u.subscriptions[0]?.plan?.name || "FREE",
-      isVerified: u.profile?.verificationStatus === "VERIFIED",
-      verificationStatus: u.profile?.verificationStatus || "UNVERIFIED",
-      district: u.profile?.district || "",
-      createdAt: u.createdAt.toISOString(),
-    }));
+    const formattedUsers = users.map((u) => {
+      const p = u.profile;
+      let age = 28;
+      if (p?.dateOfBirth) {
+        const birthDate = new Date(p.dateOfBirth);
+        const ageDiffMs = Date.now() - birthDate.getTime();
+        const ageDate = new Date(ageDiffMs);
+        age = Math.abs(ageDate.getUTCFullYear() - 1970);
+      }
+
+      return {
+        id: u.id,
+        name: p ? `${p.firstName} ${p.lastName}`.trim() : "Member",
+        gender: p?.gender === "FEMALE" ? ("Bride" as const) : ("Groom" as const),
+        age,
+        height: p?.height ? `${p.height} cm` : "175 cm",
+        maritalStatus: p?.maritalStatus || "Never Married",
+        email: u.email,
+        contact: u.phone,
+        district: p?.district || "",
+        city: p?.city || "",
+        status: u.role === "USER" ? ("Active" as const) : u.role === "ADMIN" ? ("Active" as const) : ("Blocked" as const),
+        verification: p?.verificationStatus === "VERIFIED" 
+          ? ("Verified" as const) 
+          : p?.verificationStatus === "PENDING" 
+          ? ("Pending" as const) 
+          : ("Rejected" as const),
+        plan: (u.subscriptions[0]?.plan?.name || "Free") as any,
+        joined: u.createdAt.toLocaleDateString("en-GB"),
+        photoUrl: p?.gender === "FEMALE" 
+          ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" 
+          : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+        bio: p?.bio || "No biography provided.",
+        religion: p?.religion || "Hindu",
+        caste: p?.caste || "Nair",
+        subCaste: p?.subCaste || "",
+        horoscopeRequired: p?.horoscopeRequired || false,
+        education: p?.education || "Graduate",
+        profession: p?.profession || "Software Professional",
+        company: p?.company || "",
+        incomeBracket: p?.incomeBracket || "₹6 - 10 Lakhs / year",
+        workLocation: p?.city || "",
+        fatherName: "Family Details",
+        motherName: "Family Details",
+        siblings: "Not Specified",
+        familyType: "Nuclear Family",
+        createdFor: "Self" as const,
+        partnerPreferences: {
+          ageRange: "24 - 28 yrs",
+          heightRange: "158 cm - 172 cm",
+          maritalStatus: "Never Married",
+          religion: "Hindu",
+          caste: "Any",
+          education: "Graduate",
+          district: p?.district || "Any",
+        },
+        telemetry: {
+          interestsReceivedCount: 0,
+          interestsReceivedFrom: [],
+          interestsSentCount: 0,
+          shortlistedCount: 0,
+          shortlistedFrom: [],
+          contactRevealsCount: 0,
+          hasUsedChat: false,
+          chatThreadsCount: 0,
+          totalMessagesCount: 0,
+          lastChatActive: "Never",
+        },
+      };
+    });
 
     return NextResponse.json({
       success: true,
