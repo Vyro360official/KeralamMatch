@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Settings, Save, CheckCircle2, XCircle, Edit3, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import HealthCheckupCenter from "@/components/admin/health-checkup-center";
 
 export default function AdminSettingsPage() {
   const [siteName, setSiteName] = useState("KeralamMatch");
@@ -68,6 +69,7 @@ export default function AdminSettingsPage() {
               { id: "email", label: "Email & Notifications" },
               { id: "payment", label: "Payment & Pricing Plans" },
               { id: "security", label: "Security & Rate Limiting" },
+              { id: "health", label: "Health Checkup Center" },
             ].map((cat) => (
               <button
                 key={cat.id}
@@ -197,7 +199,11 @@ export default function AdminSettingsPage() {
             </div>
           )}
 
-          {activeTab !== "general" && activeTab !== "taxonomy" && (
+          {activeTab === "health" && (
+            <HealthCheckupCenter />
+          )}
+
+          {activeTab !== "general" && activeTab !== "taxonomy" && activeTab !== "health" && (
             <div className="bg-white rounded-3xl p-8 border border-[rgba(28,28,30,0.08)] shadow-sm text-xs text-[#636366]">
               <h2 className="text-base font-bold text-[#0A1F44] capitalize mb-2">{activeTab} Settings</h2>
               <p>System configuration parameters are configured via environment variables for maximum production security.</p>
