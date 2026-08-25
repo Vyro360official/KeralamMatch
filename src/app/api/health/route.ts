@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
+// Force Vercel redeployment to load new environment variables
 export async function GET() {
   let dbStatus = "unknown";
   let dbError = null;
