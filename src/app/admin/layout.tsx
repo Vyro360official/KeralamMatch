@@ -6,11 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import Logo from "@/components/shared/logo";
 import {
   LayoutDashboard, Users, ShieldCheck, AlertTriangle, CreditCard,
-  BookOpen, HelpCircle, ClipboardList, Settings, LogOut, ChevronRight, Search, Bell
+  BookOpen, HelpCircle, ClipboardList, Settings, LogOut, ChevronRight, Search, Bell,
+  TrendingUp
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/growth", label: "Growth Center", icon: TrendingUp },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/verification", label: "Verification", icon: ShieldCheck },
   { href: "/admin/reports", label: "Reports", icon: AlertTriangle },
