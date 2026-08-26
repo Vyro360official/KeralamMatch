@@ -1,6 +1,7 @@
 import { IProfileRepository } from "./profile.repository";
 import { ProfileCreateInput } from "./profile.types";
 import { Profile, VerificationStatus } from "@prisma/client";
+import { validateCasteSubCasteRelationship } from "./profile.validators";
 
 export class ProfileService {
   constructor(private profileRepo: IProfileRepository) {}
@@ -14,6 +15,19 @@ export class ProfileService {
   }
 
   async saveProfile(userId: string, input: Partial<ProfileCreateInput>): Promise<Profile> {
+    // Validate Caste ➜ Sub-Caste relationship
+    if (input.caste !== undefined || input.subCaste !== undefined) {
+      const dbProfile = await this.profileRepo.findByUserId(userId);
+      const activeCaste = input.caste !== undefined ? input.caste : (dbProfile?.caste || null);
+      const activeSubCaste = input.subCaste !== undefined ? input.subCaste : (dbProfile?.subCaste || null);
+      if (activeCaste && activeSubCaste) {
+        const isValid = validateCasteSubCasteRelationship(activeCaste, activeSubCaste);
+        if (!isValid) {
+          throw new Error("INVALID_CASTE_SUB_CASTE_RELATIONSHIP: The selected sub-caste does not belong to your caste.");
+        }
+      }
+    }
+
     // 1. Create or Update Profile
     const profile = await this.profileRepo.upsertProfile(userId, input);
 

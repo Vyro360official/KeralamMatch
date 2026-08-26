@@ -34,6 +34,14 @@ interface UserItem {
   starNakshatram: string;
   rasi: string;
   horoscopeRequired: boolean;
+  motherTongue?: string;
+  timeOfBirth?: string;
+  placeOfBirth?: string;
+  dosham?: string;
+  gothram?: string;
+  complexion?: string;
+  bodyType?: string;
+  fitnessLevel?: string;
 
   // Education & Career
   education: string;
@@ -47,6 +55,14 @@ interface UserItem {
   motherName: string;
   siblings: string;
   familyType: string;
+  fatherOccupation?: string;
+  motherOccupation?: string;
+  familyStatus?: string;
+  familyValues?: string;
+  totalBrothers?: number;
+  marriedBrothers?: number;
+  totalSisters?: number;
+  marriedSisters?: number;
 
   // Profile Ownership & Creator
   createdFor: "Self" | "Son (Parent)" | "Daughter (Parent)" | "Brother (Sibling)" | "Sister (Sibling)" | "Friend" | "Relative";
@@ -54,6 +70,10 @@ interface UserItem {
   creatorPhone?: string;
   creatorRelation?: string;
   creatorDocUrl?: string;
+  creatorDocumentUrl?: string;
+  createdBy?: string;
+  createdById?: string;
+  lastModifiedBy?: string;
 
   // Partner Preferences
   partnerPreferences: {
@@ -64,6 +84,14 @@ interface UserItem {
     caste: string;
     education: string;
     district: string;
+    partnerAgeStrict?: boolean;
+    partnerMaritalStatus?: string;
+    partnerMaritalStatusStrict?: boolean;
+    partnerReligion?: string;
+    partnerReligionStrict?: boolean;
+    partnerCaste?: string;
+    partnerCasteStrict?: boolean;
+    partnerDistrict?: string;
   };
 
   // Activity & Engagement Telemetry
@@ -426,7 +454,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserItem[]>(INITIAL_USERS);
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive" | "blocked" | "premium">("all");
 
-  useEffect(() => {
+  const fetchUsers = () => {
     fetch("/api/admin/users?limit=100")
       .then((r) => r.json())
       .then((d) => {
@@ -443,6 +471,10 @@ export default function AdminUsersPage() {
         }
       })
       .catch((err) => console.error("Failed to load live database users:", err));
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [notification, setNotification] = useState<string | null>(null);
@@ -465,74 +497,59 @@ export default function AdminUsersPage() {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    setUsers((prev) => prev.map((u) => (u.id === editingUser.id ? editingUser : u)));
-    showToast(`User ${editingUser.name} updated successfully.`);
+    try {
+      const res = await fetch("/api/admin/users/edit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingUser.id, profile: editingUser })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`User ${editingUser.name} updated successfully.`);
+        fetchUsers();
+      } else {
+        showToast(`Error: ${data.error || "failed to save"}`);
+      }
+    } catch {
+      showToast("Network error updating profile.");
+    }
     setEditingUser(null);
   };
 
-  const handleCreateUser = (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUserName || !newUserPhone) return;
-    const created: UserItem = {
-      id: "usr-" + Date.now().toString().slice(-4),
-      name: newUserName,
-      gender: "Groom",
-      age: 28,
-      height: "175 cm",
-      maritalStatus: "Never Married",
-      email: newUserEmail || `${newUserName.toLowerCase().replace(/\s+/g, "")}@keralammatch.com`,
-      contact: newUserPhone,
-      district: newUserDistrict,
-      city: `${newUserDistrict}, Kerala`,
-      status: "Active",
-      verification: "Verified",
-      plan: newUserPlan,
-      joined: "Just now",
-      photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-      bio: "Newly added candidate profile.",
-      religion: "Hindu",
-      caste: "Nair",
-      subCaste: "Pillai",
-      starNakshatram: "Rohini",
-      rasi: "Rishabham",
-      horoscopeRequired: false,
-      education: "Professional Degree",
-      profession: "Software Professional",
-      company: "Tech Enterprise",
-      incomeBracket: "₹15 - 25 Lakhs / year",
-      workLocation: "Kerala",
-      fatherName: "Guardian Name",
-      motherName: "Mother Name",
-      siblings: "1 Sibling",
-      familyType: "Nuclear Family",
-      createdFor: "Self",
-      partnerPreferences: {
-        ageRange: "23 - 27 yrs",
-        heightRange: "155 - 170 cm",
-        maritalStatus: "Never Married",
-        religion: "Hindu",
-        caste: "Any",
-        education: "Graduate",
-        district: "Any District",
-      },
-      telemetry: {
-        interestsReceivedCount: 0,
-        interestsReceivedFrom: [],
-        interestsSentCount: 0,
-        shortlistedCount: 0,
-        shortlistedFrom: [],
-        contactRevealsCount: 0,
-        hasUsedChat: false,
-        chatThreadsCount: 0,
-        totalMessagesCount: 0,
-        lastChatActive: "Never",
-      },
-    };
-    setUsers((prev) => [created, ...prev]);
-    showToast(`User ${newUserName} added successfully.`);
+
+    const tempPassword = "Temp" + Math.random().toString(36).substring(2, 8) + "!";
+
+    try {
+      const res = await fetch("/api/admin/users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newUserName,
+          email: newUserEmail,
+          phone: newUserPhone,
+          gender: "Groom",
+          plan: newUserPlan,
+          district: newUserDistrict,
+          tempPassword
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Profile created successfully with Temporary Password: ${tempPassword}`);
+        fetchUsers();
+      } else {
+        showToast(`Error creating user: ${data.error || "unknown"}`);
+      }
+    } catch {
+      showToast("Network error creating user profile.");
+    }
+
     setIsAddUserOpen(false);
     setNewUserName("");
     setNewUserEmail("");
@@ -779,11 +796,11 @@ export default function AdminUsersPage() {
 
       {/* ── VIEW FULL 360° CANDIDATE PROFILE MODAL ───────────────────────── */}
       {viewingUser && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl border border-[rgba(28,28,30,0.12)] space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#090D16] text-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl border border-slate-800 space-y-6 max-h-[90vh] overflow-y-auto">
             
             {/* Header Hero Banner */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[rgba(28,28,30,0.08)]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
               <div className="flex items-center space-x-4">
                 <img
                   src={viewingUser.photoUrl}
@@ -792,32 +809,32 @@ export default function AdminUsersPage() {
                 />
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-bold text-[#0A1F44]">{viewingUser.name}</h3>
+                    <h3 className="text-xl font-bold text-white">{viewingUser.name}</h3>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      viewingUser.gender === "Bride" ? "bg-pink-100 text-pink-800" : "bg-blue-100 text-blue-800"
+                      viewingUser.gender === "Bride" ? "bg-pink-900/30 text-pink-300" : "bg-blue-900/30 text-blue-300"
                     }`}>
                       {viewingUser.gender} ({viewingUser.age} yrs)
                     </span>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-950/40 text-emerald-400 font-bold text-[10px] border border-emerald-500/20">
                       {viewingUser.verification}
                     </span>
                   </div>
-                  <p className="text-xs text-[#636366] mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     ID: {viewingUser.id} · Native: {viewingUser.city} · {viewingUser.plan} Member
                   </p>
                 </div>
               </div>
-              <button onClick={() => setViewingUser(null)} className="h-8 w-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center self-end sm:self-auto">
+              <button onClick={() => setViewingUser(null)} className="h-8 w-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center self-end sm:self-auto text-white transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Modal Navigation 4-Tabs */}
-            <div className="flex rounded-full bg-[#FCFBF7] p-1 border border-[rgba(28,28,30,0.08)] text-xs font-semibold overflow-x-auto">
+            <div className="flex rounded-full bg-slate-950 p-1 border border-slate-850 text-xs font-semibold overflow-x-auto">
               <button
                 onClick={() => setViewingTab("profile")}
                 className={`flex-1 py-2 rounded-full transition-all whitespace-nowrap ${
-                  viewingTab === "profile" ? "bg-[#C81D45] text-white shadow-sm font-bold" : "text-[#636366]"
+                  viewingTab === "profile" ? "bg-[#C81D45] text-white shadow-sm font-bold" : "text-slate-400 hover:text-white"
                 }`}
               >
                 1. Full Personal, Bio & Family
@@ -825,7 +842,7 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setViewingTab("preferences")}
                 className={`flex-1 py-2 rounded-full transition-all whitespace-nowrap ${
-                  viewingTab === "preferences" ? "bg-[#C81D45] text-white shadow-sm font-bold" : "text-[#636366]"
+                  viewingTab === "preferences" ? "bg-[#C81D45] text-white shadow-sm font-bold" : "text-slate-400 hover:text-white"
                 }`}
               >
                 2. Partner Preferences
@@ -833,7 +850,7 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setViewingTab("verification")}
                 className={`flex-1 py-2 rounded-full transition-all whitespace-nowrap ${
-                  viewingTab === "verification" ? "bg-[#C81D45] text-white shadow-sm font-bold" : "text-[#636366]"
+                  viewingTab === "verification" ? "bg-[#C81D45] text-white shadow-sm font-bold" : "text-slate-400 hover:text-white"
                 }`}
               >
                 3. Creator & ID Proofs
@@ -841,7 +858,7 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setViewingTab("telemetry")}
                 className={`flex-1 py-2 rounded-full transition-all whitespace-nowrap ${
-                  viewingTab === "telemetry" ? "bg-[#C81D45] text-white shadow-sm font-bold" : "text-[#636366]"
+                  viewingTab === "telemetry" ? "bg-[#C81D45] text-white shadow-sm font-bold" : "text-slate-400 hover:text-white"
                 }`}
               >
                 4. Activity & Telemetry
@@ -852,12 +869,12 @@ export default function AdminUsersPage() {
             {viewingTab === "profile" && (
               <div className="space-y-4 text-xs">
                 {/* Bio Box */}
-                <div className="p-4 bg-[#FCFBF7] rounded-2xl border border-[rgba(28,28,30,0.06)] space-y-1.5">
-                  <h4 className="font-bold text-[#0A1F44] flex items-center gap-1.5">
+                <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-1.5">
+                  <h4 className="font-bold text-white flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5 text-[#C81D45]" />
                     <span>Candidate Bio / About Self</span>
                   </h4>
-                  <p className="text-xs text-[#636366] leading-relaxed italic">
+                  <p className="text-xs text-slate-300 leading-relaxed italic">
                     "{viewingUser.bio}"
                   </p>
                 </div>
@@ -865,52 +882,66 @@ export default function AdminUsersPage() {
                 {/* Grid: Cultural & Horoscope vs Education & Career */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Cultural & Horoscope */}
-                  <div className="p-4 bg-white rounded-2xl border border-[rgba(28,28,30,0.08)] space-y-2">
-                    <h4 className="font-bold text-[#0A1F44] flex items-center gap-1.5 border-b border-[rgba(28,28,30,0.06)] pb-1.5">
-                      <Award className="h-3.5 w-3.5 text-purple-700" />
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                    <h4 className="font-bold text-white flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
+                      <Award className="h-3.5 w-3.5 text-purple-400" />
                       <span>Community & Horoscope Details</span>
                     </h4>
                     <div className="space-y-1">
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Religion:</span><span className="font-bold text-[#0A1F44]">{viewingUser.religion}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Caste:</span><span className="font-bold text-[#0A1F44]">{viewingUser.caste}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Sub-Caste:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.subCaste || "Not Specified"}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Star / Nakshatram:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.starNakshatram}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Rasi:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.rasi}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Horoscope Match:</span><span className="font-semibold text-emerald-700">{viewingUser.horoscopeRequired ? "Required / Attached" : "Not Compulsory"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Religion:</span><span className="font-bold text-white">{viewingUser.religion}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Caste:</span><span className="font-bold text-white">{viewingUser.caste}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Sub-Caste:</span><span className="font-semibold text-white">{viewingUser.subCaste || "Not Specified"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Mother Tongue:</span><span className="font-semibold text-white">{viewingUser.motherTongue}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Star / Nakshatram:</span><span className="font-semibold text-white">{viewingUser.starNakshatram || "Not Specified"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Rasi:</span><span className="font-semibold text-white">{viewingUser.rasi || "Not Specified"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Time of Birth:</span><span className="font-semibold text-white">{viewingUser.timeOfBirth || "Not Specified"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Place of Birth:</span><span className="font-semibold text-white">{viewingUser.placeOfBirth || "Not Specified"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Dosham:</span><span className="font-semibold text-white">{viewingUser.dosham || "None / Clean"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Gothram:</span><span className="font-semibold text-white">{viewingUser.gothram || "Not Specified"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Horoscope Required:</span><span className="font-semibold text-emerald-400">{viewingUser.horoscopeRequired ? "Required / Attached" : "Not Compulsory"}</span></div>
                     </div>
                   </div>
 
                   {/* Education & Career */}
-                  <div className="p-4 bg-white rounded-2xl border border-[rgba(28,28,30,0.08)] space-y-2">
-                    <h4 className="font-bold text-[#0A1F44] flex items-center gap-1.5 border-b border-[rgba(28,28,30,0.06)] pb-1.5">
-                      <Briefcase className="h-3.5 w-3.5 text-blue-700" />
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                    <h4 className="font-bold text-white flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
+                      <Briefcase className="h-3.5 w-3.5 text-blue-400" />
                       <span>Education & Career Profile</span>
                     </h4>
                     <div className="space-y-1">
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Education:</span><span className="font-bold text-[#0A1F44] text-right truncate max-w-[170px]">{viewingUser.education}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Profession:</span><span className="font-bold text-[#0A1F44]">{viewingUser.profession}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Company:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.company}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Annual Income:</span><span className="font-bold text-[#C81D45]">{viewingUser.incomeBracket}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Work Location:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.workLocation}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Height & Status:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.height} · {viewingUser.maritalStatus}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Education:</span><span className="font-bold text-white text-right truncate max-w-[170px]">{viewingUser.education}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Profession:</span><span className="font-bold text-white">{viewingUser.profession}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Company:</span><span className="font-semibold text-white">{viewingUser.company || "Not Disclosed"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Annual Income:</span><span className="font-bold text-[#C81D45]">{viewingUser.incomeBracket}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Work Location:</span><span className="font-semibold text-white">{viewingUser.city || viewingUser.district}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Height:</span><span className="font-semibold text-white">{viewingUser.height}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Marital Status:</span><span className="font-semibold text-white">{viewingUser.maritalStatus}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Complexion:</span><span className="font-semibold text-white">{viewingUser.complexion || "Not Disclosed"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Body Type:</span><span className="font-semibold text-white">{viewingUser.bodyType || "Not Disclosed"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Fitness Level:</span><span className="font-semibold text-white">{viewingUser.fitnessLevel || "Not Disclosed"}</span></div>
                     </div>
                   </div>
                 </div>
 
                 {/* Family Background */}
-                <div className="p-4 bg-white rounded-2xl border border-[rgba(28,28,30,0.08)] space-y-2">
-                  <h4 className="font-bold text-[#0A1F44] flex items-center gap-1.5 border-b border-[rgba(28,28,30,0.06)] pb-1.5">
-                    <Home className="h-3.5 w-3.5 text-amber-700" />
+                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                  <h4 className="font-bold text-white flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
+                    <Home className="h-3.5 w-3.5 text-amber-400" />
                     <span>Family Hierarchy & Background</span>
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Father:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.fatherName}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Mother:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.motherName}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Father's Name:</span><span className="font-semibold text-white">{viewingUser.fatherName || "Not Specified"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Father's Occupation:</span><span className="font-semibold text-white">{viewingUser.fatherOccupation || "Not Specified"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Mother's Name:</span><span className="font-semibold text-white">{viewingUser.motherName || "Not Specified"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Mother's Occupation:</span><span className="font-semibold text-white">{viewingUser.motherOccupation || "Not Specified"}</span></div>
                     </div>
                     <div className="space-y-1">
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Siblings:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.siblings}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Family Type:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.familyType}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Family Status:</span><span className="font-semibold text-white">{viewingUser.familyStatus || "Middle Class"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Family Type:</span><span className="font-semibold text-white">{viewingUser.familyType || "Nuclear Family"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Family Values:</span><span className="font-semibold text-white">{viewingUser.familyValues || "Traditional"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Brothers (Total/Married):</span><span className="font-semibold text-white">{viewingUser.totalBrothers || 0} / {viewingUser.marriedBrothers || 0}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Sisters (Total/Married):</span><span className="font-semibold text-white">{viewingUser.totalSisters || 0} / {viewingUser.marriedSisters || 0}</span></div>
                     </div>
                   </div>
                 </div>
@@ -920,21 +951,25 @@ export default function AdminUsersPage() {
             {/* TAB 2: PARTNER PREFERENCES */}
             {viewingTab === "preferences" && (
               <div className="space-y-4 text-xs">
-                <div className="p-5 bg-[#FCFBF7] rounded-2xl border border-[rgba(28,28,30,0.06)] space-y-3">
-                  <h4 className="font-bold text-[#0A1F44] flex items-center gap-1.5">
+                <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800 space-y-3">
+                  <h4 className="font-bold text-white flex items-center gap-1.5">
                     <Heart className="h-4 w-4 text-[#C81D45]" />
                     <span>Expected Partner Criteria & Match Preferences</span>
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-4 rounded-xl border border-[rgba(28,28,30,0.06)]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
                     <div className="space-y-2">
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Preferred Age:</span><span className="font-bold text-[#0A1F44]">{viewingUser.partnerPreferences.ageRange}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Preferred Height:</span><span className="font-bold text-[#0A1F44]">{viewingUser.partnerPreferences.heightRange}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Marital Status:</span><span className="font-semibold text-[#0A1F44]">{viewingUser.partnerPreferences.maritalStatus}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Preferred Age Range:</span><span className="font-bold text-white">{viewingUser.partnerPreferences.ageRange}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Age Strict Constraint:</span><span className="font-bold text-slate-300">{viewingUser.partnerPreferences.partnerAgeStrict ? "STRICT" : "PREFERRED"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Preferred Height Range:</span><span className="font-bold text-white">{viewingUser.partnerPreferences.heightRange}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Marital Status Preferred:</span><span className="font-semibold text-white">{viewingUser.partnerPreferences.partnerMaritalStatus || "Any"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Marital Status Constraint:</span><span className="font-semibold text-slate-300">{viewingUser.partnerPreferences.partnerMaritalStatusStrict ? "STRICT" : "PREFERRED"}</span></div>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Religion & Caste:</span><span className="font-bold text-[#0A1F44]">{viewingUser.partnerPreferences.religion} · {viewingUser.partnerPreferences.caste}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Minimum Education:</span><span className="font-semibold text-[#0A1F44] truncate max-w-[160px]">{viewingUser.partnerPreferences.education}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8E8E93]">Preferred Districts:</span><span className="font-semibold text-[#0A1F44] text-right truncate max-w-[160px]">{viewingUser.partnerPreferences.district}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Religion Preference:</span><span className="font-bold text-white">{viewingUser.partnerPreferences.partnerReligion || "Any"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Religion Constraint:</span><span className="font-bold text-slate-300">{viewingUser.partnerPreferences.partnerReligionStrict ? "STRICT" : "PREFERRED"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Caste Preferred:</span><span className="font-semibold text-white">{viewingUser.partnerPreferences.partnerCaste || "Any"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Caste Constraint:</span><span className="font-semibold text-slate-300">{viewingUser.partnerPreferences.partnerCasteStrict ? "STRICT" : "PREFERRED"}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-400">Preferred Districts:</span><span className="font-semibold text-white truncate max-w-[160px]">{viewingUser.partnerPreferences.partnerDistrict || "Any"}</span></div>
                     </div>
                   </div>
                 </div>
@@ -945,11 +980,11 @@ export default function AdminUsersPage() {
             {viewingTab === "verification" && (
               <div className="space-y-4 text-xs">
                 {/* Creator Box */}
-                <div className="p-4 bg-purple-50/70 border border-purple-200/80 rounded-2xl space-y-2">
+                <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-purple-950 flex items-center gap-1.5">
-                      <Users className="h-4 w-4 text-purple-700" />
-                      <span>Profile Ownership: {viewingUser.createdFor}</span>
+                    <span className="font-bold text-white flex items-center gap-1.5">
+                      <Users className="h-4 w-4 text-purple-400" />
+                      <span>Profile Creator: {viewingUser.createdFor}</span>
                     </span>
                     {viewingUser.creatorPhone && (
                       <a
@@ -961,34 +996,41 @@ export default function AdminUsersPage() {
                       </a>
                     )}
                   </div>
-                  {viewingUser.createdFor !== "Self" && (
-                    <div className="space-y-1 text-[11px] text-purple-900 pt-1">
-                      <div>Guardian / Creator Name: <span className="font-bold">{viewingUser.creatorName}</span></div>
-                      <div>Relationship: <span className="font-semibold">{viewingUser.creatorRelation}</span></div>
+                  <div className="space-y-1 text-[11px] text-slate-300 pt-1">
+                    {viewingUser.createdFor !== "Self" && (
+                      <>
+                        <div>Guardian / Creator Name: <span className="font-bold text-white">{viewingUser.creatorName || "Not Specified"}</span></div>
+                        <div>Creator Relation: <span className="font-semibold text-white">{viewingUser.creatorRelation || "Not Specified"}</span></div>
+                      </>
+                    )}
+                    <div className="border-t border-slate-800/80 my-2 pt-2 space-y-1 text-slate-400">
+                      <div>Created By Metadata: <span className="font-bold text-white">{viewingUser.createdBy || "USER"}</span></div>
+                      {viewingUser.createdById && <div>Created By Staff ID: <span className="font-semibold text-white">{viewingUser.createdById}</span></div>}
+                      <div>Last Modified By: <span className="font-bold text-emerald-400">{viewingUser.lastModifiedBy || "Never modified by admin"}</span></div>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* ID Proof Preview */}
-                <div className="p-4 bg-[#FCFBF7] rounded-2xl border border-[rgba(28,28,30,0.06)] space-y-2">
-                  <h4 className="font-bold text-[#0A1F44] flex items-center gap-1.5">
-                    <Shield className="h-3.5 w-3.5 text-emerald-700" />
-                    <span>Attached Government ID / Relationship Proof</span>
+                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                  <h4 className="font-bold text-white flex items-center gap-1.5">
+                    <Shield className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Government ID / Relationship Proof Documents</span>
                   </h4>
-                  {viewingUser.creatorDocUrl ? (
+                  {viewingUser.creatorDocumentUrl || viewingUser.creatorDocUrl ? (
                     <div className="space-y-2">
                       <img
-                        src={viewingUser.creatorDocUrl}
+                        src={viewingUser.creatorDocumentUrl || viewingUser.creatorDocUrl}
                         alt="Document Proof"
-                        className="w-full h-44 rounded-xl object-cover border border-[rgba(28,28,30,0.12)] shadow-sm"
+                        className="w-full h-44 rounded-xl object-cover border border-slate-800 shadow-sm"
                       />
-                      <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
+                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
                         <CheckSquare className="h-3.5 w-3.5" />
-                        <span>Document verified by KeralamMatch administration</span>
+                        <span>ID document verified by KeralamMatch administration staff</span>
                       </span>
                     </div>
                   ) : (
-                    <div className="p-4 text-center text-[#8E8E93] bg-white rounded-xl">
+                    <div className="p-4 text-center text-slate-400 bg-slate-900 rounded-xl">
                       Self-verified profile with live facial selfie and OTP verification.
                     </div>
                   )}
@@ -1001,115 +1043,115 @@ export default function AdminUsersPage() {
               <div className="space-y-4 text-xs">
                 {/* Metrics 3-Card Summary Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 bg-amber-50/70 border border-amber-200/60 rounded-2xl space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-amber-800 flex items-center gap-1">
+                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
+                    <span className="text-[10px] font-bold uppercase text-amber-500 flex items-center gap-1">
                       <Star className="h-3 w-3 fill-amber-600 text-amber-600" />
                       <span>Interests Received</span>
                     </span>
-                    <div className="text-2xl font-extrabold text-amber-950">
+                    <div className="text-2xl font-extrabold text-white">
                       {viewingUser.telemetry.interestsReceivedCount}
                     </div>
-                    <span className="text-[10px] text-amber-800">
+                    <span className="text-[10px] text-slate-400">
                       Sent {viewingUser.telemetry.interestsSentCount} interests
                     </span>
                   </div>
 
-                  <div className="p-4 bg-red-50/70 border border-red-200/60 rounded-2xl space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-red-800 flex items-center gap-1">
+                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
+                    <span className="text-[10px] font-bold uppercase text-red-500 flex items-center gap-1">
                       <Heart className="h-3 w-3 fill-red-600 text-red-600" />
                       <span>Shortlisted By</span>
                     </span>
-                    <div className="text-2xl font-extrabold text-red-950">
+                    <div className="text-2xl font-extrabold text-white">
                       {viewingUser.telemetry.shortlistedCount}
                     </div>
-                    <span className="text-[10px] text-red-800">
+                    <span className="text-[10px] text-slate-400">
                       Candidates saved profile
                     </span>
                   </div>
 
-                  <div className="p-4 bg-blue-50/70 border border-blue-200/60 rounded-2xl space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-blue-800 flex items-center gap-1">
-                      <PhoneCall className="h-3 w-3 text-blue-600" />
-                      <span>24h Contact Unlocks</span>
+                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
+                    <span className="text-[10px] font-bold uppercase text-blue-500 flex items-center gap-1">
+                      <PhoneCall className="h-3 w-3 text-blue-500" />
+                      <span>Contact Unlocks</span>
                     </span>
-                    <div className="text-2xl font-extrabold text-blue-950">
+                    <div className="text-2xl font-extrabold text-white">
                       {viewingUser.telemetry.contactRevealsCount}
                     </div>
-                    <span className="text-[10px] text-blue-800">
+                    <span className="text-[10px] text-slate-400">
                       Mutual consent reveals
                     </span>
                   </div>
                 </div>
 
                 {/* Geographic Breakdown */}
-                <div className="bg-[#FCFBF7] p-5 rounded-2xl border border-[rgba(28,28,30,0.06)] space-y-3">
-                  <h4 className="font-bold text-[#0A1F44] flex items-center gap-1.5">
+                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
+                  <h4 className="font-bold text-white flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5 text-[#C81D45]" />
                     <span>Geographic Origin Breakdown (Interests & Shortlists)</span>
                   </h4>
                   <div className="space-y-2">
                     <div className="flex flex-wrap gap-1.5">
-                      <span className="text-[#8E8E93] text-[11px] self-center mr-1">Interests from:</span>
+                      <span className="text-slate-400 text-[11px] self-center mr-1">Interests from:</span>
                       {viewingUser.telemetry.interestsReceivedFrom.length > 0 ? (
                         viewingUser.telemetry.interestsReceivedFrom.map((loc, idx) => (
-                          <span key={idx} className="px-2.5 py-1 bg-white border border-[rgba(28,28,30,0.08)] rounded-full text-[11px] font-semibold text-[#0A1F44]">
+                          <span key={idx} className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-full text-[11px] font-semibold text-white">
                             {loc}
                           </span>
                         ))
                       ) : (
-                        <span className="text-[#8E8E93]">No incoming interests yet</span>
+                        <span className="text-slate-400">No incoming interests yet</span>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-1.5 pt-1">
-                      <span className="text-[#8E8E93] text-[11px] self-center mr-1">Shortlisted in:</span>
+                      <span className="text-slate-400 text-[11px] self-center mr-1">Shortlisted in:</span>
                       {viewingUser.telemetry.shortlistedFrom.length > 0 ? (
                         viewingUser.telemetry.shortlistedFrom.map((loc, idx) => (
-                          <span key={idx} className="px-2.5 py-1 bg-white border border-[rgba(28,28,30,0.08)] rounded-full text-[11px] font-semibold text-[#0A1F44]">
+                          <span key={idx} className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-full text-[11px] font-semibold text-white">
                             {loc}
                           </span>
                         ))
                       ) : (
-                        <span className="text-[#8E8E93]">No shortlists yet</span>
+                        <span className="text-slate-400">No shortlists yet</span>
                       )}
                     </div>
                   </div>
                 </div>
 
                 {/* Chat Telemetry Box (Zero Message Snooping) */}
-                <div className="bg-[#FCFBF7] p-5 rounded-2xl border border-[rgba(28,28,30,0.06)] space-y-3">
+                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-[#0A1F44] flex items-center gap-1.5">
+                    <h4 className="font-bold text-white flex items-center gap-1.5">
                       <MessageSquare className="h-3.5 w-3.5 text-[#0A369D]" />
                       <span>In-App Chat Telemetry</span>
                     </h4>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      viewingUser.telemetry.hasUsedChat ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-600"
+                      viewingUser.telemetry.hasUsedChat ? "bg-emerald-950 text-emerald-400 border border-emerald-500/20" : "bg-slate-900 text-slate-400"
                     }`}>
                       {viewingUser.telemetry.hasUsedChat ? "Has Used Chat (Active)" : "Never Chatted"}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 bg-white p-3 rounded-xl border border-[rgba(28,28,30,0.06)]">
+                  <div className="grid grid-cols-3 gap-2 bg-slate-900 p-3 rounded-xl border border-slate-800">
                     <div>
-                      <span className="text-[10px] text-[#8E8E93] block">Active Threads</span>
-                      <span className="font-bold text-[#0A1F44] text-sm">{viewingUser.telemetry.chatThreadsCount} conversations</span>
+                      <span className="text-[10px] text-slate-400 block">Active Threads</span>
+                      <span className="font-bold text-white text-sm">{viewingUser.telemetry.chatThreadsCount} conversations</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-[#8E8E93] block">Total Messages</span>
-                      <span className="font-bold text-[#0A1F44] text-sm">{viewingUser.telemetry.totalMessagesCount} messages</span>
+                      <span className="text-[10px] text-slate-400 block">Total Messages</span>
+                      <span className="font-bold text-white text-sm">{viewingUser.telemetry.totalMessagesCount} messages</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-[#8E8E93] block">Last Activity</span>
-                      <span className="font-bold text-[#0A1F44] text-sm">{viewingUser.telemetry.lastChatActive}</span>
+                      <span className="text-[10px] text-slate-400 block">Last Activity</span>
+                      <span className="font-bold text-white text-sm">{viewingUser.telemetry.lastChatActive}</span>
                     </div>
                   </div>
 
                   {/* Privacy Guard Notice */}
-                  <div className="p-3 bg-purple-50 text-purple-900 border border-purple-200 rounded-xl text-[11px] flex items-start space-x-2">
-                    <Lock className="h-3.5 w-3.5 text-purple-700 flex-shrink-0 mt-0.5" />
+                  <div className="p-3 bg-purple-950/20 text-purple-200 border border-purple-900/40 rounded-xl text-[11px] flex items-start space-x-2">
+                    <Lock className="h-3.5 w-3.5 text-purple-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold">Zero-Knowledge Message Privacy Guaranteed:</span>
-                      <p className="text-[10px] text-purple-800 mt-0.5">
+                      <span className="font-bold text-purple-300">Zero-Knowledge Message Privacy Guaranteed:</span>
+                      <p className="text-[10px] text-purple-250 mt-0.5">
                         Private message contents are encrypted with AES-256-GCM. Admins can view activity volume and timestamps, but cannot decrypt or read private message contents.
                       </p>
                     </div>
@@ -1119,11 +1161,11 @@ export default function AdminUsersPage() {
             )}
 
             {/* Modal Bottom Action Bar */}
-            <div className="flex justify-between items-center pt-2 border-t border-[rgba(28,28,30,0.08)]">
+            <div className="flex justify-between items-center pt-2 border-t border-slate-800">
               <button
                 type="button"
                 onClick={() => setViewingUser(null)}
-                className="px-4 py-2 rounded-full border border-[rgba(28,28,30,0.12)] text-xs font-bold text-[#636366]"
+                className="px-4 py-2 rounded-full border border-slate-700 text-xs font-bold text-slate-300 hover:bg-slate-800 transition-colors"
               >
                 Close
               </button>
@@ -1135,7 +1177,7 @@ export default function AdminUsersPage() {
                     setViewingUser(null);
                     setEditingUser(target);
                   }}
-                  className="px-5 py-2 rounded-full bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white text-xs font-bold shadow-sm"
+                  className="px-5 py-2 rounded-full bg-[#C81D45] hover:bg-[#b0173b] text-white text-xs font-bold shadow-md transition-colors"
                 >
                   Edit Profile Attributes
                 </button>

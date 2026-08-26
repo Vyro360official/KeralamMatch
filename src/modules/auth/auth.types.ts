@@ -13,6 +13,9 @@ export interface SessionUser {
   phone: string;
   role: AuthRole;
   verified: boolean;
+  designation?: string | null;
+  permissions?: string[];
+  status?: string;
 }
 
 export interface SessionContext {

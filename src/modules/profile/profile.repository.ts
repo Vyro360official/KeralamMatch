@@ -14,51 +14,71 @@ export interface IProfileRepository {
 
 export class ProfileRepository implements IProfileRepository {
   async upsertProfile(userId: string, input: Partial<ProfileCreateInput>): Promise<Profile> {
-    const updateData: any = {};
-    if (input.firstName !== undefined) updateData.firstName = input.firstName;
-    if (input.lastName !== undefined) updateData.lastName = input.lastName;
-    if (input.gender !== undefined) updateData.gender = input.gender;
-    if (input.dateOfBirth !== undefined) updateData.dateOfBirth = new Date(input.dateOfBirth);
-    if (input.height !== undefined) updateData.height = input.height;
-    if (input.maritalStatus !== undefined) updateData.maritalStatus = input.maritalStatus;
-    if (input.motherTongue !== undefined) updateData.motherTongue = input.motherTongue;
-    if (input.religion !== undefined) updateData.religion = input.religion;
-    if (input.caste !== undefined) updateData.caste = input.caste;
-    if (input.subCaste !== undefined) updateData.subCaste = input.subCaste;
-    if (input.horoscopeRequired !== undefined) updateData.horoscopeRequired = input.horoscopeRequired;
-    if (input.education !== undefined) updateData.education = input.education;
-    if (input.profession !== undefined) updateData.profession = input.profession;
-    if (input.company !== undefined) updateData.company = input.company;
-    if (input.incomeBracket !== undefined) updateData.incomeBracket = input.incomeBracket;
-    if (input.district !== undefined) updateData.district = input.district;
-    if (input.state !== undefined) updateData.state = input.state;
-    if (input.country !== undefined) updateData.country = input.country;
-    if (input.city !== undefined) updateData.city = input.city;
-    if (input.bio !== undefined) updateData.bio = input.bio;
+    const profileFields = [
+      "firstName", "lastName", "gender", "maritalStatus", "motherTongue", "religion",
+      "caste", "subCaste", "horoscopeRequired", "education", "profession", "company",
+      "incomeBracket", "district", "state", "country", "city", "bio", "voiceIntroduction",
+      
+      // Extended fields
+      "timeOfBirth", "placeOfBirth", "starNakshatram", "rasi", "dosham", "gothram", "horoscopeDocumentUrl",
+      "bodyType", "complexion", "physicalStatus", "fitnessLevel", "foodHabits", "smoking", "drinking",
+      
+      // Family fields
+      "familyStatus", "familyType", "familyValues", "fatherName", "fatherOccupation", "motherName", "motherOccupation",
+      "totalBrothers", "marriedBrothers", "totalSisters", "marriedSisters", "familyAssets", "hobbies",
+      
+      // Creator details
+      "createdFor", "creatorName", "creatorPhone", "creatorRelation", "creatorDocumentUrl",
+      
+      // Auditing
+      "createdBy", "createdById", "lastModifiedBy",
 
-    const createData = {
+      // Partner preferences
+      "partnerAgeMin", "partnerAgeMax", "partnerAgeStrict", "partnerHeightMin", "partnerHeightMax", "partnerHeightStrict",
+      "partnerMaritalStatus", "partnerMaritalStatusStrict", "partnerMotherTongue", "partnerMotherTongueStrict",
+      "partnerPhysicalStatus", "partnerPhysicalStatusStrict", "partnerDosham", "partnerDoshamStrict",
+      "partnerReligion", "partnerReligionStrict", "partnerCaste", "partnerCasteStrict",
+      "partnerSubCaste", "partnerSubCasteStrict", "partnerEducation", "partnerEducationStrict",
+      "partnerProfession", "partnerProfessionStrict", "partnerFoodHabits", "partnerFoodHabitsStrict",
+      "partnerDrinking", "partnerDrinkingStrict", "partnerSmoking", "partnerSmokingStrict",
+      "partnerCountry", "partnerCountryStrict", "partnerDistrict", "partnerDistrictStrict", "partnerCity"
+    ];
+
+    const updateData: any = {};
+    const createData: any = {
       userId,
-      firstName: input.firstName || "Member",
-      lastName: input.lastName || "",
-      gender: input.gender || "MALE",
-      dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : new Date("1995-01-01"),
-      height: input.height || 165,
-      maritalStatus: input.maritalStatus || "Never Married",
-      motherTongue: input.motherTongue || "Malayalam",
-      religion: input.religion || "",
-      caste: input.caste || null,
-      subCaste: input.subCaste || null,
-      horoscopeRequired: input.horoscopeRequired || false,
-      education: input.education || "",
-      profession: input.profession || "",
-      company: input.company || null,
-      incomeBracket: input.incomeBracket || "",
-      district: input.district || "",
-      state: input.state || "Kerala",
-      country: input.country || "India",
-      city: input.city || "",
-      bio: input.bio || "",
+      firstName: "Member",
+      lastName: "",
+      gender: "MALE",
+      dateOfBirth: new Date("1995-01-01"),
+      height: 165,
+      maritalStatus: "Never Married",
+      religion: "",
+      education: "",
+      profession: "",
+      incomeBracket: "",
+      district: "",
+      city: "",
+      bio: "",
     };
+
+    if (input.dateOfBirth !== undefined) {
+      const parsedDob = new Date(input.dateOfBirth);
+      updateData.dateOfBirth = parsedDob;
+      createData.dateOfBirth = parsedDob;
+    }
+    if (input.height !== undefined) {
+      const parsedHeight = Number(input.height);
+      updateData.height = parsedHeight;
+      createData.height = parsedHeight;
+    }
+
+    for (const field of profileFields) {
+      if (input[field as keyof typeof input] !== undefined) {
+        updateData[field] = input[field as keyof typeof input];
+        createData[field] = input[field as keyof typeof input];
+      }
+    }
 
     return prisma.profile.upsert({
       where: { userId },

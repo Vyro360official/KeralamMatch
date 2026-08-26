@@ -107,4 +107,31 @@ export function validateStepInput(stepIndex: number, input: any) {
   return profileSavePartialSchema.safeParse(input);
 }
 
+import { KERALA_RELIGIONS_TAXONOMY } from "@/lib/kerala-data";
+
+export function validateCasteSubCasteRelationship(caste?: string | null, subCaste?: string | null): boolean {
+  if (!caste || !subCaste) return true;
+  if (caste.toLowerCase() === "other" || subCaste.toLowerCase() === "other") return true;
+  if (subCaste.toLowerCase().startsWith("other:") || subCaste.toLowerCase().includes("other")) return true;
+
+  let belongsToCaste: string | null = null;
+  let subCasteExistsInMasterData = false;
+
+  for (const rel of KERALA_RELIGIONS_TAXONOMY) {
+    for (const c of rel.castes) {
+      if (c.subcastes.some((s) => s.toLowerCase() === subCaste.toLowerCase())) {
+        subCasteExistsInMasterData = true;
+        if (c.caste.toLowerCase() === caste.toLowerCase()) {
+          belongsToCaste = c.caste;
+        }
+      }
+    }
+  }
+
+  if (subCasteExistsInMasterData && !belongsToCaste) {
+    return false;
+  }
+  return true;
+}
+
 export type ProfileCreateInputZod = z.infer<typeof profileCreateSchema>;

@@ -7,35 +7,73 @@ import Logo from "@/components/shared/logo";
 import {
   LayoutDashboard, Users, ShieldCheck, AlertTriangle, CreditCard,
   BookOpen, HelpCircle, ClipboardList, Settings, LogOut, ChevronRight, Search, Bell,
-  TrendingUp
+  TrendingUp, Key
 } from "lucide-react";
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: any;
+  requiredPermission?: string;
+}
+
+const navItems: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/growth", label: "Growth Center", icon: TrendingUp },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/verification", label: "Verification", icon: ShieldCheck },
-  { href: "/admin/reports", label: "Reports", icon: AlertTriangle },
-  { href: "/admin/payments", label: "Payments", icon: CreditCard },
-  { href: "/admin/blog", label: "Blog CMS", icon: BookOpen },
-  { href: "/admin/faq", label: "FAQ", icon: HelpCircle },
-  { href: "/admin/audit", label: "Audit Logs", icon: ClipboardList },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin/growth", label: "Growth Center", icon: TrendingUp, requiredPermission: "VIEW_GROWTH" },
+  { href: "/admin/users", label: "Users", icon: Users, requiredPermission: "MANAGE_USERS" },
+  { href: "/admin/verification", label: "Verification", icon: ShieldCheck, requiredPermission: "VERIFY_PROFILES" },
+  { href: "/admin/reports", label: "Reports", icon: AlertTriangle, requiredPermission: "MANAGE_REPORTS" },
+  { href: "/admin/payments", label: "Payments", icon: CreditCard, requiredPermission: "VIEW_PAYMENTS" },
+  { href: "/admin/blog", label: "Blog CMS", icon: BookOpen, requiredPermission: "MANAGE_CMS" },
+  { href: "/admin/faq", label: "FAQ", icon: HelpCircle, requiredPermission: "MANAGE_CMS" },
+  { href: "/admin/audit", label: "Audit Logs", icon: ClipboardList, requiredPermission: "VIEW_AUDIT_LOGS" },
+  { href: "/admin/staff", label: "Staff Manager", icon: Key, requiredPermission: "MANAGE_STAFF" },
+  { href: "/admin/settings", label: "Settings", icon: Settings, requiredPermission: "MANAGE_SETTINGS" },
 ];
+
+function hasPermission(user: any, requiredPermission?: string): boolean {
+  if (!user) return false;
+  
+  const role = user.role;
+  const permissions = user.permissions || [];
+  
+  // SUPER_ADMIN has access to everything
+  if (role === "SUPER_ADMIN" || permissions.includes("ACCESS_ALL")) return true;
+  
+  if (!requiredPermission) return true;
+  if (permissions.includes(requiredPermission)) return true;
+
+  // Fallback Role-based permissions mapping
+  if (role === "ADMIN") {
+    return requiredPermission !== "MANAGE_STAFF";
+  }
+  if (role === "STAFF" || role === "PROFILE_MANAGER") {
+    return ["MANAGE_USERS", "VERIFY_PROFILES", "EDIT_PROFILE", "CREATE_PROFILE"].includes(requiredPermission);
+  }
+  if (role === "SUPPORT_STAFF") {
+    return ["VERIFY_PROFILES", "MANAGE_REPORTS"].includes(requiredPermission);
+  }
+  
+  return false;
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [activeUser, setActiveUser] = useState<any>(null);
 
   useEffect(() => {
-    // If on admin login page, don't execute full session check guard
     if (pathname === "/admin/login") return;
 
     fetch("/api/auth/session")
       .then((r) => r.json())
       .then((data) => {
-        if (!data.isAuthenticated) router.replace("/admin/login");
+        if (!data.isAuthenticated) {
+          router.replace("/admin/login");
+        } else {
+          setActiveUser(data.user);
+        }
       })
       .catch(() => router.replace("/admin/login"));
   }, [pathname, router]);
@@ -78,7 +116,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Sidebar Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1.5">
-          {navItems.map((item) => {
+          {navItems.filter((item) => hasPermission(activeUser, item.requiredPermission)).map((item) => {
             const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
             const Icon = item.icon;
             return (

@@ -17,7 +17,89 @@ import {
 import { saveProfileDetailsAction, getProfileDetailsAction } from "@/modules/profile/profile.controller";
 import { uploadPhotoAction, uploadVoiceIntroAction } from "@/modules/media/media.controller";
 import { Gender } from "@prisma/client";
-import { KERALA_DISTRICTS, KERALA_RELIGIONS_TAXONOMY, WORLDWIDE_EDUCATION } from "@/lib/kerala-data";
+import { KERALA_DISTRICTS, KERALA_RELIGIONS_TAXONOMY, WORLDWIDE_EDUCATION, INDIAN_MOTHER_TONGUES } from "@/lib/kerala-data";
+
+function SearchableSelect({
+  value,
+  options,
+  onChange,
+  placeholder = "Search..."
+}: {
+  value: string;
+  options: string[];
+  onChange: (val: string) => void;
+  placeholder?: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filter options based on search query, and handle custom / "Other" logic
+  const filtered = options.filter((opt) =>
+    opt.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // If the current value starts with "Other:", display "Other" in the select box value display
+  const displayVal = value && value.startsWith("Other:") ? "Other" : value;
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <div
+        onClick={() => {
+          setIsOpen(!isOpen);
+          setSearch("");
+        }}
+        className="flex h-11 w-full items-center justify-between rounded-full border border-[rgba(28,28,30,0.12)] bg-white px-4 font-semibold text-[#0A1F44] cursor-pointer"
+      >
+        <span className="truncate">{displayVal || "Select..."}</span>
+        <Search className="h-4 w-4 text-[#8E8E93] flex-shrink-0" />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-2xl border border-[rgba(28,28,30,0.12)] bg-white p-2 shadow-lg">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={placeholder}
+            className="mb-2 h-9 w-full rounded-lg border border-[rgba(28,28,30,0.12)] px-3 text-xs focus:outline-none bg-white text-[#0A1F44]"
+            autoFocus
+          />
+          <div className="space-y-1">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-2 text-xs text-[#8E8E93]">No results found</div>
+            ) : (
+              filtered.map((opt) => (
+                <div
+                  key={opt}
+                  onClick={() => {
+                    onChange(opt);
+                    setIsOpen(false);
+                  }}
+                  className={`cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold hover:bg-gray-50 hover:text-[#C81D45] ${
+                    displayVal === opt ? "bg-[#FCFBF7] text-[#C81D45]" : "text-[#0A1F44]"
+                  }`}
+                >
+                  {opt}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 import {
   KERALA_NAKSHATRAMS, KERALA_RAASIS, DOSHAM_OPTIONS,
   OCCUPATION_CATEGORIES, GROUPED_EDUCATION_QUALIFICATIONS
@@ -46,6 +128,39 @@ export default function OnboardingWizard() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [customSubCasteText, setCustomSubCasteText] = useState("");
+
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiTone, setAiTone] = useState("improve");
+
+  const handleAiImprove = async (tone: string) => {
+    if (!formData.bio.trim()) {
+      alert("Please write a rough description first before improving it with AI.");
+      return;
+    }
+    setAiLoading(true);
+    setAiTone(tone);
+    try {
+      const res = await fetch("/api/ai/improve-bio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: formData.bio, tone }),
+      });
+      const data = await res.json();
+      if (data.success && data.suggestion) {
+        setAiSuggestion(data.suggestion);
+        setIsAiModalOpen(true);
+      } else {
+        alert("Failed to get suggestion: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      alert("Error contacting AI Assistant.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   // Core profile form state
   const [formData, setFormData] = useState({
@@ -181,6 +296,12 @@ export default function OnboardingWizard() {
     partnerCity: "Any City",
   });
 
+  useEffect(() => {
+    if (formData.subCaste && formData.subCaste.startsWith("Other: ")) {
+      setCustomSubCasteText(formData.subCaste.replace("Other: ", ""));
+    }
+  }, [formData.subCaste]);
+
   const [photosList, setPhotosList] = useState<string[]>([]);
   const [voiceUrl, setVoiceUrl] = useState<string | null>(null);
 
@@ -201,7 +322,10 @@ export default function OnboardingWizard() {
   const unmarriedBrothers = Math.max(0, formData.totalBrothers - formData.marriedBrothers);
   const unmarriedSisters = Math.max(0, formData.totalSisters - formData.marriedSisters);
 
-  const [eduSearchTerm, setEduSearchTerm] = useState("");
+  // Flattened all degrees list for searchable select
+  const allDegrees = useMemo(() => {
+    return WORLDWIDE_EDUCATION.flatMap((cat) => cat.degrees);
+  }, []);
 
   // Dynamic Religion & Caste Taxonomy
   const currentRelTaxonomy = useMemo(() => {
@@ -223,16 +347,6 @@ export default function OnboardingWizard() {
   const currentSubcastes = useMemo(() => {
     return currentCasteObj ? currentCasteObj.subcastes : ["All", "Other"];
   }, [currentCasteObj]);
-
-  // Filtered World Education
-  const filteredWorldEducation = useMemo(() => {
-    if (!eduSearchTerm.trim()) return WORLDWIDE_EDUCATION;
-    const query = eduSearchTerm.toLowerCase();
-    return WORLDWIDE_EDUCATION.map((cat) => ({
-      category: cat.category,
-      degrees: cat.degrees.filter((d) => d.toLowerCase().includes(query)),
-    })).filter((cat) => cat.degrees.length > 0);
-  }, [eduSearchTerm]);
 
   // Dynamic Popular Towns for Selected District
   const currentDistrictObj = useMemo(() => {
@@ -770,6 +884,74 @@ export default function OnboardingWizard() {
                   </select>
                 </div>
               </div>
+
+              {/* Time of Birth — moved from Step 4 */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-4 border-t border-[rgba(28,28,30,0.06)]">
+                <div>
+                  <label className="block font-bold uppercase tracking-wider text-[#636366] mb-1.5">
+                    Time of Birth *
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex items-center">
+                      <Input
+                        type="text"
+                        value={`${birthHour}:${birthMinute}`}
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/[^0-9:]/g, "");
+                          const parts = raw.split(":");
+                          const h = (parts[0] || "10").slice(0, 2);
+                          const m = (parts[1] || "30").slice(0, 2);
+                          const hNum = Math.min(12, Math.max(1, parseInt(h) || 1));
+                          const mNum = Math.min(59, Math.max(0, parseInt(m) || 0));
+                          updateTimeOfBirth(
+                            hNum.toString().padStart(2, "0"),
+                            mNum.toString().padStart(2, "0"),
+                            birthAmPm
+                          );
+                        }}
+                        placeholder="10:30"
+                        maxLength={5}
+                        className="h-9 w-24 rounded-md border border-[rgba(28,28,30,0.18)] px-3 font-bold text-[#0A1F44] text-sm tracking-widest text-center focus:outline-none bg-white"
+                      />
+                      <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                        <label title="Pick from clock" className="flex items-center justify-center w-6 h-6 rounded cursor-pointer hover:bg-gray-100 text-[#C81D45]">
+                          <Clock className="h-3.5 w-3.5 pointer-events-none" />
+                          <input
+                            type="time"
+                            onChange={handleNativeTimeChange}
+                            style={{ position: "absolute", opacity: 0, width: "100%", height: "100%", top: 0, left: 0, cursor: "pointer" }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="flex rounded-md border border-[rgba(28,28,30,0.18)] overflow-hidden h-9 text-xs font-bold bg-white">
+                      <button
+                        type="button"
+                        onClick={() => updateTimeOfBirth(birthHour, birthMinute, "AM")}
+                        className={`px-3 transition-colors ${
+                          birthAmPm === "AM"
+                            ? "bg-[#C81D45] text-white"
+                            : "bg-white text-[#636366] hover:text-[#0A1F44]"
+                        }`}
+                      >
+                        AM
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateTimeOfBirth(birthHour, birthMinute, "PM")}
+                        className={`px-3 transition-colors ${
+                          birthAmPm === "PM"
+                            ? "bg-[#C81D45] text-white"
+                            : "bg-white text-[#636366] hover:text-[#0A1F44]"
+                        }`}
+                      >
+                        PM
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -807,60 +989,57 @@ export default function OnboardingWizard() {
 
                 <div>
                   <label className="block font-bold uppercase tracking-wider text-[#636366] mb-1.5">Mother Tongue</label>
-                  <select
-                    name="motherTongue"
+                  <SearchableSelect
                     value={formData.motherTongue}
-                    onChange={handleInputChange}
-                    className="w-full h-11 rounded-full border border-[rgba(28,28,30,0.12)] px-4 font-semibold text-[#0A1F44] focus:outline-none"
-                  >
-                    <option value="Malayalam">Malayalam (മലയാളം)</option>
-                    <option value="Tamil">Tamil (தமிழ்)</option>
-                    <option value="English">English</option>
-                    <option value="Hindi">Hindi</option>
-                    <option value="Kannada">Kannada</option>
-                    <option value="Telugu">Telugu</option>
-                  </select>
+                    options={INDIAN_MOTHER_TONGUES}
+                    onChange={(val) => setFormData((prev) => ({ ...prev, motherTongue: val }))}
+                    placeholder="Search mother tongue..."
+                  />
                 </div>
 
                 <div>
                   <label className="block font-bold uppercase tracking-wider text-[#636366] mb-1.5">Caste / Community *</label>
-                  <select
-                    name="caste"
+                  <SearchableSelect
                     value={formData.caste}
-                    onChange={(e) => {
-                      const newCaste = e.target.value;
-                      const cObj = currentRelTaxonomy.castes.find((c) => c.caste === newCaste);
+                    options={currentRelTaxonomy.castes.map((c) => c.caste)}
+                    onChange={(val) => {
+                      const cObj = currentRelTaxonomy.castes.find((c) => c.caste === val);
                       setFormData((prev) => ({
                         ...prev,
-                        caste: newCaste,
+                        caste: val,
                         subCaste: cObj?.subcastes?.[0] || "",
                       }));
                     }}
-                    className="w-full h-11 rounded-full border border-[rgba(28,28,30,0.12)] px-4 font-semibold text-[#0A1F44] focus:outline-none"
-                  >
-                    {currentRelTaxonomy.castes.map((c) => (
-                      <option key={c.caste} value={c.caste}>
-                        {c.caste}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Search caste..."
+                  />
                 </div>
 
                 <div>
                   <label className="block font-bold uppercase tracking-wider text-[#636366] mb-1.5">Sub-Caste (Optional)</label>
-                  <select
-                    name="subCaste"
+                  <SearchableSelect
                     value={formData.subCaste}
-                    onChange={handleInputChange}
-                    className="w-full h-11 rounded-full border border-[rgba(28,28,30,0.12)] px-4 font-semibold text-[#0A1F44] focus:outline-none"
-                  >
-                    <option value="">Any / General Sub-caste</option>
-                    {currentSubcastes.map((sub) => (
-                      <option key={sub} value={sub}>
-                        {sub}
-                      </option>
-                    ))}
-                  </select>
+                    options={[...currentSubcastes, "Other"]}
+                    onChange={(val) => setFormData((prev) => ({ ...prev, subCaste: val }))}
+                    placeholder="Search sub-caste..."
+                  />
+                  {(formData.subCaste === "Other" || formData.subCaste.startsWith("Other:")) && (
+                    <div className="mt-3">
+                      <label className="block font-bold uppercase tracking-wider text-pink-700 mb-1.5 font-semibold">Please specify your sub-caste *</label>
+                      <Input
+                        type="text"
+                        name="customSubCaste"
+                        placeholder="Type your sub-caste"
+                        value={customSubCasteText}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomSubCasteText(val);
+                          setFormData((prev) => ({ ...prev, subCaste: `Other: ${val}` }));
+                        }}
+                        className="rounded-full h-11 bg-white text-[#0A1F44]"
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -934,75 +1113,6 @@ export default function OnboardingWizard() {
                   />
                 </div>
               </div>
-
-              {/* Time of Birth — single box with AM/PM + clock icon */}
-              <div className="space-y-1.5 text-xs">
-                <label className="block font-bold uppercase tracking-wider text-[#636366]">
-                  Time of Birth *
-                </label>
-                <div className="flex items-center gap-2">
-                  {/* HH:MM text input */}
-                  <div className="relative flex items-center">
-                    <Input
-                      type="text"
-                      value={`${birthHour}:${birthMinute}`}
-                      onChange={(e) => {
-                        const raw = e.target.value.replace(/[^0-9:]/g, "");
-                        const parts = raw.split(":");
-                        const h = (parts[0] || "10").slice(0, 2);
-                        const m = (parts[1] || "30").slice(0, 2);
-                        const hNum = Math.min(12, Math.max(1, parseInt(h) || 1));
-                        const mNum = Math.min(59, Math.max(0, parseInt(m) || 0));
-                        updateTimeOfBirth(
-                          hNum.toString().padStart(2, "0"),
-                          mNum.toString().padStart(2, "0"),
-                          birthAmPm
-                        );
-                      }}
-                      placeholder="10:30"
-                      maxLength={5}
-                      className="h-9 w-24 rounded-md border border-[rgba(28,28,30,0.18)] px-3 font-bold text-[#0A1F44] text-sm tracking-widest text-center focus:outline-none"
-                    />
-                    {/* Clock icon overlaid on the right */}
-                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-                      <label title="Pick from clock" className="flex items-center justify-center w-6 h-6 rounded cursor-pointer hover:bg-gray-100 text-[#C81D45]">
-                        <Clock className="h-3.5 w-3.5 pointer-events-none" />
-                        <input
-                          type="time"
-                          onChange={handleNativeTimeChange}
-                          style={{ position: "absolute", opacity: 0, width: "100%", height: "100%", top: 0, left: 0, cursor: "pointer" }}
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* AM / PM toggle — same line */}
-                  <div className="flex rounded-md border border-[rgba(28,28,30,0.18)] overflow-hidden h-9 text-xs font-bold">
-                    <button
-                      type="button"
-                      onClick={() => updateTimeOfBirth(birthHour, birthMinute, "AM")}
-                      className={`px-3 transition-colors ${
-                        birthAmPm === "AM"
-                          ? "bg-[#C81D45] text-white"
-                          : "bg-white text-[#636366] hover:text-[#0A1F44]"
-                      }`}
-                    >
-                      AM
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateTimeOfBirth(birthHour, birthMinute, "PM")}
-                      className={`px-3 transition-colors ${
-                        birthAmPm === "PM"
-                          ? "bg-[#C81D45] text-white"
-                          : "bg-white text-[#636366] hover:text-[#0A1F44]"
-                      }`}
-                    >
-                      PM
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -1017,40 +1127,15 @@ export default function OnboardingWizard() {
               <div className="space-y-4 text-xs">
                 {/* Searchable Higher Education Dropdown */}
                 <div className="space-y-2">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <label className="block font-bold uppercase tracking-wider text-[#636366]">
-                      Highest Qualification (Worldwide Education) *
-                    </label>
-                    <div className="relative w-full sm:w-72">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#8E8E93]" />
-                      <input
-                        type="text"
-                        placeholder="Search degree (e.g. B.Tech, MBBS, MBA, CA)..."
-                        value={eduSearchTerm}
-                        onChange={(e) => setEduSearchTerm(e.target.value)}
-                        className="w-full h-8 pl-8 pr-3 text-[11px] rounded-full border border-[rgba(28,28,30,0.12)] bg-[#FCFBF7] focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <select
-                    name="education"
+                  <label className="block font-bold uppercase tracking-wider text-[#636366]">
+                    Highest Qualification (Worldwide Education) *
+                  </label>
+                  <SearchableSelect
                     value={formData.education}
-                    onChange={handleInputChange}
-                    className="w-full h-11 rounded-full border border-[rgba(28,28,30,0.12)] px-4 font-semibold text-[#0A1F44] focus:outline-none"
-                    required
-                  >
-                    <option value="">Select Degree / Qualification</option>
-                    {filteredWorldEducation.map((cat) => (
-                      <optgroup key={cat.category} label={`── ${cat.category} ──`}>
-                        {cat.degrees.map((deg) => (
-                          <option key={deg} value={deg}>
-                            {deg}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
+                    options={allDegrees}
+                    onChange={(val) => setFormData((prev) => ({ ...prev, education: val }))}
+                    placeholder="Search education (e.g. Bachelor, MBA, CA)..."
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1401,9 +1486,88 @@ export default function OnboardingWizard() {
                   onChange={handleInputChange}
                   maxLength={1000}
                   placeholder="Tell potential matches about your personality, family values, work passion, and what makes you unique..."
-                  className="w-full rounded-2xl border border-[rgba(28,28,30,0.12)] p-4 text-xs font-medium focus:outline-none resize-none"
+                  className="w-full rounded-2xl border border-[rgba(28,28,30,0.12)] p-4 text-xs font-medium focus:outline-none resize-none bg-white text-[#0A1F44]"
                   required
                 />
+
+                {/* AI Bio Enhancer Tools */}
+                <div className="mt-3 p-3 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.04)] space-y-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-[#C81D45]" />
+                    AI Writing Assistant (Select any tone to polish your bio)
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { label: "Improve Writing", tone: "improve" },
+                      { label: "Make Friendly", tone: "friendly" },
+                      { label: "Make Professional", tone: "professional" },
+                      { label: "Make Shorter", tone: "shorter" },
+                      { label: "More Genuine", tone: "genuine" },
+                      { label: "Suggest Intro", tone: "intro" },
+                    ].map((btn) => (
+                      <button
+                        key={btn.tone}
+                        type="button"
+                        disabled={aiLoading}
+                        onClick={() => handleAiImprove(btn.tone)}
+                        className={`rounded-full border border-[rgba(28,28,30,0.12)] px-3 py-1.5 text-[10px] font-bold transition-colors ${
+                          aiLoading && aiTone === btn.tone
+                            ? "bg-[#C81D45] text-white animate-pulse"
+                            : "bg-white text-[#0A1F44] hover:bg-gray-50 hover:text-[#C81D45]"
+                        }`}
+                      >
+                        {aiLoading && aiTone === btn.tone ? "Improving..." : btn.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Suggestion Approval Modal */}
+                {isAiModalOpen && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl space-y-4">
+                      <div className="flex justify-between items-center pb-2 border-b border-[rgba(28,28,30,0.06)]">
+                        <h4 className="font-bold text-base text-[#0A1F44] flex items-center gap-1.5">
+                          <Sparkles className="h-4 w-4 text-[#C81D45]" />
+                          AI Writing Suggestion
+                        </h4>
+                        <button
+                          onClick={() => setIsAiModalOpen(false)}
+                          className="text-gray-400 hover:text-gray-600 text-lg font-bold"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        <p className="text-xs text-[#636366]">Here is the improved version of your bio. Check the content before accepting:</p>
+                        <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] text-xs text-[#0A1F44] font-medium leading-relaxed max-h-48 overflow-y-auto">
+                          {aiSuggestion}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsAiModalOpen(false)}
+                          className="rounded-full px-5 py-2 text-xs font-bold text-[#636366] hover:bg-gray-100 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, bio: aiSuggestion }));
+                            setIsAiModalOpen(false);
+                          }}
+                          className="rounded-full bg-[#C81D45] text-white px-5 py-2 text-xs font-bold shadow-md hover:bg-[#b0173b] transition-colors"
+                        >
+                          Use this bio
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Photo Upload Section */}

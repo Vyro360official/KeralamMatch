@@ -11,6 +11,10 @@ enum Role {
   ADMIN
   MODERATOR
   VENDOR
+  SUPER_ADMIN
+  STAFF
+  PROFILE_MANAGER
+  SUPPORT_STAFF
 }
 
 enum Gender {
@@ -94,6 +98,15 @@ model User {
   role                 Role                 @default(USER)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
+  
+  // Staff fields
+  designation          String?
+  permissions          String[]             @default([])
+  status               String               @default("ACTIVE")
+  lastLogin            DateTime?
+  notes                String?
+  tempPassword         String?
+  mustChangePassword   Boolean              @default(false)
   
   // Profile & Core Settings
   profile              Profile?
@@ -190,6 +203,86 @@ model Profile {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   
+  // Extended Matrimonial Attributes
+  timeOfBirth        String?
+  placeOfBirth       String?
+  starNakshatram     String?
+  rasi               String?
+  dosham             String?
+  gothram            String?
+  horoscopeDocumentUrl String?
+  bodyType           String?
+  complexion         String?
+  physicalStatus     String?
+  fitnessLevel       String?
+  foodHabits         String?
+  smoking            String?
+  drinking           String?
+
+  // Family details
+  familyStatus       String?
+  familyType         String?
+  familyValues       String?
+  fatherName         String?
+  fatherOccupation   String?
+  motherName         String?
+  motherOccupation   String?
+  totalBrothers      Int?                @default(0)
+  marriedBrothers    Int?                @default(0)
+  totalSisters       Int?                @default(0)
+  marriedSisters     Int?                @default(0)
+  familyAssets       String[]            @default([])
+  hobbies            String[]            @default([])
+
+  // Onboarding Creator metadata
+  createdFor         String?             @default("Self")
+  creatorName        String?
+  creatorPhone       String?
+  creatorRelation    String?
+  creatorDocumentUrl String?
+
+  // Admin and Staff Metadata
+  createdBy          String?             @default("USER") // USER, STAFF, ADMIN
+  createdById        String?             // ID of the Staff member who created the profile
+  lastModifiedBy     String?             // Name of the Staff member who edited it last
+
+  // Complete Partner Preferences
+  partnerAgeMin              Int?
+  partnerAgeMax              Int?
+  partnerAgeStrict           Boolean?    @default(false)
+  partnerHeightMin           Float?
+  partnerHeightMax           Float?
+  partnerHeightStrict        Boolean?    @default(false)
+  partnerMaritalStatus       String?
+  partnerMaritalStatusStrict Boolean?    @default(false)
+  partnerMotherTongue        String?
+  partnerMotherTongueStrict  Boolean?    @default(false)
+  partnerPhysicalStatus      String?
+  partnerPhysicalStatusStrict Boolean?   @default(false)
+  partnerDosham              String?
+  partnerDoshamStrict        Boolean?    @default(false)
+  partnerReligion            String?
+  partnerReligionStrict      Boolean?    @default(false)
+  partnerCaste               String?
+  partnerCasteStrict         Boolean?    @default(false)
+  partnerSubCaste            String?
+  partnerSubCasteStrict      Boolean?    @default(false)
+  partnerEducation           String?
+  partnerEducationStrict     Boolean?    @default(false)
+  partnerProfession          String?
+  partnerProfessionStrict    Boolean?    @default(false)
+  partnerFoodHabits          String?
+  partnerFoodHabitsStrict    Boolean?    @default(false)
+  partnerDrinking            String?
+  partnerDrinkingStrict      Boolean?    @default(false)
+  partnerSmoking             String?
+  partnerSmokingStrict       Boolean?    @default(false)
+  partnerCountry             String?
+  partnerCountryStrict       Boolean?    @default(false)
+  partnerDistrict            String?
+  partnerDistrictStrict      Boolean?    @default(false)
+  partnerCity                String?
+
   media              Media[]
   
   @@index([district])
@@ -650,6 +743,8 @@ model AuditLog {
   action           String
   ipAddress        String?
   userAgent        String?
+  targetUserId     String?
+  details          String?
   timestamp        DateTime        @default(now())
 }
 

@@ -116,14 +116,18 @@ export class AuthService {
       const user = await this.authRepo.findByFirebaseUid(uid);
       if (!user) {
         if (!isProduction && (uid.startsWith("mock-") || uid === "mock-uid-123")) {
+          const isMockAdmin = uid.includes("admin") || uid === "mock-uid-123"; // Make sandbox login full admin
           return {
             user: {
               id: "usr-sandbox-101",
               firebaseUid: uid,
               email: "demo@keralammatch.com",
               phone: "+919876543210",
-              role: AUTH_ROLES.USER,
+              role: (isMockAdmin ? "SUPER_ADMIN" : "USER") as any,
               verified: true,
+              designation: isMockAdmin ? "Super Administrator" : null,
+              permissions: isMockAdmin ? ["ACCESS_ALL", "MANAGE_STAFF", "MANAGE_USERS", "EDIT_PROFILE", "CREATE_PROFILE", "VIEW_AUDIT_LOGS"] : [],
+              status: "ACTIVE",
             },
             isAuthenticated: true,
           };
@@ -142,6 +146,9 @@ export class AuthService {
           phone: user.phone,
           role: user.role as AuthRole,
           verified: isVerified,
+          designation: (user as any).designation || null,
+          permissions: (user as any).permissions || [],
+          status: (user as any).status || "ACTIVE",
         },
         isAuthenticated: true,
       };
@@ -155,8 +162,11 @@ export class AuthService {
           firebaseUid: uid,
           email: "demo@keralammatch.com",
           phone: "+919876543210",
-          role: AUTH_ROLES.USER,
+          role: "SUPER_ADMIN" as any,
           verified: true,
+          designation: "Super Administrator",
+          permissions: ["ACCESS_ALL", "MANAGE_STAFF", "MANAGE_USERS", "EDIT_PROFILE", "CREATE_PROFILE", "VIEW_AUDIT_LOGS"],
+          status: "ACTIVE",
         },
         isAuthenticated: true,
       };
