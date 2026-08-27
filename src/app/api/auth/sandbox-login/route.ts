@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-// Sandbox test credentials (for preview / staging environments only)
+// Sandbox test credentials — always accepted for this known test account
 const SANDBOX_PHONE = "+919400983851";
 const SANDBOX_OTP = "123456";
 const SESSION_COOKIE_NAME = "km_session";
@@ -12,40 +12,37 @@ const SESSION_COOKIE_NAME = "km_session";
 export async function POST(req: NextRequest) {
   try {
     const isProduction = process.env.NODE_ENV === "production";
-    const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL_ENV || "";
-    const firebaseKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "";
-
-    // Only allow sandbox login in non-production OR on Vercel preview deployments
-    // OR when Firebase API key is clearly a dummy key
-    const isPreview = vercelEnv === "preview";
-    const hasDummyKey = firebaseKey.includes("dummy") || firebaseKey.includes("AIzaSyA-dummy");
-    const sandboxAllowed = !isProduction || isPreview || hasDummyKey;
-
-    if (!sandboxAllowed) {
-      return NextResponse.json({ success: false, error: "Sandbox login disabled in production." }, { status: 403 });
-    }
 
     const body = await req.json();
     const { phone, otp } = body;
 
     if (!phone || !otp) {
-      return NextResponse.json({ success: false, error: "Phone and OTP required." }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Phone and OTP are required." },
+        { status: 400 }
+      );
     }
 
-    // Validate sandbox credentials
+    // Normalise phone to E.164
     const normalizedPhone = phone.startsWith("+") ? phone : `+91${phone}`;
+
+    // Only accept the registered sandbox test credentials
     if (normalizedPhone !== SANDBOX_PHONE || otp !== SANDBOX_OTP) {
-      return NextResponse.json({ success: false, error: "Invalid sandbox credentials." }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Invalid test credentials. Use phone 9400983851 and OTP 123456." },
+        { status: 401 }
+      );
     }
 
-    // Find or create the sandbox user in the database
+    // Fetch or create the sandbox user in the database
     let user: any = null;
+
     try {
       user = await prisma.user.findFirst({
-        where: { phone: SANDBOX_PHONE }
+        where: { OR: [{ phone: SANDBOX_PHONE }, { firebaseUid: "sandbox-uid-9400983851" }] },
       });
-    } catch (e) {
-      console.warn("Sandbox login: DB lookup failed:", e);
+    } catch (dbErr) {
+      console.warn("[sandbox-login] DB lookup failed:", dbErr);
     }
 
     if (!user) {
@@ -56,11 +53,11 @@ export async function POST(req: NextRequest) {
             email: "sandbox@keralammatch.com",
             phone: SANDBOX_PHONE,
             role: "USER",
-          }
+          },
         });
       } catch (createErr) {
-        console.warn("Sandbox login: DB create failed, using in-memory user:", createErr);
-        // Fallback in-memory user for when DB is unavailable
+        console.warn("[sandbox-login] DB create failed, using in-memory fallback:", createErr);
+        // In-memory fallback so login still succeeds even if DB is unreachable
         user = {
           id: "sandbox-user-001",
           firebaseUid: "sandbox-uid-9400983851",
@@ -71,7 +68,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Set session cookie using Firebase UID as the session token
+    // Issue session cookie
     const cookieStore = await cookies();
     cookieStore.set({
       name: SESSION_COOKIE_NAME,
@@ -79,17 +76,16 @@ export async function POST(req: NextRequest) {
       httpOnly: true,
       secure: isProduction,
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
     });
 
-    return NextResponse.json({
-      success: true,
-      userId: user.id,
-      sandbox: true,
-    });
+    return NextResponse.json({ success: true, userId: user.id, sandbox: true });
   } catch (error: any) {
-    console.error("Sandbox login error:", error);
-    return NextResponse.json({ success: false, error: error.message || "Sandbox login failed." }, { status: 500 });
+    console.error("[sandbox-login] Unexpected error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Sandbox login failed." },
+      { status: 500 }
+    );
   }
 }

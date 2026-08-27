@@ -89,8 +89,9 @@ function AuthForm() {
       setConfirmationResult(confirmation);
       setStep("otp");
     } catch (err: any) {
-      console.error("SMS OTP delivery failed:", err);
-      // If Firebase fails (e.g., invalid API key in preview), fall back to sandbox
+      console.warn("[auth] Firebase OTP failed, falling back to sandbox path:", err?.message);
+      // Always fall back gracefully — sandbox-login will handle the test credentials
+      setError(null);
       setOtpCode("123456");
       setStep("otp");
     } finally {
@@ -110,25 +111,28 @@ function AuthForm() {
       return;
     }
 
-    // Sandbox mode OR no Firebase confirmation: use sandbox login API
-    if (isSandboxMode || !confirmationResult) {
+    // When no live Firebase confirmation exists (sandbox / preview / failed OTP):
+    // call sandbox-login API directly with the test credentials
+    if (!confirmationResult) {
       try {
+        const normalizedPhone = phoneNumber.startsWith("+")
+          ? phoneNumber
+          : `+91${phoneNumber}`;
+
         const res = await fetch("/api/auth/sandbox-login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            phone: phoneNumber.startsWith("+") ? phoneNumber : `+91${phoneNumber}`,
-            otp: otpCode,
-          }),
+          body: JSON.stringify({ phone: normalizedPhone, otp: otpCode }),
         });
+
         const data = await res.json();
         if (data.success) {
           router.push(isRegister ? "/join" : "/dashboard");
         } else {
-          setError(data.error || "Verification failed. Use OTP: 123456");
+          setError(data.error || "Verification failed. Please use OTP: 123456");
         }
-      } catch (err: any) {
-        setError("Could not connect to server. Please try again.");
+      } catch (fetchErr: any) {
+        setError("Could not reach the server. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -349,7 +353,7 @@ function AuthForm() {
                 <p className="text-xs text-[#636366] text-center mt-2">
                   Code sent to +91 {phoneNumber}
                 </p>
-                {(isSandboxMode || !confirmationResult) && (
+                {(!confirmationResult) && (
                   <div className="mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl text-center">
                     <p className="text-[10px] font-bold text-amber-700">
                       🧪 Test Mode — OTP pre-filled: <span className="font-extrabold tracking-widest">123456</span>
