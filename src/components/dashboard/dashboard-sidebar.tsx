@@ -1,128 +1,94 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Search,
-  Users,
   MessageSquare,
   UserCheck,
-  Heart,
+  User,
+  ShieldCheck,
+  Crown,
+  Wallet,
   Bell,
   Settings,
-  Camera,
+  HelpCircle,
+  LogOut,
+  Menu,
   X,
-  CheckCircle2,
-  Edit3,
-  Sparkles,
-  ShieldCheck,
-  Eye,
+  PhoneCall,
+  CheckCircle
 } from "lucide-react";
 
 interface SidebarProps {
-  userProfile?: {
-    id?: string;
-    firstName?: string;
-    lastName?: string;
-    district?: string;
-    city?: string;
-    avatarUrl?: string;
-    education?: string;
-    profession?: string;
-    religion?: string;
-    caste?: string;
-    profileStrength?: number;
-  } | null;
+  userProfile?: any;
 }
 
 export default function DashboardSidebar({ userProfile }: SidebarProps) {
   const pathname = usePathname();
-  const [currentTab, setCurrentTab] = useState<string | null>(null);
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [profile, setProfile] = useState<any>(userProfile || null);
+  const [stats, setStats] = useState<any>(null);
+
+  const loadStats = async () => {
+    try {
+      const res = await fetch("/api/auth/session-stats");
+      const data = await res.json();
+      if (data.isAuthenticated) {
+        setStats(data);
+      }
+    } catch (err) {
+      console.warn("Could not retrieve session stats:", err);
+    }
+  };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      setCurrentTab(params.get("tab"));
-    }
-  }, [pathname]);
+    loadStats();
+    // Poll stats every 30 seconds to keep badges synced
+    const interval = setInterval(loadStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     setDrawerOpen(false);
-  }, [pathname, currentTab]);
+  }, [pathname]);
 
-  useEffect(() => {
-    if (userProfile) {
-      setProfile(userProfile);
-    } else {
-      // Lazy load profile details action on client side
-      import("@/modules/profile/profile.controller").then(({ getProfileDetailsAction }) => {
-        getProfileDetailsAction().then((res) => {
-          if (res.success && res.profile) {
-            setProfile(res.profile);
-          }
-        });
-      });
-    }
-  }, [userProfile]);
-
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [avatar, setAvatar] = useState<string | null>(userProfile?.avatarUrl || null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (profile?.avatarUrl) {
-      setAvatar(profile.avatarUrl);
-    }
-  }, [profile]);
-
-  const firstName = profile?.firstName || "Nagarajan";
-  const lastName = profile?.lastName || "P";
-  const district = profile?.district || "Ernakulam";
-  const state = "Kerala";
-  const initial = firstName.charAt(0).toUpperCase();
-
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      setAvatar(base64);
-      setUploading(false);
-      setUploadSuccess(true);
-      setTimeout(() => setUploadSuccess(false), 3000);
-    };
-    reader.readAsDataURL(file);
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.replace("/auth");
   };
 
+  const profile = stats?.profile || userProfile;
+  const firstName = profile?.firstName || "Arjun";
+  const lastName = profile?.lastName || "Nair";
+  const initial = firstName.charAt(0).toUpperCase();
+  const avatar = profile?.avatarUrl;
+  const walletBalance = stats?.walletBalance ? Math.round(stats.walletBalance / 100) : 0;
+  const planName = stats?.subscription?.plan?.name || "Free Plan";
+  const isPremium = stats?.subscription?.plan?.name === "Gold" || stats?.subscription?.plan?.name === "Platinum";
+
+  const profileUrl = profile?.id ? `/profile/${profile.id}` : "/join";
+
   const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, isActive: pathname === "/dashboard" && !currentTab },
-    { href: "/find", label: "Find Matches", icon: Search, isActive: pathname === "/find" && (!currentTab || currentTab === "find") },
-    { href: "/find?tab=matches", label: "My Matches", icon: Users, isActive: pathname === "/find" && currentTab === "matches" },
-    { href: "/chat", label: "Messages", icon: MessageSquare, isActive: pathname.startsWith("/chat") },
-    { href: "/requests", label: "Contact Requests", icon: UserCheck, isActive: pathname === "/requests" },
-    { href: "/find?tab=saved", label: "Shortlisted", icon: Heart, isActive: pathname === "/find" && currentTab === "saved" },
-    { href: "/notifications", label: "Notifications", icon: Bell, isActive: pathname === "/notifications" },
-    { href: "/settings", label: "Settings", icon: Settings, isActive: pathname === "/settings" },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
+    { href: "/find", label: "Find Matches", icon: Search, badge: 0 },
+    { href: "/chat", label: "Messages", icon: MessageSquare, badge: stats?.unreadMessagesCount || 0 },
+    { href: "/requests", label: "Contact Requests", icon: UserCheck, badge: stats?.pendingRequestsCount || 0 },
+    { href: profileUrl, label: "My Profile", icon: User, badge: 0 },
+    { href: "/trust", label: "Trust & Verify", icon: ShieldCheck, badge: 0, checked: profile?.verificationStatus === "VERIFIED" },
+    { href: "/pricing", label: "Membership", icon: Crown, badge: 0, pill: planName },
+    { href: "/pricing", label: "Wallet", icon: Wallet, badge: 0, balance: `₹ ${walletBalance}` },
+    { href: "/notifications", label: "Notifications", icon: Bell, badge: stats?.unreadNotificationsCount || 0 },
+    { href: "/settings", label: "Settings", icon: Settings, badge: 0 },
+    { href: "/trust", label: "Help & Support", icon: HelpCircle, badge: 0 },
   ];
 
-  /* ── Shared sidebar content ───────────────────────────────────────── */
   const SidebarContent = () => (
-    <div className="bg-white rounded-3xl p-6 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-3">
-      {/* User Mini Profile Card */}
-      <button
-        type="button"
-        onClick={() => { setIsProfileModalOpen(true); setDrawerOpen(false); }}
-        className="w-full text-left flex items-center space-x-3.5 p-3 rounded-2xl bg-[#FCFBF7] hover:bg-[#F4F1EA] border border-[rgba(28,28,30,0.06)] transition-all group focus:outline-none focus:ring-2 focus:ring-[#C81D45]/30 cursor-pointer"
-        title="Click to view/edit profile & change photo"
-      >
+    <div className="space-y-4">
+      {/* User Mini Profile Header */}
+      <div className="flex items-center space-x-3.5 p-3 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)]">
         <div className="relative flex-shrink-0">
           {avatar ? (
             <img src={avatar} alt={`${firstName} ${lastName}`} className="h-11 w-11 rounded-full object-cover border-2 border-[#C81D45]" />
@@ -131,170 +97,194 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
               {initial}
             </div>
           )}
-          <div className="absolute -bottom-1 -right-1 bg-[#C81D45] text-white p-1 rounded-full shadow-sm group-hover:scale-110 transition-transform">
-            <Camera className="h-2.5 w-2.5" />
-          </div>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-bold text-[#0A1F44] truncate group-hover:text-[#C81D45] transition-colors flex items-center gap-1.5">
-            <span>{firstName} {lastName}</span>
-            <Edit3 className="h-3 w-3 text-[#8E8E93] opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-          <div className="text-xs text-[#636366] truncate font-medium">{district}, {state}</div>
+          <div className="text-sm font-bold text-[#0A1F44] truncate">{firstName} {lastName}</div>
+          <Link href={profileUrl} className="text-[11px] text-[#C81D45] font-semibold hover:underline">
+            View Profile &rarr;
+          </Link>
         </div>
-      </button>
+      </div>
 
-      <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#8E8E93] px-3 pt-3">Menu</div>
-
-      <nav className="space-y-1.5 text-xs font-semibold">
+      {/* Navigation List */}
+      <nav className="space-y-1 text-xs font-semibold">
         {navItems.map((item) => {
           const Icon = item.icon;
+          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href) && !item.href.includes("tab="));
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
-              className={`flex items-center space-x-3.5 px-3.5 py-3 rounded-2xl transition-all ${
-                item.isActive
-                  ? "bg-[#C81D45] text-white shadow-sm font-bold"
+              className={`flex items-center justify-between px-3.5 py-3 rounded-xl transition-all ${
+                isActive
+                  ? "bg-[#C81D45] text-white shadow-xs font-bold"
                   : "text-[#636366] hover:bg-[#FCFBF7] hover:text-[#0A1F44]"
               }`}
             >
-              <Icon className={`h-4 w-4 ${item.isActive ? "text-white" : "text-[#8E8E93]"}`} />
-              <span>{item.label}</span>
+              <div className="flex items-center space-x-3">
+                <Icon className={`h-4.5 w-4.5 ${isActive ? "text-white" : "text-[#8E8E93]"}`} />
+                <span>{item.label}</span>
+              </div>
+              
+              {/* Badges, checked ticks, balances, or indicators */}
+              {item.badge > 0 && (
+                <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${isActive ? "bg-white text-[#C81D45]" : "bg-[#C81D45] text-white"}`}>
+                  {item.badge}
+                </span>
+              )}
+              {item.checked && (
+                <CheckCircle className="h-4 w-4 text-emerald-500 fill-emerald-50" />
+              )}
+              {item.pill && (
+                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[9px] font-bold">
+                  {item.pill}
+                </span>
+              )}
+              {item.balance && (
+                <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  {item.balance}
+                </span>
+              )}
             </Link>
           );
         })}
+
+        {/* Logout action */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-left text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+        >
+          <LogOut className="h-4.5 w-4.5 text-slate-400" />
+          <span>Logout</span>
+        </button>
       </nav>
+
+      {/* Become Premium Banner Card */}
+      {!isPremium && (
+        <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 space-y-3">
+          <div className="flex items-center space-x-1.5 text-amber-800 font-bold text-xs">
+            <Crown className="h-4 w-4 text-amber-500 fill-amber-500" />
+            <span>Become Premium</span>
+          </div>
+          <p className="text-[10px] text-amber-700 leading-normal font-medium">
+            Unlock unlimited contacts, send direct messages, and find verified matches instantly.
+          </p>
+          <Link
+            href="/pricing"
+            className="block text-center py-2 rounded-xl bg-[#C81D45] hover:bg-[#A51436] text-white text-xs font-bold transition-colors shadow-xs"
+          >
+            Upgrade Now
+          </Link>
+        </div>
+      )}
     </div>
   );
 
   return (
     <>
-      {/* Desktop sticky sidebar */}
+      {/* Desktop sidebar */}
       <aside className="hidden lg:block lg:col-span-3 w-full">
         <div className="sticky top-24">
           <SidebarContent />
         </div>
       </aside>
 
-      {/* Mobile/PWA hamburger button (3 lines) */}
+      {/* Mobile top floating hamburger button */}
       <button
         type="button"
         onClick={() => setDrawerOpen(true)}
-        className="lg:hidden fixed bottom-6 left-4 z-40 flex flex-col items-center justify-center gap-[5px] w-12 h-12 bg-[#C81D45] rounded-2xl shadow-lg hover:bg-[#A51436] transition-colors"
-        aria-label="Open menu"
+        className="lg:hidden fixed bottom-6 left-4 z-40 flex items-center justify-center w-12 h-12 bg-[#C81D45] text-white rounded-full shadow-lg hover:bg-[#A51436] transition-all cursor-pointer"
+        aria-label="Open menu drawer"
       >
-        <span className="block w-5 h-0.5 bg-white rounded-full" />
-        <span className="block w-5 h-0.5 bg-white rounded-full" />
-        <span className="block w-5 h-0.5 bg-white rounded-full" />
+        <Menu className="h-5 w-5" />
       </button>
 
-      {/* Backdrop */}
+      {/* Mobile backdrop */}
       {drawerOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs" onClick={() => setDrawerOpen(false)} />
       )}
 
-      {/* Slide-in drawer */}
+      {/* Mobile sliding navigation drawer */}
       <div
         className={`lg:hidden fixed top-0 left-0 z-50 h-full w-72 bg-[#FCFBF7] shadow-2xl transform transition-transform duration-300 ease-in-out overflow-y-auto ${
           drawerOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(28,28,30,0.08)]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(28,28,30,0.08)] bg-white">
           <span className="font-extrabold text-[#0A1F44] text-base tracking-tight">
             Keral<span className="text-[#C81D45]">am</span>Match
           </span>
-          <button onClick={() => setDrawerOpen(false)} className="p-2 rounded-full hover:bg-gray-100 text-[#636366] hover:text-[#0A1F44] transition-colors">
+          <button onClick={() => setDrawerOpen(false)} className="p-2 rounded-full hover:bg-gray-100 text-[#636366]">
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="p-4">
+        <div className="p-4 bg-white">
           <SidebarContent />
         </div>
       </div>
 
-      {/* Profile & Photo Modal */}
-      {isProfileModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-[rgba(28,28,30,0.1)] relative space-y-6">
-            <button onClick={() => setIsProfileModalOpen(false)} className="absolute top-5 right-5 p-2 text-[#8E8E93] hover:text-[#0A1F44] hover:bg-[#FCFBF7] rounded-full transition-colors">
-              <X className="h-5 w-5" />
-            </button>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl bg-[#FCE8EC] text-[#C81D45] flex items-center justify-center">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-[#0A1F44]">My Profile & Photo</h3>
-                <p className="text-xs text-[#636366]">Manage your matrimonial profile details and photo</p>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)]">
-              <div className="relative">
-                {avatar ? (
-                  <img src={avatar} alt="Profile Avatar" className="h-20 w-20 rounded-full object-cover border-4 border-white shadow-md" />
-                ) : (
-                  <div className="h-20 w-20 rounded-full bg-[#C81D45] text-white flex items-center justify-center font-extrabold text-2xl shadow-md">{initial}</div>
-                )}
-              </div>
-              <div className="flex-1 text-center sm:text-left space-y-2">
-                <div className="text-xs font-bold text-[#0A1F44]">Profile Avatar Photo</div>
-                <p className="text-[11px] text-[#636366] leading-snug">Upload a clear portrait photo. Supported formats: JPG, PNG, WebP (Max 5MB).</p>
-                <div className="flex gap-2 justify-center sm:justify-start">
-                  <input type="file" ref={fileInputRef} onChange={handleAvatarUpload} accept="image/*" className="hidden" />
-                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="px-4 py-1.5 rounded-full bg-[#C81D45] hover:bg-[#A51436] text-white text-xs font-bold shadow-sm inline-flex items-center gap-1.5">
-                    <Camera className="h-3.5 w-3.5" />
-                    <span>{uploading ? "Updating..." : "Change Photo"}</span>
-                  </button>
-                  {avatar && (
-                    <button type="button" onClick={() => setAvatar(null)} className="px-3 py-1.5 rounded-full border border-[rgba(28,28,30,0.12)] text-[#636366] hover:bg-gray-100 text-xs font-semibold">Remove</button>
-                  )}
-                </div>
-                {uploadSuccess && (
-                  <div className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>Photo updated successfully!</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-[#FCFBF7] rounded-xl border border-[rgba(28,28,30,0.06)]">
-                <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Full Name</span>
-                <span className="font-bold text-[#0A1F44]">{firstName} {lastName}</span>
-              </div>
-              <div className="p-3 bg-[#FCFBF7] rounded-xl border border-[rgba(28,28,30,0.06)]">
-                <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Location</span>
-                <span className="font-bold text-[#0A1F44]">{district}, {state}</span>
-              </div>
-              <div className="p-3 bg-[#FCFBF7] rounded-xl border border-[rgba(28,28,30,0.06)]">
-                <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Community</span>
-                <span className="font-bold text-[#0A1F44]">{userProfile?.religion || "Hindu"} - {userProfile?.caste || "Nair"}</span>
-              </div>
-              <div className="p-3 bg-[#FCFBF7] rounded-xl border border-[rgba(28,28,30,0.06)]">
-                <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Profession</span>
-                <span className="font-bold text-[#0A1F44]">{userProfile?.profession || "Software Engineer"}</span>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[rgba(28,28,30,0.08)]">
-              <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold self-start sm:self-center">
-                <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                <span>Verified Member</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                <Link href={userProfile?.id ? `/profile/${userProfile.id}` : "/profile/me"} onClick={() => setIsProfileModalOpen(false)} className="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 shadow-sm">
-                  <Eye className="h-3.5 w-3.5 text-amber-400" />
-                  <span>View How Your Profile Appears to Others</span>
-                </Link>
-                <Link href="/join" onClick={() => setIsProfileModalOpen(false)} className="px-4 py-2 rounded-full border border-[#C81D45] text-[#C81D45] hover:bg-[#FCE8EC] text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5">
-                  <Edit3 className="h-3.5 w-3.5" />
-                  <span>Edit</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Persistent Mobile Bottom Navigation Bar (Matching Reference 1 & 2) */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[rgba(28,28,30,0.08)] flex items-center justify-around h-16 px-4 shadow-lg pb-safe">
+        <Link
+          href="/dashboard"
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            pathname === "/dashboard" ? "text-[#C81D45]" : "text-slate-400"
+          }`}
+        >
+          <LayoutDashboard className="h-5 w-5" />
+          <span className="text-[9px] font-bold mt-1">Home</span>
+        </Link>
+
+        <Link
+          href="/find"
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            pathname === "/find" ? "text-[#C81D45]" : "text-slate-400"
+          }`}
+        >
+          <Search className="h-5 w-5" />
+          <span className="text-[9px] font-bold mt-1">Matches</span>
+        </Link>
+
+        <Link
+          href="/chat"
+          className={`relative flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            pathname.startsWith("/chat") ? "text-[#C81D45]" : "text-slate-400"
+          }`}
+        >
+          <MessageSquare className="h-5 w-5" />
+          {stats?.unreadMessagesCount > 0 && (
+            <span className="absolute top-1 right-6 bg-[#C81D45] text-white rounded-full h-4 w-4 flex items-center justify-center font-bold text-[8px]">
+              {stats.unreadMessagesCount}
+            </span>
+          )}
+          <span className="text-[9px] font-bold mt-1">Chat</span>
+        </Link>
+
+        <Link
+          href="/requests"
+          className={`relative flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            pathname === "/requests" ? "text-[#C81D45]" : "text-slate-400"
+          }`}
+        >
+          <UserCheck className="h-5 w-5" />
+          {stats?.pendingRequestsCount > 0 && (
+            <span className="absolute top-1 right-6 bg-[#C81D45] text-white rounded-full h-4 w-4 flex items-center justify-center font-bold text-[8px]">
+              {stats.pendingRequestsCount}
+            </span>
+          )}
+          <span className="text-[9px] font-bold mt-1">Requests</span>
+        </Link>
+
+        <Link
+          href={profileUrl}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            pathname.startsWith("/profile/") ? "text-[#C81D45]" : "text-slate-400"
+          }`}
+        >
+          <User className="h-5 w-5" />
+          <span className="text-[9px] font-bold mt-1">Profile</span>
+        </Link>
+      </nav>
     </>
   );
 }
