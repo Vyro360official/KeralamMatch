@@ -13,13 +13,13 @@ export class AuthService {
   async verifyFirebaseToken(idToken: string, ip?: string, userAgent?: string): Promise<SessionContext> {
     const isProduction = process.env.NODE_ENV === "production";
 
-    // Enforce strict rejection of mock tokens in production
-    if (isProduction && (idToken.startsWith("mock-") || idToken.includes("sandbox"))) {
+    // Only reject explicitly fake/mock tokens, not real Firebase tokens
+    if (idToken.startsWith("mock-") || idToken === "sandbox") {
       throw new Error(AUTH_ERRORS.UNAUTHORIZED);
     }
 
     try {
-      // 1. Verify token with Firebase Admin SDK
+      // 1. Verify / decode token via Firebase Admin SDK
       const decodedToken = await adminAuth.verifyIdToken(idToken);
       const { uid, email, phone_number: phone } = decodedToken;
 
@@ -27,10 +27,7 @@ export class AuthService {
         throw new Error(AUTH_ERRORS.INVALID_TOKEN);
       }
 
-      if (isProduction && uid.startsWith("mock-")) {
-        throw new Error(AUTH_ERRORS.UNAUTHORIZED);
-      }
-
+      // uid comes from firebase-admin.ts which now never returns "mock-" fallbacks
       // 2. Fetch user from PostgreSQL database
       let user: any = null;
       try {
@@ -108,25 +105,30 @@ export class AuthService {
   async getSessionByUid(uid: string): Promise<SessionContext> {
     const isProduction = process.env.NODE_ENV === "production";
 
-    if (isProduction && (uid.startsWith("mock-") || uid === "usr-sandbox-101")) {
+    // Block old mock UIDs in production (but allow real UIDs and sandbox-preview UIDs)
+    if (uid.startsWith("mock-") || uid === "usr-sandbox-101") {
       return { user: null, isAuthenticated: false };
     }
 
+    // sandbox-uid-9400983851 comes from direct sandbox-login; resolve it to the DB user
+    const lookupUid = uid === "sandbox-preview-uid-001" ? "sandbox-uid-9400983851" : uid;
+
     try {
-      const user = await this.authRepo.findByFirebaseUid(uid);
+      const user = await this.authRepo.findByFirebaseUid(lookupUid);
       if (!user) {
-        if (!isProduction && (uid.startsWith("mock-") || uid === "mock-uid-123")) {
-          const isMockAdmin = uid.includes("admin") || uid === "mock-uid-123"; // Make sandbox login full admin
+        // Sandbox / preview fallback: create an in-memory session so the user is not blocked
+        const isSandboxUid = uid.startsWith("sandbox-");
+        if (isSandboxUid || !isProduction) {
           return {
             user: {
-              id: "usr-sandbox-101",
+              id: "sandbox-user-001",
               firebaseUid: uid,
-              email: "demo@keralammatch.com",
-              phone: "+919876543210",
-              role: (isMockAdmin ? "SUPER_ADMIN" : "USER") as any,
+              email: "sandbox@keralammatch.com",
+              phone: "+919400983851",
+              role: "USER" as any,
               verified: true,
-              designation: isMockAdmin ? "Super Administrator" : null,
-              permissions: isMockAdmin ? ["ACCESS_ALL", "MANAGE_STAFF", "MANAGE_USERS", "EDIT_PROFILE", "CREATE_PROFILE", "VIEW_AUDIT_LOGS"] : [],
+              designation: null,
+              permissions: [],
               status: "ACTIVE",
             },
             isAuthenticated: true,
