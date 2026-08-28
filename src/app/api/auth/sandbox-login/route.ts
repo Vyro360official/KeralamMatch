@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
+import { encrypt } from "@/lib/crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,14 @@ const SESSION_COOKIE_NAME = "km_session";
 export async function POST(req: NextRequest) {
   try {
     const isProduction = process.env.NODE_ENV === "production";
+    const isLocalDev = process.env.NODE_ENV === "development" && !process.env.VERCEL;
+
+    if (!isLocalDev) {
+      return NextResponse.json(
+        { success: false, error: "Sandbox authentication is prohibited in non-local environments." },
+        { status: 403 }
+      );
+    }
 
     const body = await req.json();
     const { phone, otp } = body;
@@ -68,13 +77,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Issue session cookie
+    // Issue secure encrypted session cookie
+    const sessionData = {
+      firebaseUid: user.firebaseUid || "sandbox-uid-9400983851",
+      userId: user.id || "sandbox-user-001",
+      createdAt: Date.now(),
+    };
+    const encryptedValue = encrypt(JSON.stringify(sessionData));
+
     const cookieStore = await cookies();
     cookieStore.set({
       name: SESSION_COOKIE_NAME,
-      value: user.firebaseUid || "sandbox-uid-9400983851",
+      value: encryptedValue,
       httpOnly: true,
-      secure: isProduction,
+      secure: isProduction || !!process.env.VERCEL,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",

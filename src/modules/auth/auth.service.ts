@@ -103,9 +103,9 @@ export class AuthService {
    * Retrieves active session details by direct Firebase UID.
    */
   async getSessionByUid(uid: string): Promise<SessionContext> {
-    const isProduction = process.env.NODE_ENV === "production";
+    const isLocalDev = process.env.NODE_ENV === "development" && !process.env.VERCEL;
 
-    // Block old mock UIDs in production (but allow real UIDs and sandbox-preview UIDs)
+    // Block old mock UIDs in production/deployed (but allow real UIDs and sandbox-preview UIDs)
     if (uid.startsWith("mock-") || uid === "usr-sandbox-101") {
       return { user: null, isAuthenticated: false };
     }
@@ -116,9 +116,9 @@ export class AuthService {
     try {
       const user = await this.authRepo.findByFirebaseUid(lookupUid);
       if (!user) {
-        // Sandbox / preview fallback: create an in-memory session so the user is not blocked
+        // Sandbox / preview fallback: create an in-memory session only in local development
         const isSandboxUid = uid.startsWith("sandbox-");
-        if (isSandboxUid || !isProduction) {
+        if (isLocalDev && isSandboxUid) {
           return {
             user: {
               id: "sandbox-user-001",
@@ -134,6 +134,12 @@ export class AuthService {
             isAuthenticated: true,
           };
         }
+        return { user: null, isAuthenticated: false };
+      }
+
+      // Enforce account status server-side immediately
+      if (user.status !== "ACTIVE") {
+        console.warn(`[auth] Deactivated session attempt for user ${user.id} status: ${user.status}`);
         return { user: null, isAuthenticated: false };
       }
 
@@ -155,23 +161,28 @@ export class AuthService {
         isAuthenticated: true,
       };
     } catch (dbError) {
-      if (isProduction) {
-        return { user: null, isAuthenticated: false };
+      console.error("[auth] Database session resolution error:", dbError);
+      
+      // If we are running locally in development, we can return the sandbox-user
+      if (isLocalDev) {
+        return {
+          user: {
+            id: "usr-sandbox-101",
+            firebaseUid: uid,
+            email: "demo@keralammatch.com",
+            phone: "+919876543210",
+            role: "SUPER_ADMIN" as any,
+            verified: true,
+            designation: "Super Administrator",
+            permissions: ["ACCESS_ALL", "MANAGE_STAFF", "MANAGE_USERS", "EDIT_PROFILE", "CREATE_PROFILE", "VIEW_AUDIT_LOGS"],
+            status: "ACTIVE",
+          },
+          isAuthenticated: true,
+        };
       }
-      return {
-        user: {
-          id: "usr-sandbox-101",
-          firebaseUid: uid,
-          email: "demo@keralammatch.com",
-          phone: "+919876543210",
-          role: "SUPER_ADMIN" as any,
-          verified: true,
-          designation: "Super Administrator",
-          permissions: ["ACCESS_ALL", "MANAGE_STAFF", "MANAGE_USERS", "EDIT_PROFILE", "CREATE_PROFILE", "VIEW_AUDIT_LOGS"],
-          status: "ACTIVE",
-        },
-        isAuthenticated: true,
-      };
+
+      // Deployed environments FAIL CLOSED on database errors
+      return { user: null, isAuthenticated: false };
     }
   }
 }

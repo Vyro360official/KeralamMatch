@@ -45,10 +45,9 @@ export const adminAuth = {
         privateKey.includes("mock") ||
         !privateKey.startsWith("-----BEGIN PRIVATE KEY-----");
 
-      // On Vercel preview OR when credentials are not real, use JWT-decode path
-      const vercelEnv   = process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL_ENV || "";
-      const isPreview   = vercelEnv === "preview";
-      const useSandbox  = hasDummyKey || isPreview || !isProduction;
+      // On local development with dummy keys, use JWT-decode path
+      const isLocalDev = process.env.NODE_ENV === "development" && !process.env.VERCEL;
+      const useSandbox  = isLocalDev && hasDummyKey;
 
       if (useSandbox) {
         console.warn("[firebase-admin] Using JWT-decode path (preview/dummy credentials).");

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     if (!notificationId) {
       return NextResponse.json({ success: false, error: "MISSING_ID" }, { status: 400 });
     }
-    await repo.markRead(notificationId);
+    await repo.markRead(notificationId, session.user.id);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: "MARK_READ_FAILED" }, { status: 500 });

@@ -1,6 +1,7 @@
 import { IContactRepository } from "./contact.repository";
 import { UnlockedContactResult } from "./contact.types";
 import { decrypt } from "@/lib/crypto";
+import { prisma } from "@/lib/db";
 
 export class ContactService {
   constructor(private contactRepo: IContactRepository) {}
@@ -18,6 +19,44 @@ export class ContactService {
     const isApproved = await this.contactRepo.isUserApproved(senderId);
     if (!isApproved) {
       throw new Error("PROFILE_VERIFICATION_REQUIRED: Your profile is under manual admin verification. Contact reveals will be unlocked once approved by our verification team.");
+    }
+
+    // Enforce daily request quota based on subscription plan
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const sentTodayCount = await prisma.contactRequest.count({
+      where: {
+        senderId,
+        createdAt: {
+          gte: startOfToday,
+        },
+      },
+    });
+
+    let limit = 1; // Default free tier limit
+    const activeSub = await prisma.subscription.findFirst({
+      where: {
+        userId: senderId,
+        status: "ACTIVE",
+        endDate: {
+          gt: new Date(),
+        },
+      },
+      include: {
+        plan: true,
+      },
+    });
+
+    if (activeSub && activeSub.plan) {
+      const features = activeSub.plan.features as any;
+      if (features && typeof features.contactRequestsPerDay === "number") {
+        limit = features.contactRequestsPerDay;
+      }
+    }
+
+    if (sentTodayCount >= limit) {
+      throw new Error(`DAILY_REQUEST_LIMIT_EXCEEDED: You have reached your daily limit of ${limit} contact requests. Upgrade your plan to send more requests.`);
     }
 
     // Check for existing requests

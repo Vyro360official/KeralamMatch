@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { getSessionAction } from "@/modules/auth/auth.controller";
 import { ShieldCheck, Lock, Sparkles, MessageCircle, Heart, Users, CheckCircle2, PhoneCall } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const session = await getSessionAction();
   if (session.isAuthenticated && session.user) {

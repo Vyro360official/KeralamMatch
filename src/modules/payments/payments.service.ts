@@ -98,16 +98,26 @@ export class PaymentsService {
    * Verifies Razorpay Webhook Signatures and fulfills transactions.
    */
   async processWebhookEvent(payload: string, signature: string): Promise<boolean> {
-    // 1. Verify cryptographic HMAC signature
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET || "webhook-secret";
+    const isLocalDev = process.env.NODE_ENV === "development" && !process.env.VERCEL;
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET || "";
+
+    if (!secret) {
+      if (!isLocalDev) {
+        throw new Error("CRITICAL_CONFIGURATION_ERROR: RAZORPAY_WEBHOOK_SECRET is missing.");
+      }
+    }
+
+    const secretToUse = secret || "webhook-secret";
     const expectedSignature = crypto
-      .createHmac("sha256", secret)
+      .createHmac("sha256", secretToUse)
       .update(payload)
       .digest("hex");
 
-    // In production, signature checks are strict. In sandbox testing, we allow mock orders to pass
-    if (expectedSignature !== signature && process.env.NODE_ENV === "production") {
-      throw new Error("INVALID_WEBHOOK_SIGNATURE");
+    if (expectedSignature !== signature) {
+      if (!isLocalDev) {
+        throw new Error("INVALID_WEBHOOK_SIGNATURE: Signature verification failed on remote deployment.");
+      }
+      console.warn("[payments] Webhook signature mismatch, allowing bypass in local development.");
     }
 
     // 2. Parse event data
@@ -124,15 +134,25 @@ export class PaymentsService {
       }
 
       // 3. Fulfill transaction depending on details
-      await prisma.$transaction(async (tx) => {
-        // Update payment log to success
-        await tx.payment.update({
-          where: { id: paymentRecord.id },
-          data: {
-            paymentId,
-            status: "SUCCESS",
-          },
-        });
+      try {
+        await prisma.$transaction(async (tx) => {
+          // Double-check row status inside transaction to prevent concurrent race conditions
+          const currentRecord = await tx.payment.findUnique({
+            where: { id: paymentRecord.id },
+          });
+
+          if (!currentRecord || currentRecord.status === "SUCCESS") {
+            throw new Error("ALREADY_PROCESSED_OR_DUPLICATE");
+          }
+
+          // Update payment log to success
+          await tx.payment.update({
+            where: { id: paymentRecord.id },
+            data: {
+              paymentId,
+              status: "SUCCESS",
+            },
+          });
 
         // Fulfill subscription plan
         if (paymentRecord.tierName.startsWith("SUB:")) {
@@ -191,9 +211,12 @@ export class PaymentsService {
           }
         }
       });
-
       return true;
+    } catch (err: any) {
+      console.error("[payments] Webhook fulfillment transaction failed:", err);
+      return false;
     }
+  }
 
     return false;
   }

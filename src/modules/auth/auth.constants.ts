@@ -1,11 +1,20 @@
 export const AUTH_ROLES = {
   USER: "USER",
   ADMIN: "ADMIN",
+  SUPER_ADMIN: "SUPER_ADMIN",
   MODERATOR: "MODERATOR",
   VENDOR: "VENDOR",
 } as const;
 
-export type AuthRole = typeof AUTH_ROLES[keyof typeof AUTH_ROLES];
+export type AuthRole = (typeof AUTH_ROLES)[keyof typeof AUTH_ROLES];
+
+/**
+ * Roles that are considered administrative and may access the admin panel
+ * and admin REST APIs via requireAdminRole().
+ *
+ * USER, MODERATOR, and VENDOR are NOT in this list and will be denied.
+ */
+export const ADMIN_ROLES: AuthRole[] = [AUTH_ROLES.ADMIN, AUTH_ROLES.SUPER_ADMIN];
 
 export const AUTH_ERRORS = {
   UNAUTHORIZED: "AUTH_UNAUTHORIZED",

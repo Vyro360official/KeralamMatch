@@ -42,6 +42,20 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
 
+  // Bypass caching entirely for authenticated client routes and api endpoints
+  const bypassCaching = 
+    url.pathname.startsWith("/dashboard") ||
+    url.pathname.startsWith("/profile") ||
+    url.pathname.startsWith("/chat") ||
+    url.pathname.startsWith("/settings") ||
+    url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/api");
+
+  if (bypassCaching) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   // Network-First for HTML/JS/CSS/API to guarantee fresh code
   if (
     url.origin === self.location.origin &&

@@ -56,7 +56,7 @@ export async function markNotificationReadAction(notificationId: string) {
       return { success: false, error: AUTH_ERRORS.FORBIDDEN };
     }
 
-    await notificationRepo.markRead(notificationId);
+    await notificationRepo.markRead(notificationId, session.user.id);
 
     return {
       success: true,
@@ -102,7 +102,7 @@ export async function triggerQueueWorkerAction() {
   try {
     // Only allow verified sessions, local call, or admin role calls to trigger
     const session = await getSessionAction();
-    const isAdmin = session.isAuthenticated && session.user?.role === "ADMIN";
+    const isAdmin = session.isAuthenticated && ["ADMIN", "SUPER_ADMIN"].includes(session.user?.role || "");
 
     if (!isAdmin && process.env.NODE_ENV === "production") {
       return { success: false, error: AUTH_ERRORS.FORBIDDEN };

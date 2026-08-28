@@ -7,7 +7,7 @@ export interface INotificationRepository {
   getNotificationSettings(userId: string): Promise<NotificationSetting | null>;
   enqueueEmail(recipient: string, subject: string, bodyHtml: string): Promise<void>;
   enqueuePushOrSms(userId: string, title: string, message: string, channel: NotificationChannel): Promise<void>;
-  markRead(id: string): Promise<Notification>;
+  markRead(id: string, userId: string): Promise<Notification>;
   markAllRead(userId: string): Promise<void>;
 }
 
@@ -61,7 +61,15 @@ export class NotificationRepository implements INotificationRepository {
     });
   }
 
-  async markRead(id: string): Promise<Notification> {
+  async markRead(id: string, userId: string): Promise<Notification> {
+    const notification = await prisma.notification.findUnique({
+      where: { id },
+    });
+
+    if (!notification || notification.userId !== userId) {
+      throw new Error("UNAUTHORIZED_ACTION");
+    }
+
     return prisma.notification.update({
       where: { id },
       data: { isRead: true },

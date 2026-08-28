@@ -122,38 +122,26 @@ export async function getUnlockedContactAction(targetUserId: string) {
       return { success: false, error: AUTH_ERRORS.UNAUTHORIZED };
     }
 
-    try {
-      const headersList = await headers();
-      const ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
-      const userAgent = headersList.get("user-agent") || "unknown";
+    const headersList = await headers();
+    const ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
+    const userAgent = headersList.get("user-agent") || "unknown";
 
-      const contactDetails = await contactService.getContactDetails(
-        session.user.id,
-        targetUserId,
-        ip,
-        userAgent
-      );
+    const contactDetails = await contactService.getContactDetails(
+      session.user.id,
+      targetUserId,
+      ip,
+      userAgent
+    );
 
-      return {
-        success: true,
-        contactDetails,
-      };
-    } catch (err: any) {
-      if (process.env.NODE_ENV !== "production") {
-        return {
-          success: true,
-          contactDetails: {
-            phone: "+91 98470 12345",
-            email: `candidate-${targetUserId.slice(-4)}@keralammatch.com`,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            timeLeftSeconds: 86400,
-          },
-        };
-      }
-      throw err;
-    }
+    return {
+      success: true,
+      contactDetails,
+    };
   } catch (error: any) {
-    if (process.env.NODE_ENV !== "production") {
+    console.error("[contact-controller] Failed to unlock contact details:", error);
+
+    const isLocalDev = process.env.NODE_ENV === "development" && !process.env.VERCEL;
+    if (isLocalDev) {
       return {
         success: true,
         contactDetails: {
@@ -164,6 +152,7 @@ export async function getUnlockedContactAction(targetUserId: string) {
         },
       };
     }
+
     return {
       success: false,
       error: error.message || "ACCESS_LOCKED_OR_EXPIRED",

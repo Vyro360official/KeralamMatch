@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const session = await getSessionAction();
-    // Guard with server-side admin check
-    if (!session.isAuthenticated || !session.user || (session.user as any).role !== "ADMIN") {
+    // Guard with server-side admin check (allows both ADMIN and SUPER_ADMIN)
+    if (!session.isAuthenticated || !session.user || !["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role)) {
       // In dev mode allow preview
       if (process.env.NODE_ENV === "production") {
         return NextResponse.json({ success: false, error: "UNAUTHORIZED_ADMIN_ONLY" }, { status: 403 });
@@ -32,7 +32,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSessionAction();
-    if (!session.isAuthenticated || !session.user || (session.user as any).role !== "ADMIN") {
+    if (!session.isAuthenticated || !session.user || !["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role)) {
       if (process.env.NODE_ENV === "production") {
         return NextResponse.json({ success: false, error: "UNAUTHORIZED_ADMIN_ONLY" }, { status: 403 });
       }

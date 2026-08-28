@@ -1,7 +1,20 @@
 import crypto from "crypto";
 
-// Hex key must be exactly 32 bytes (64 hex characters)
-const ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY || "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"; 
+const isLocalDev = process.env.NODE_ENV === "development" && !process.env.VERCEL;
+const isTestEnv = process.env.NODE_ENV === "test";
+const ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY || "";
+
+if (!ENCRYPTION_KEY) {
+  if (!isLocalDev && !isTestEnv) {
+    throw new Error("CRITICAL_CONFIGURATION_ERROR: DATABASE_ENCRYPTION_KEY is required and missing in this environment.");
+  }
+}
+
+const keyToUse = ENCRYPTION_KEY || "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+if (!/^[0-9a-fA-F]{64}$/.test(keyToUse)) {
+  throw new Error("CRITICAL_CONFIGURATION_ERROR: DATABASE_ENCRYPTION_KEY must be a 64-character hexadecimal string representing a 32-byte key.");
+}
+
 const IV_LENGTH = 12; // Standard for AES-GCM
 
 export function encrypt(text: string): string {
@@ -9,7 +22,7 @@ export function encrypt(text: string): string {
     const iv = crypto.randomBytes(IV_LENGTH);
     const cipher = crypto.createCipheriv(
       "aes-256-gcm", 
-      Buffer.from(ENCRYPTION_KEY, "hex"), 
+      Buffer.from(keyToUse, "hex"), 
       iv
     );
     
@@ -39,7 +52,7 @@ export function decrypt(encryptedText: string): string {
     
     const decipher = crypto.createDecipheriv(
       "aes-256-gcm", 
-      Buffer.from(ENCRYPTION_KEY, "hex"), 
+      Buffer.from(keyToUse, "hex"), 
       iv
     );
     

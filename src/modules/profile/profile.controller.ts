@@ -6,6 +6,7 @@ import { ProfileRepository } from "./profile.repository";
 import { ProfileService } from "./profile.service";
 import { profileCreateSchema, profileSavePartialSchema, validateStepInput } from "./profile.validators";
 import { ProfileCreateInput } from "./profile.types";
+import { mapToOwnProfileDTO, mapToPublicProfileDTO } from "./profile.dto";
 
 const profileRepo = new ProfileRepository();
 const profileService = new ProfileService(profileRepo);
@@ -59,7 +60,7 @@ export async function saveProfileDetailsAction(input: Partial<ProfileCreateInput
       const profile = await profileService.saveProfile(session.user.id, input);
       return {
         success: true,
-        profile,
+        profile: mapToOwnProfileDTO(profile),
       };
     } catch (dbErr: any) {
       return {
@@ -92,7 +93,7 @@ export async function getProfileDetailsAction() {
       if (profile && profile.firstName) {
         return {
           success: true,
-          profile,
+          profile: mapToOwnProfileDTO(profile),
         };
       }
     } catch {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionAction } from "@/modules/auth/auth.controller";
 
 export const dynamic = "force-dynamic";
 
@@ -43,10 +44,19 @@ function fallbackBioImprovement(text: string, tone: string): string {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getSessionAction();
+    if (!session.isAuthenticated || !session.user) {
+      return NextResponse.json({ success: false, error: "UNAUTHORIZED" }, { status: 401 });
+    }
+
     const { text, tone } = await req.json();
 
-    if (!text) {
+    if (!text || typeof text !== "string") {
       return NextResponse.json({ success: false, error: "MISSING_TEXT" }, { status: 400 });
+    }
+
+    if (text.length > 500) {
+      return NextResponse.json({ success: false, error: "INPUT_TOO_LONG" }, { status: 400 });
     }
 
     const apiKey = process.env.GEMINI_API_KEY || "";

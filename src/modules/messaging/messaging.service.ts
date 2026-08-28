@@ -35,6 +35,23 @@ export class MessagingService {
       }
     }
 
+    // Enforce mutual consent relationship gate before sending a message
+    const hasActiveContact = await prisma.contactRequest.findFirst({
+      where: {
+        OR: [
+          { senderId, receiverId, status: "ACCEPTED" },
+          { senderId: receiverId, receiverId: senderId, status: "ACCEPTED" }
+        ],
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!hasActiveContact) {
+      throw new Error("CONTACT_RELATIONSHIP_REQUIRED: You must have an active accepted contact request with this candidate to chat.");
+    }
+
     // 2. Check for block constraints
     try {
       const isBlocked = await prisma.blockedUser.findFirst({
@@ -51,7 +68,7 @@ export class MessagingService {
       }
     } catch (err: any) {
       if (err.message === "BLOCKED_COMMUNICATION") throw err;
-      if (process.env.NODE_ENV === "production") {
+      if (process.env.NODE_ENV === "production" || !!process.env.VERCEL) {
         throw new Error("BLOCK_CHECK_FAILED");
       }
     }
@@ -77,6 +94,23 @@ export class MessagingService {
    * Retrieves conversation history and decrypts message bodies.
    */
   async getMessages(userAId: string, userBId: string, limit = 50): Promise<ChatMessage[]> {
+    // Enforce mutual consent relationship gate before reading messages (IDOR prevention)
+    const hasActiveContact = await prisma.contactRequest.findFirst({
+      where: {
+        OR: [
+          { senderId: userAId, receiverId: userBId, status: "ACCEPTED" },
+          { senderId: userBId, receiverId: userAId, status: "ACCEPTED" }
+        ],
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!hasActiveContact) {
+      throw new Error("CONTACT_RELATIONSHIP_REQUIRED: You must have an active accepted contact request with this candidate to view messages.");
+    }
+
     const rawMessages = await this.messagingRepo.getConversation(userAId, userBId, limit);
 
     // Decrypt content field in message records

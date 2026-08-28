@@ -104,9 +104,10 @@ export class ContactRepository implements IContactRepository {
     try {
       return await prisma.contactRequest.findFirst({
         where: {
-          senderId,
-          receiverId,
-          status: "ACCEPTED",
+          OR: [
+            { senderId, receiverId, status: "ACCEPTED" },
+            { senderId: receiverId, receiverId: senderId, status: "ACCEPTED" }
+          ],
           expiresAt: {
             gt: new Date(),
           },
@@ -129,6 +130,7 @@ export class ContactRepository implements IContactRepository {
   }
 
   async getUserContactDetails(userId: string): Promise<{ phone: string; email: string } | null> {
+    const isLocalDev = process.env.NODE_ENV === "development" && !process.env.VERCEL;
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -139,10 +141,13 @@ export class ContactRepository implements IContactRepository {
       });
 
       if (!user) {
-        return {
-          phone: "+91 98470 12345",
-          email: `candidate-${userId.slice(-4)}@keralammatch.com`,
-        };
+        if (isLocalDev) {
+          return {
+            phone: "+91 98470 12345",
+            email: `candidate-${userId.slice(-4)}@keralammatch.com`,
+          };
+        }
+        return null;
       }
 
       return {
@@ -150,10 +155,13 @@ export class ContactRepository implements IContactRepository {
         email: user.email,
       };
     } catch {
-      return {
-        phone: "+91 94471 23456",
-        email: `candidate-${userId.slice(-4)}@keralammatch.com`,
-      };
+      if (isLocalDev) {
+        return {
+          phone: "+91 94471 23456",
+          email: `candidate-${userId.slice(-4)}@keralammatch.com`,
+        };
+      }
+      return null;
     }
   }
 

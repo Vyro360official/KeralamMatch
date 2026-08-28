@@ -1,8 +1,34 @@
 /**
  * KeralamMatch — Distributed Rate Limiter
- * Supports Upstash Redis REST / Redis URI with in-memory fallback.
- * Enforces production limits across auth, OTP, chat, requests, media, and admin routes.
+ *
+ * When UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are configured,
+ * rate limiting is distributed across all serverless instances (correct behaviour).
+ *
+ * When those env vars are NOT set, the fallback is an in-memory Map.
+ * In serverless environments (Vercel), each lambda instance has its own memory,
+ * so in-memory counters are NOT shared — rate limits are effectively per-instance.
+ *
+ * ⚠️  ACTION REQUIRED: Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
+ *     in your Vercel environment variables before production launch.
+ *     See: https://console.upstash.com → Create Redis Database → REST API keys
  */
+
+const isDeployed =
+  process.env.NODE_ENV === "production" ||
+  !!process.env.VERCEL;
+
+const hasRedis =
+  !!(process.env.UPSTASH_REDIS_REST_URL || process.env.UPSTASH_REDIS_URL) &&
+  !!(process.env.UPSTASH_REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_TOKEN);
+
+if (isDeployed && !hasRedis) {
+  console.warn(
+    "[rate-limiter] WARNING: Upstash Redis is NOT configured. " +
+    "Rate limiting is falling back to per-instance in-memory counters. " +
+    "This is NOT effective across serverless instances. " +
+    "Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel environment variables."
+  );
+}
 
 const memoryStore = new Map<string, { count: number; resetAt: number }>();
 

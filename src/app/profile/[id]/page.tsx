@@ -10,6 +10,7 @@ import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
 import ProfileClientView from "./profile-client-view";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
+import { mapToPublicProfileDTO, mapToOwnProfileDTO } from "@/modules/profile/profile.dto";
 
 const contactRepo = new ContactRepository();
 
@@ -41,7 +42,6 @@ export default async function ProfileDetailPage({ params }: PageProps) {
         where: { userId: session.user.id },
         include: {
           media: true,
-          user: true,
         },
       });
     } else {
@@ -54,12 +54,11 @@ export default async function ProfileDetailPage({ params }: PageProps) {
         },
         include: {
           media: true,
-          user: true,
         },
       });
     }
   } catch (err) {
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === "production" || !!process.env.VERCEL) {
       targetProfile = null;
     }
   }
@@ -293,6 +292,12 @@ export default async function ProfileDetailPage({ params }: PageProps) {
     contactRequest = null;
   }
 
+  // Map targetProfile to clean DTO
+  const isOwnProfile = targetProfile.userId === session.user.id;
+  const serializedProfile = isOwnProfile
+    ? mapToOwnProfileDTO(targetProfile)
+    : mapToPublicProfileDTO(targetProfile, session.user.verified);
+
   // Calculate age
   const birth = new Date(targetProfile.dateOfBirth);
   const age = new Date().getFullYear() - birth.getFullYear();
@@ -310,7 +315,7 @@ export default async function ProfileDetailPage({ params }: PageProps) {
           {/* Main Content Area */}
           <main className="lg:col-span-9 space-y-6">
             <ProfileClientView
-              targetProfile={JSON.parse(JSON.stringify(targetProfile))}
+              targetProfile={JSON.parse(JSON.stringify(serializedProfile))}
               age={age}
               matchScore={matchScore}
               matchBreakdown={JSON.parse(JSON.stringify(matchBreakdown))}

@@ -31,6 +31,7 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const loadStats = async () => {
     try {
@@ -41,6 +42,8 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
       }
     } catch (err) {
       console.warn("Could not retrieve session stats:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,9 +64,9 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
   };
 
   const profile = stats?.profile || userProfile;
-  const firstName = profile?.firstName || "Arjun";
-  const lastName = profile?.lastName || "Nair";
-  const initial = firstName.charAt(0).toUpperCase();
+  const firstName = profile?.firstName || "";
+  const lastName = profile?.lastName || "";
+  const initial = firstName ? firstName.charAt(0).toUpperCase() : "";
   const avatar = profile?.avatarUrl;
   const walletBalance = stats?.walletBalance ? Math.round(stats.walletBalance / 100) : 0;
   const planName = stats?.subscription?.plan?.name || "Free Plan";
@@ -87,24 +90,34 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
 
   const SidebarContent = () => (
     <div className="space-y-4">
-      {/* User Mini Profile Header */}
-      <div className="flex items-center space-x-3.5 p-3 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)]">
-        <div className="relative flex-shrink-0">
-          {avatar ? (
-            <img src={avatar} alt={`${firstName} ${lastName}`} className="h-11 w-11 rounded-full object-cover border-2 border-[#C81D45]" />
-          ) : (
-            <div className="h-11 w-11 rounded-full bg-[#FCE8EC] text-[#C81D45] flex items-center justify-center font-extrabold text-base border-2 border-[#FAD2DA]">
-              {initial}
-            </div>
-          )}
+      {/* User Mini Profile Header / Loading Skeleton */}
+      {loading && !userProfile ? (
+        <div className="flex items-center space-x-3.5 p-3 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] animate-pulse">
+          <div className="h-11 w-11 rounded-full bg-slate-200 flex-shrink-0" />
+          <div className="flex-grow space-y-2">
+            <div className="h-4 bg-slate-200 rounded-sm w-3/4" />
+            <div className="h-3 bg-slate-200 rounded-sm w-1/2" />
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-bold text-[#0A1F44] truncate">{firstName} {lastName}</div>
-          <Link href={profileUrl} className="text-[11px] text-[#C81D45] font-semibold hover:underline">
-            View Profile &rarr;
-          </Link>
+      ) : (
+        <div className="flex items-center space-x-3.5 p-3 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] text-left">
+          <div className="relative flex-shrink-0">
+            {avatar ? (
+              <img src={avatar} alt={`${firstName} ${lastName}`} className="h-11 w-11 rounded-full object-cover border-2 border-[#C81D45]" />
+            ) : (
+              <div className="h-11 w-11 rounded-full bg-[#FCE8EC] text-[#C81D45] flex items-center justify-center font-extrabold text-base border-2 border-[#FAD2DA]">
+                {initial || "M"}
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-[#0A1F44] truncate">{firstName || "Member"} {lastName}</div>
+            <Link href={profileUrl} className="text-[11px] text-[#C81D45] font-semibold hover:underline">
+              View Profile &rarr;
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Navigation List */}
       <nav className="space-y-1 text-xs font-semibold">
