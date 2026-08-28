@@ -52,9 +52,7 @@ const sidebarCategories: SidebarCategory[] = [
     title: "MATCH & ENGAGEMENT",
     items: [
       { href: "/admin/users", label: "Matches", icon: Heart, requiredPermission: "MANAGE_USERS" },
-      { href: "/admin/reports", label: "Contact Requests", icon: PhoneCall, requiredPermission: "MANAGE_REPORTS" },
-      { href: "/admin/reports", label: "Messages", icon: MessageSquare, requiredPermission: "MANAGE_REPORTS" },
-      { href: "/admin/reports", label: "Blocked Profiles", icon: AlertTriangle, requiredPermission: "MANAGE_REPORTS" },
+      { href: "/admin/reports", label: "Safety & Moderation", icon: AlertTriangle, requiredPermission: "MANAGE_REPORTS" },
     ]
   },
   {

@@ -129,6 +129,9 @@ export default function OnboardingWizard() {
   const [error, setError] = useState<string | null>(null);
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [customSubCasteText, setCustomSubCasteText] = useState("");
+  const [customMotherTongueText, setCustomMotherTongueText] = useState("");
+  const [customCasteText, setCustomCasteText] = useState("");
+  const [customEducationText, setCustomEducationText] = useState("");
 
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState("");
@@ -301,6 +304,24 @@ export default function OnboardingWizard() {
       setCustomSubCasteText(formData.subCaste.replace("Other: ", ""));
     }
   }, [formData.subCaste]);
+
+  useEffect(() => {
+    if (formData.motherTongue && formData.motherTongue.startsWith("Other: ")) {
+      setCustomMotherTongueText(formData.motherTongue.replace("Other: ", ""));
+    }
+  }, [formData.motherTongue]);
+
+  useEffect(() => {
+    if (formData.caste && formData.caste.startsWith("Other: ")) {
+      setCustomCasteText(formData.caste.replace("Other: ", ""));
+    }
+  }, [formData.caste]);
+
+  useEffect(() => {
+    if (formData.education && formData.education.startsWith("Other: ")) {
+      setCustomEducationText(formData.education.replace("Other: ", ""));
+    }
+  }, [formData.education]);
 
   const [photosList, setPhotosList] = useState<string[]>([]);
   const [voiceUrl, setVoiceUrl] = useState<string | null>(null);
@@ -497,6 +518,7 @@ export default function OnboardingWizard() {
           height: p.height || 170,
           maritalStatus: p.maritalStatus || "Never Married",
           religion: p.religion || "Hindu",
+          motherTongue: p.motherTongue || "Malayalam",
           caste: p.caste || "Nair",
           subCaste: p.subCaste || "",
           education: p.education || "",
@@ -511,6 +533,20 @@ export default function OnboardingWizard() {
         setVoiceUrl(p.voiceIntroduction || null);
         if ((p as any).media) {
           setPhotosList((p as any).media.map((m: any) => m.url));
+        }
+
+        // Initialize custom write-in texts
+        if (p.motherTongue && p.motherTongue.startsWith("Other: ")) {
+          setCustomMotherTongueText(p.motherTongue.replace("Other: ", ""));
+        }
+        if (p.caste && p.caste.startsWith("Other: ")) {
+          setCustomCasteText(p.caste.replace("Other: ", ""));
+        }
+        if (p.subCaste && p.subCaste.startsWith("Other: ")) {
+          setCustomSubCasteText(p.subCaste.replace("Other: ", ""));
+        }
+        if (p.education && p.education.startsWith("Other: ")) {
+          setCustomEducationText(p.education.replace("Other: ", ""));
         }
       }
     }
@@ -995,13 +1031,31 @@ export default function OnboardingWizard() {
                     onChange={(val) => setFormData((prev) => ({ ...prev, motherTongue: val }))}
                     placeholder="Search mother tongue..."
                   />
+                  {(formData.motherTongue === "Other" || formData.motherTongue.startsWith("Other:")) && (
+                    <div className="mt-3">
+                      <label className="block font-bold uppercase tracking-wider text-pink-700 mb-1.5 font-semibold">Please specify your mother tongue *</label>
+                      <Input
+                        type="text"
+                        name="customMotherTongue"
+                        placeholder="Type your mother tongue"
+                        value={customMotherTongueText}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomMotherTongueText(val);
+                          setFormData((prev) => ({ ...prev, motherTongue: `Other: ${val}` }));
+                        }}
+                        className="rounded-full h-11 bg-white text-[#0A1F44]"
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <label className="block font-bold uppercase tracking-wider text-[#636366] mb-1.5">Caste / Community *</label>
                   <SearchableSelect
                     value={formData.caste}
-                    options={currentRelTaxonomy.castes.map((c) => c.caste)}
+                    options={[...currentRelTaxonomy.castes.map((c) => c.caste), "Other"]}
                     onChange={(val) => {
                       const cObj = currentRelTaxonomy.castes.find((c) => c.caste === val);
                       setFormData((prev) => ({
@@ -1012,6 +1066,24 @@ export default function OnboardingWizard() {
                     }}
                     placeholder="Search caste..."
                   />
+                  {(formData.caste === "Other" || formData.caste.startsWith("Other:")) && (
+                    <div className="mt-3">
+                      <label className="block font-bold uppercase tracking-wider text-pink-700 mb-1.5 font-semibold">Please specify your caste *</label>
+                      <Input
+                        type="text"
+                        name="customCaste"
+                        placeholder="Type your caste"
+                        value={customCasteText}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomCasteText(val);
+                          setFormData((prev) => ({ ...prev, caste: `Other: ${val}` }));
+                        }}
+                        className="rounded-full h-11 bg-white text-[#0A1F44]"
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -1125,17 +1197,34 @@ export default function OnboardingWizard() {
               </div>
 
               <div className="space-y-4 text-xs">
-                {/* Searchable Higher Education Dropdown */}
                 <div className="space-y-2">
                   <label className="block font-bold uppercase tracking-wider text-[#636366]">
                     Highest Qualification (Worldwide Education) *
                   </label>
                   <SearchableSelect
                     value={formData.education}
-                    options={allDegrees}
+                    options={[...allDegrees, "Other"]}
                     onChange={(val) => setFormData((prev) => ({ ...prev, education: val }))}
                     placeholder="Search education (e.g. Bachelor, MBA, CA)..."
                   />
+                  {(formData.education === "Other" || formData.education.startsWith("Other:")) && (
+                    <div className="mt-3">
+                      <label className="block font-bold uppercase tracking-wider text-pink-700 mb-1.5 font-semibold">Please specify your education qualification *</label>
+                      <Input
+                        type="text"
+                        name="customEducation"
+                        placeholder="Type your qualification details"
+                        value={customEducationText}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomEducationText(val);
+                          setFormData((prev) => ({ ...prev, education: `Other: ${val}` }));
+                        }}
+                        className="rounded-full h-11 bg-white text-[#0A1F44]"
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

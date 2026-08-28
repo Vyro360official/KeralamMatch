@@ -157,12 +157,28 @@ export class PaymentsService {
 
         // Fulfill wallet top-ups
         if (paymentRecord.tierName === "WALLET_RECHARGE") {
-          const wallet = await tx.wallet.findUnique({ where: { userId: paymentRecord.userId } });
-          if (wallet) {
+          // Idempotency: verify this payment ID hasn't already been credited
+          const existingTx = await tx.walletTransaction.findFirst({
+            where: { referenceId: paymentId },
+          });
+
+          if (!existingTx) {
+            // Guarantee user wallet row exists in the database
+            const wallet = await tx.wallet.upsert({
+              where: { userId: paymentRecord.userId },
+              update: {},
+              create: {
+                userId: paymentRecord.userId,
+                balance: 0,
+                currency: "INR",
+              },
+            });
+
             await tx.wallet.update({
               where: { id: wallet.id },
               data: { balance: wallet.balance + paymentRecord.amount },
             });
+
             await tx.walletTransaction.create({
               data: {
                 walletId: wallet.id,

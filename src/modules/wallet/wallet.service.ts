@@ -93,38 +93,54 @@ export class WalletService {
     // Execute credit payouts in transaction block
     await prisma.$transaction(async (tx) => {
       // 1. Credit Referrer
-      const referrerWallet = await tx.wallet.findUnique({ where: { userId: referral.referrerId } });
-      if (referrerWallet) {
-        await tx.wallet.update({
-          where: { id: referrerWallet.id },
-          data: { balance: referrerWallet.balance + referral.rewardValue },
-        });
-        await tx.walletTransaction.create({
-          data: {
-            walletId: referrerWallet.id,
-            amount: referral.rewardValue,
-            type: "CREDIT",
-            description: `Referral Reward: User verified.`,
-          },
-        });
-      }
+      const referrerWallet = await tx.wallet.upsert({
+        where: { userId: referral.referrerId },
+        update: {},
+        create: {
+          userId: referral.referrerId,
+          balance: 0,
+          currency: "INR",
+        },
+      });
+
+      await tx.wallet.update({
+        where: { id: referrerWallet.id },
+        data: { balance: referrerWallet.balance + referral.rewardValue },
+      });
+
+      await tx.walletTransaction.create({
+        data: {
+          walletId: referrerWallet.id,
+          amount: referral.rewardValue,
+          type: "CREDIT",
+          description: `Referral Reward: User verified.`,
+        },
+      });
 
       // 2. Credit Referee
-      const refereeWallet = await tx.wallet.findUnique({ where: { userId: referral.refereeId } });
-      if (refereeWallet) {
-        await tx.wallet.update({
-          where: { id: refereeWallet.id },
-          data: { balance: refereeWallet.balance + referral.rewardValue },
-        });
-        await tx.walletTransaction.create({
-          data: {
-            walletId: refereeWallet.id,
-            amount: referral.rewardValue,
-            type: "CREDIT",
-            description: `Referral Signup Bonus.`,
-          },
-        });
-      }
+      const refereeWallet = await tx.wallet.upsert({
+        where: { userId: referral.refereeId },
+        update: {},
+        create: {
+          userId: referral.refereeId,
+          balance: 0,
+          currency: "INR",
+        },
+      });
+
+      await tx.wallet.update({
+        where: { id: refereeWallet.id },
+        data: { balance: refereeWallet.balance + referral.rewardValue },
+      });
+
+      await tx.walletTransaction.create({
+        data: {
+          walletId: refereeWallet.id,
+          amount: referral.rewardValue,
+          type: "CREDIT",
+          description: `Referral Signup Bonus.`,
+        },
+      });
 
       // 3. Mark referral completed
       await tx.referral.update({
