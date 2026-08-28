@@ -96,11 +96,11 @@ export default async function DashboardPage() {
 
   // Build metrics data objects
   const kpiMetrics = [
-    { label: "Profile Views", value: profileViewsCount, icon: Eye, trend: "+12%", color: "text-rose-600 bg-rose-50" },
-    { label: "Matches Found", value: matchesFoundCount, icon: Users, trend: "+8%", color: "text-emerald-600 bg-emerald-50" },
-    { label: "Messages", value: unreadMessagesCount, icon: MessageSquare, trend: "+15%", color: "text-blue-600 bg-blue-50" },
-    { label: "Contact Requests", value: pendingRequestsCount, icon: UserCheck, trend: "+5%", color: "text-amber-600 bg-amber-50" },
-    { label: "Profile Reveals", value: contactRevealsCount, icon: Star, trend: "Last 7 days", color: "text-purple-600 bg-purple-50" },
+    { label: "Profile Views", value: profileViewsCount, icon: Eye, trend: "+12%", color: "text-rose-600 bg-rose-50", href: "/requests" },
+    { label: "Matches Found", value: matchesFoundCount, icon: Users, trend: "+8%", color: "text-emerald-600 bg-emerald-50", href: "/find" },
+    { label: "Messages", value: unreadMessagesCount, icon: MessageSquare, trend: "+15%", color: "text-blue-600 bg-blue-50", href: "/chat" },
+    { label: "Contact Requests", value: pendingRequestsCount, icon: UserCheck, trend: "+5%", color: "text-amber-600 bg-amber-50", href: "/requests" },
+    { label: "Profile Reveals", value: contactRevealsCount, icon: Star, trend: "Last 7 days", color: "text-purple-600 bg-purple-50", href: "/requests" },
   ];
 
   return (
@@ -140,7 +140,11 @@ export default async function DashboardPage() {
               {kpiMetrics.map((kpi) => {
                 const Icon = kpi.icon;
                 return (
-                  <div key={kpi.label} className="bg-white rounded-2xl p-4 border border-[rgba(28,28,30,0.06)] shadow-xs space-y-2">
+                  <Link
+                    key={kpi.label}
+                    href={kpi.href}
+                    className="block group bg-white rounded-2xl p-4 border border-[rgba(28,28,30,0.06)] shadow-xs space-y-2 hover:border-[#C81D45] transition-all hover:-translate-y-0.5 cursor-pointer"
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-[9px] font-bold text-[#8E8E93] uppercase tracking-wider">{kpi.label}</span>
                     </div>
@@ -151,7 +155,7 @@ export default async function DashboardPage() {
                     <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${kpi.color}`}>
                       <Icon className="h-4.5 w-4.5" />
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

@@ -24,6 +24,7 @@ function AuthForm() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<any>(null);
@@ -127,7 +128,10 @@ function AuthForm() {
 
         const data = await res.json();
         if (data.success) {
-          router.push(isRegister ? "/join" : "/dashboard");
+          setSuccessMessage("OTP verified successfully! Logging you in...");
+          setTimeout(() => {
+            router.push(isRegister ? "/join" : "/dashboard");
+          }, 1200);
         } else {
           setError(data.error || "Verification failed. Please use OTP: 123456");
         }
@@ -150,7 +154,10 @@ function AuthForm() {
 
       const result = await loginAction(idToken);
       if (result.success) {
-        router.push(isRegister ? "/join" : "/dashboard");
+        setSuccessMessage("OTP verified successfully! Logging you in...");
+        setTimeout(() => {
+          router.push(isRegister ? "/join" : "/dashboard");
+        }, 1200);
       } else {
         // Admin SDK verify failed (e.g. dummy credentials) — try sandbox fallback
         const normalizedPhone = phoneNumber.startsWith("+") ? phoneNumber : `+91${phoneNumber}`;
@@ -164,7 +171,10 @@ function AuthForm() {
         });
         const fallbackData = await fallbackRes.json();
         if (fallbackData.success) {
-          router.push(isRegister ? "/join" : "/dashboard");
+          setSuccessMessage("OTP verified successfully! Logging you in...");
+          setTimeout(() => {
+            router.push(isRegister ? "/join" : "/dashboard");
+          }, 1200);
         } else {
           setError(result.error || "Failed to create secure session.");
         }
@@ -314,6 +324,21 @@ function AuthForm() {
               >
                 <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500" />
                 <span>{error}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Success Message Box */}
+          <AnimatePresence>
+            {successMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center space-x-2 rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-700 mb-6"
+              >
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+                <span>{successMessage}</span>
               </motion.div>
             )}
           </AnimatePresence>

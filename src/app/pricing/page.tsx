@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
+import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import { 
   checkoutSubscriptionAction, 
   checkoutWalletTopUpAction 
@@ -129,125 +130,140 @@ export default function PricingPage() {
     <div className="flex flex-col min-h-screen bg-[#FCFBF7] text-[#1C1C1E]">
       <Header />
 
-      <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 lg:px-8 py-12 space-y-12">
-        
-        {/* Page Header (Matching Reference 1.10) */}
-        <div className="text-center max-w-2xl mx-auto space-y-3">
-          <span className="text-xs font-bold uppercase tracking-widest text-[#C81D45]">Membership Upgrade</span>
-          <h1 className="text-3xl sm:text-4xl font-bold text-[#0A1F44]">Choose Your Plan</h1>
-          <p className="text-xs text-[#636366]">
-            Upgrade to unlock unlimited contact reveals, direct encrypted chat, and priority verifications.
-          </p>
-        </div>
+      <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 mb-16 lg:mb-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Left Sidebar Navigation */}
+          <DashboardSidebar />
 
-        {error && (
-          <div className="max-w-md mx-auto text-xs text-red-600 bg-red-50 p-4 rounded-2xl border border-red-200 flex items-center space-x-2">
-            <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
+          {/* Main Content Area */}
+          <main className="lg:col-span-9 space-y-12">
+            
+            {/* Page Header (Matching Reference 1.10) */}
+            <div className="text-center max-w-2xl mx-auto space-y-3">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#C81D45]">Membership Upgrade</span>
+              <h1 className="text-3xl sm:text-4xl font-bold text-[#0A1F44]">Choose Your Plan</h1>
+              <p className="text-xs text-[#636366]">
+                Upgrade to unlock unlimited contact reveals, direct encrypted chat, and priority verifications.
+              </p>
+            </div>
 
-        {/* Pricing Cards Grid (Matching Reference 1.10) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {plans.map((p) => {
-            const isGold = p.name === "Premium Gold" || p.name.toLowerCase().includes("gold");
-            const priceRupees = Math.round(p.price / 100);
-            const features = p.features || {};
+            {error && (
+              <div className="max-w-md mx-auto text-xs text-red-600 bg-red-50 p-4 rounded-2xl border border-red-200 flex items-center space-x-2">
+                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
-            return (
-              <div
-                key={p.id}
-                className={`bg-white rounded-3xl p-8 border flex flex-col justify-between relative shadow-sm transition-all ${
-                  isGold
-                    ? "border-[#D4AF37] shadow-xl scale-[1.03] ring-2 ring-[#D4AF37]/20"
-                    : "border-[rgba(28,28,30,0.08)]"
-                }`}
-              >
-                {isGold && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#D4AF37] text-white text-[10px] font-extrabold uppercase tracking-widest shadow-sm">
-                    Most Popular
-                  </div>
-                )}
+            {/* Pricing Cards Grid (Matching Reference 1.10) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+              {plans.map((p) => {
+                const isGold = p.name === "Premium Gold" || p.name.toLowerCase().includes("gold");
+                const priceRupees = Math.round(p.price / 100);
+                const features = p.features || {};
 
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-bold text-[#0A1F44] flex items-center gap-2">
-                      {isGold && <Crown className="h-5 w-5 text-[#D4AF37]" />}
-                      {p.name}
-                    </h3>
-                    <p className="text-xs text-[#636366] mt-1">{p.description}</p>
-                  </div>
-
-                  <div>
-                    <span className="text-4xl font-extrabold text-[#0A1F44]">₹{priceRupees}</span>
-                    <span className="text-xs text-[#8E8E93] ml-1">/ month</span>
-                  </div>
-
-                  <ul className="space-y-3 text-xs text-[#636366] pt-4 border-t border-[rgba(28,28,30,0.08)]">
-                    <li className="flex items-center space-x-2">
-                      <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                      <span>{features.contactRequestsPerDay || 5} Contact requests/day</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                      <span>{features.maxPhotos || 6} Profile photos allowed</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                      <span>Priority verification badge</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                      <span>Encrypted in-app chat</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="pt-8">
-                  <button
-                    onClick={() => handleCheckoutPlan(p.id)}
-                    disabled={loading}
-                    className={`w-full h-12 rounded-full text-xs font-bold shadow-md transition-all ${
+                return (
+                  <div
+                    key={p.id}
+                    className={`bg-white rounded-3xl p-6 border flex flex-col justify-between relative shadow-sm transition-all ${
                       isGold
-                        ? "bg-[#C81D45] hover:bg-[#A51436] text-white"
-                        : "border border-[rgba(28,28,30,0.12)] text-[#0A1F44] hover:bg-gray-50"
+                        ? "border-[#D4AF37] shadow-xl scale-[1.02] ring-2 ring-[#D4AF37]/20"
+                        : "border-[rgba(28,28,30,0.08)]"
                     }`}
                   >
-                    {loading && payingPlanId === p.id ? "Processing..." : "Choose Plan"}
-                  </button>
+                    <div>
+                      {isGold && (
+                        <span className="absolute -top-3 left-6 px-3 py-1 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-widest flex items-center gap-1 shadow-sm">
+                          <Crown className="h-3 w-3 fill-white" /> Popular
+                        </span>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-bold text-[#0A1F44]">{p.name}</h3>
+                          <span className="text-[10px] text-[#8E8E93] font-semibold">{p.durationDays} Days Duration</span>
+                        </div>
+                        <div className="h-9 w-9 rounded-xl bg-[#C81D45]/10 flex items-center justify-center text-[#C81D45]">
+                          <Crown className="h-5 w-5 fill-current" />
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex items-baseline">
+                        <span className="text-2xl font-extrabold text-[#0A1F44]">₹{priceRupees}</span>
+                        <span className="text-[10px] text-[#8E8E93] font-semibold ml-1">/ one-time</span>
+                      </div>
+
+                      <ul className="mt-6 space-y-2.5 text-[11px] font-medium text-[#636366]">
+                        <li className="flex items-center space-x-2">
+                          <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                          <span><strong>{features.contactLimit === 9999 ? "Unlimited" : features.contactLimit}</strong> contact reveals</span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                          <span><strong>{features.profileViewsLimit || 100}</strong> profile visits/day</span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                          <span>{features.chatEnabled ? "Direct Messaging active" : "Messaging disabled"}</span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                          <span>{features.verifiedOnlySearch ? "Filter by verified profiles" : "Standard search filters"}</span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                          <span>Encrypted in-app chat</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="pt-6">
+                      <button
+                        onClick={() => handleCheckoutPlan(p.id)}
+                        disabled={loading}
+                        className={`w-full h-11 rounded-full text-xs font-bold shadow-md transition-all ${
+                          isGold
+                            ? "bg-[#C81D45] hover:bg-[#A51436] text-white"
+                            : "border border-[rgba(28,28,30,0.12)] text-[#0A1F44] hover:bg-gray-50"
+                        }`}
+                      >
+                        {loading && payingPlanId === p.id ? "Processing..." : "Choose Plan"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Security & Guarantee Trust Bar */}
+            <div className="bg-white rounded-3xl p-6 border border-[rgba(28,28,30,0.08)] shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+              <div className="flex items-center space-x-4">
+                <ShieldCheck className="h-8 w-8 text-[#C81D45] flex-shrink-0" />
+                <div>
+                  <h4 className="text-sm font-bold text-[#0A1F44]">100% Secure Payment Guarantee</h4>
+                  <p className="text-xs text-[#636366]">Encrypted via Razorpay SSL. Cancel anytime from profile settings.</p>
                 </div>
               </div>
-            );
-          })}
-        </div>
 
-        {/* Security & Guarantee Trust Bar */}
-        <div className="bg-white rounded-3xl p-8 border border-[rgba(28,28,30,0.08)] shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-          <div className="flex items-center space-x-4">
-            <ShieldCheck className="h-8 w-8 text-[#C81D45] flex-shrink-0" />
-            <div>
-              <h4 className="text-sm font-bold text-[#0A1F44]">100% Secure Payment Guarantee</h4>
-              <p className="text-xs text-[#636366]">Encrypted via Razorpay SSL. Cancel anytime from profile settings.</p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => handleBuyCredits(9900)}
+                  className="px-5 py-2.5 rounded-full border border-[rgba(28,28,30,0.12)] text-xs font-bold text-[#0A1F44] hover:bg-gray-50"
+                >
+                  Buy 1 Reveal (₹99)
+                </button>
+                <button
+                  onClick={() => handleBuyCredits(49900)}
+                  className="px-5 py-2.5 rounded-full bg-[#0A369D] text-white text-xs font-bold shadow-sm"
+                >
+                  Buy 5 Reveals (₹499)
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div className="flex gap-4">
-            <button
-              onClick={() => handleBuyCredits(9900)}
-              className="px-5 py-2.5 rounded-full border border-[rgba(28,28,30,0.12)] text-xs font-bold text-[#0A1F44] hover:bg-gray-50"
-            >
-              Buy 1 Reveal (₹99)
-            </button>
-            <button
-              onClick={() => handleBuyCredits(49900)}
-              className="px-5 py-2.5 rounded-full bg-[#0A369D] text-white text-xs font-bold shadow-sm"
-            >
-              Buy 5 Reveals (₹499)
-            </button>
-          </div>
+          </main>
         </div>
-
-      </main>
+      </div>
 
       <Footer />
     </div>

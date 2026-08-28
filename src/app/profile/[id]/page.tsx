@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
 import ProfileClientView from "./profile-client-view";
+import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 
 const contactRepo = new ContactRepository();
 
@@ -297,19 +298,28 @@ export default async function ProfileDetailPage({ params }: PageProps) {
   const age = new Date().getFullYear() - birth.getFullYear();
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg-primary">
+    <div className="flex flex-col min-h-screen bg-[#FCFBF7] text-[#1C1C1E]">
       <Header />
       
-      <main className="flex-grow mx-auto max-w-5xl w-full px-6 md:px-8 py-12">
-        <ProfileClientView
-          targetProfile={JSON.parse(JSON.stringify(targetProfile))}
-          age={age}
-          matchScore={matchScore}
-          matchBreakdown={JSON.parse(JSON.stringify(matchBreakdown))}
-          initialContactRequest={JSON.parse(JSON.stringify(contactRequest))}
-          currentUserId={session.user.id}
-        />
-      </main>
+      <div className="flex-grow mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 mb-16 lg:mb-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Left Sidebar Navigation */}
+          <DashboardSidebar />
+
+          {/* Main Content Area */}
+          <main className="lg:col-span-9 space-y-6">
+            <ProfileClientView
+              targetProfile={JSON.parse(JSON.stringify(targetProfile))}
+              age={age}
+              matchScore={matchScore}
+              matchBreakdown={JSON.parse(JSON.stringify(matchBreakdown))}
+              initialContactRequest={JSON.parse(JSON.stringify(contactRequest))}
+              currentUserId={session.user.id}
+            />
+          </main>
+        </div>
+      </div>
 
       <Footer />
     </div>
