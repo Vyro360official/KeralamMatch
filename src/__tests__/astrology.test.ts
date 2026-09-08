@@ -197,3 +197,71 @@ describe("4. Security & Privacy: HoroscopeMatchResultDTO Privacy Guarantee", () 
     );
   });
 });
+
+describe("5. Single Horoscope: 3-Page Astro Software & Uploaded Document", () => {
+  it("should generate authentic 3-page natal horoscope with cover, charts, and sphutam", async () => {
+    const service = new AstrologyService();
+    const result = await service.getSingleHoroscope("prf-1");
+
+    assert.equal(result.success, true);
+    assert.ok(result.profile);
+    assert.equal(result.profile.name, "Ananya Nair");
+    assert.ok(result.reportHtml);
+
+    // Verify 3 distinct pages
+    assert.ok(result.reportHtml.includes("Page 1 of 3"), "Must contain Page 1 (Cover)");
+    assert.ok(result.reportHtml.includes("Page 2 of 3"), "Must contain Page 2 (Charts & Panchangam)");
+    assert.ok(result.reportHtml.includes("Page 3 of 3"), "Must contain Page 3 (Graha Sphutam)");
+
+    // Verify Kerala astrological elements
+    assert.ok(result.reportHtml.includes("കൊല്ലവർഷം"), "Must include Kollam Era on Cover");
+    assert.ok(result.reportHtml.includes("രാശി ചക്രം"), "Must include Rasi Chart");
+    assert.ok(result.reportHtml.includes("നവാംശകം"), "Must include Navamsa Chart");
+    assert.ok(result.reportHtml.includes("ഗ്രഹസ്ഫുടം"), "Must include Graha Sphutam table");
+  });
+
+  it("should return uploaded document metadata when present", async () => {
+    const service = new AstrologyService();
+    const result = await service.getSingleHoroscope("prf-usr-sandbox-101");
+
+    assert.equal(result.success, true);
+    assert.ok(typeof result.hasUploadedDocument === "boolean");
+  });
+});
+
+describe("6. Zero-Dependency Native Engine Fallback", () => {
+  it("should calculate Kerala 10-Porutham compatibility without external dependencies", async () => {
+    const { executeNativeAstroMatch } = await import("../modules/astrology/astrology.adapter");
+
+    const bride = {
+      name: "Lakshmi",
+      gender: "female",
+      dob: "1998-05-15",
+      tob: "10:30",
+      place: "Ernakulam",
+    };
+
+    const groom = {
+      name: "Rahul",
+      gender: "male",
+      dob: "1995-03-20",
+      tob: "14:15",
+      place: "Trivandrum",
+    };
+
+    const result = executeNativeAstroMatch(bride, groom);
+
+    assert.equal(result.success, true);
+    assert.ok(result.porutham);
+    assert.equal(result.porutham.items.length, 10);
+    assert.ok(result.porutham.total_score >= 0 && result.porutham.total_score <= 10);
+    assert.ok(["ഉത്തമം", "മദ്ധ്യമം", "അധമം"].includes(result.porutham.verdict_mal));
+
+    // Verify 3-page report generated
+    assert.ok(result.report_html);
+    assert.ok(result.report_html.includes("Page 1 of 3"));
+    assert.ok(result.report_html.includes("Page 2 of 3"));
+    assert.ok(result.report_html.includes("Page 3 of 3"));
+  });
+});
+

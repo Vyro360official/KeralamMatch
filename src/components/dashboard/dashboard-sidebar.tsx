@@ -128,6 +128,7 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
             <Link
               key={item.label}
               href={item.href}
+              prefetch={true}
               className={`flex items-center justify-between px-3.5 py-3 rounded-xl transition-all ${
                 isActive
                   ? "bg-[#C81D45] text-white shadow-xs font-bold"
@@ -240,6 +241,7 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[rgba(28,28,30,0.08)] flex items-center justify-around h-16 px-4 shadow-lg pb-safe">
         <Link
           href="/dashboard"
+          prefetch={true}
           className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
             pathname === "/dashboard" ? "text-[#C81D45]" : "text-slate-400"
           }`}

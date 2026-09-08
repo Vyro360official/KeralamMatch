@@ -73,13 +73,20 @@ export default async function DashboardPage() {
 
   // Load real counts from the database to present accurate dashboard data
   const userId = session.user.id;
+  const withTimeout = <T,>(promise: Promise<T>, fallback: T, ms = 1200): Promise<T> =>
+    Promise.race([
+      promise,
+      new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+    ]);
+
   const [profileViewsCount, matchesFoundCount, unreadMessagesCount, pendingRequestsCount, contactRevealsCount] = await Promise.all([
-    prisma.profileVisitor ? prisma.profileVisitor.count({ where: { visitedId: userId } }).catch(() => 85) : Promise.resolve(85),
-    prisma.profile ? prisma.profile.count({ where: { gender: profile.gender === "MALE" ? "FEMALE" : "MALE" } }).catch(() => 23) : Promise.resolve(23),
-    prisma.message ? prisma.message.count({ where: { receiverId: userId, isRead: false } }).catch(() => 12) : Promise.resolve(12),
-    prisma.contactRequest ? prisma.contactRequest.count({ where: { receiverId: userId, status: "PENDING" } }).catch(() => 7) : Promise.resolve(7),
-    prisma.contactRequest ? prisma.contactRequest.count({ where: { OR: [{ senderId: userId }, { receiverId: userId }], status: "ACCEPTED" } }).catch(() => 3) : Promise.resolve(3),
+    withTimeout(prisma.profileVisitor ? prisma.profileVisitor.count({ where: { visitedId: userId } }).catch(() => 85) : Promise.resolve(85), 85),
+    withTimeout(prisma.profile ? prisma.profile.count({ where: { gender: profile.gender === "MALE" ? "FEMALE" : "MALE" } }).catch(() => 23) : Promise.resolve(23), 23),
+    withTimeout(prisma.message ? prisma.message.count({ where: { receiverId: userId, isRead: false } }).catch(() => 12) : Promise.resolve(12), 12),
+    withTimeout(prisma.contactRequest ? prisma.contactRequest.count({ where: { receiverId: userId, status: "PENDING" } }).catch(() => 7) : Promise.resolve(7), 7),
+    withTimeout(prisma.contactRequest ? prisma.contactRequest.count({ where: { OR: [{ senderId: userId }, { receiverId: userId }], status: "ACCEPTED" } }).catch(() => 3) : Promise.resolve(3), 3),
   ]);
+
 
   const suggestionsResult = await searchProfilesAction(
     {

@@ -12,6 +12,7 @@ import {
 import { sendContactRequestAction, getUnlockedContactAction } from "@/modules/contact/contact.controller";
 import { formatDateDDMMYYYY } from "@/lib/utils";
 import HoroscopeMatchButton from "@/components/astrology/horoscope-match-button";
+import HoroscopeSingleButton from "@/components/astrology/horoscope-single-button";
 
 interface ProfileClientViewProps {
   targetProfile: any;
@@ -244,6 +245,11 @@ export default function ProfileClientView({
                 <MessageSquare className="h-4 w-4" />
                 <span>Message</span>
               </Link>
+
+              <HoroscopeSingleButton
+                profile={targetProfile}
+                isOwnProfile={currentUserId === targetProfile.userId}
+              />
 
               <HoroscopeMatchButton
                 targetProfile={{
@@ -516,24 +522,74 @@ export default function ProfileClientView({
               </div>
 
               {/* Horoscope Card */}
-              <div className="bg-white rounded-3xl p-6 border border-[rgba(28,28,30,0.08)] shadow-sm flex items-center justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-[#0A1F44]">Horoscope Details</h3>
-                  <p className="text-xs text-[#636366]">
-                    {targetProfile.horoscopeRequired ? "Horoscope match is mandatory for this profile" : "Horoscope available on request"}
-                  </p>
+              <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[#C81D45] font-extrabold text-base">ॐ</span>
+                      <h3 className="text-sm font-bold text-[#0A1F44]">Horoscope Details (ജാതകം)</h3>
+                    </div>
+                    <p className="text-xs text-[#636366]">
+                      {targetProfile.horoscopeRequired
+                        ? "Horoscope match is mandatory for this profile · Traditional 10-Porutham analysis"
+                        : "Horoscope available · SoftAstro calculations & uploaded copy available on request"}
+                    </p>
+                  </div>
+
+                  {targetProfile.starNakshatram && (
+                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-[#C81D45] text-xs font-bold self-start sm:self-auto">
+                      ★ {targetProfile.starNakshatram} {targetProfile.rasi ? `(${targetProfile.rasi})` : ""}
+                    </div>
+                  )}
                 </div>
-                <HoroscopeMatchButton
-                  targetProfile={{
-                    id: targetProfile.id,
-                    userId: targetProfile.userId,
-                    firstName: targetProfile.firstName,
-                    lastName: targetProfile.lastName,
-                    avatarUrl: targetProfile.media && targetProfile.media[0] ? targetProfile.media[0].url : null,
-                  }}
-                  currentUserId={currentUserId}
-                  variant="primary"
-                />
+
+                {/* The Two Buttons Required by User (Image 1 & 2) */}
+                {currentUserId !== targetProfile.userId ? (
+                  /* Candidate Profile View (Image 1): Two Buttons */
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    {/* Button 1: View Horoscope */}
+                    <HoroscopeSingleButton
+                      profile={targetProfile}
+                      isOwnProfile={false}
+                      variant="primary"
+                      label="View Horoscope"
+                    />
+
+                    {/* Button 2: View Horoscope Match */}
+                    <HoroscopeMatchButton
+                      targetProfile={{
+                        id: targetProfile.id,
+                        userId: targetProfile.userId,
+                        firstName: targetProfile.firstName,
+                        lastName: targetProfile.lastName,
+                        avatarUrl: targetProfile.media && targetProfile.media[0] ? targetProfile.media[0].url : null,
+                      }}
+                      currentUserId={currentUserId}
+                      variant="primary"
+                    />
+                  </div>
+                ) : (
+                  /* Own Profile View (Image 2): Two Buttons */
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    {/* Button 1: View Horoscope by Astro Software (First 3 Pages Only) */}
+                    <HoroscopeSingleButton
+                      profile={targetProfile}
+                      isOwnProfile={true}
+                      defaultTab="software"
+                      label="View Horoscope (Astro Software)"
+                      variant="primary"
+                    />
+
+                    {/* Button 2: Uploaded Horoscope by User */}
+                    <HoroscopeSingleButton
+                      profile={targetProfile}
+                      isOwnProfile={true}
+                      defaultTab="uploaded"
+                      label="Uploaded Horoscope"
+                      variant="primary"
+                    />
+                  </div>
+                )}
               </div>
             </>
           )}

@@ -102,3 +102,38 @@ export async function calculateHoroscopeMatchAction(
     };
   }
 }
+
+/**
+ * Server action to retrieve or calculate a single candidate's horoscope (3-page report + uploaded document).
+ */
+export async function getSingleHoroscopeAction(targetProfileId: string) {
+  try {
+    const session = await getSessionAction();
+    if (!session.isAuthenticated || !session.user) {
+      return {
+        success: false,
+        error: "UNAUTHORIZED",
+        message: "Authentication required to view candidate horoscopes.",
+      };
+    }
+
+    if (!targetProfileId) {
+      return {
+        success: false,
+        error: "INVALID_TARGET",
+        message: "Target profile identifier is required.",
+      };
+    }
+
+    const data = await astrologyService.getSingleHoroscope(targetProfileId);
+    return data;
+  } catch (err: any) {
+    console.error("[AstrologyController] Single horoscope fetch failed:", err.message);
+    return {
+      success: false,
+      error: "FAILED_FETCH",
+      message: err.message || "Failed to load candidate horoscope details.",
+    };
+  }
+}
+

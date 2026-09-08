@@ -302,6 +302,20 @@ export default async function ProfileDetailPage({ params }: PageProps) {
   const birth = new Date(targetProfile.dateOfBirth);
   const age = new Date().getFullYear() - birth.getFullYear();
 
+  // Load current user profile for Sidebar
+  let currentUserProfile: any = null;
+  if (isOwnProfile) {
+    currentUserProfile = targetProfile;
+  } else {
+    try {
+      currentUserProfile = await prisma.profile.findFirst({
+        where: { userId: session.user.id },
+      });
+    } catch {
+      currentUserProfile = null;
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-[#FCFBF7] text-[#1C1C1E]">
       <Header />
@@ -310,7 +324,7 @@ export default async function ProfileDetailPage({ params }: PageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Sidebar Navigation */}
-          <DashboardSidebar />
+          <DashboardSidebar userProfile={currentUserProfile || targetProfile} />
 
           {/* Main Content Area */}
           <main className="lg:col-span-9 space-y-6">

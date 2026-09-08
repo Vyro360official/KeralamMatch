@@ -9,6 +9,7 @@ import { executeSoftAstroMatch, formatPoruthamItems } from "./astrology.adapter"
 import { sanitizeAstrologyReportHtml } from "./astrology.sanitizer";
 import { HoroscopeMatchResultDTO, HoroscopeProfileSummaryDTO } from "./astrology.dto";
 import { BirthProfileInput } from "./astrology.types";
+import { generateSingleHoroscopeHtml } from "./astrology.engine";
 
 export class AstrologyValidationError extends Error {
   public details: {
@@ -342,6 +343,77 @@ export class AstrologyService {
       reportHtml: sanitizedReport,
       calculatedAt: new Date().toISOString(),
       engine: rawResult.engine || "SoftAstro Native Ephemeris v1.0",
+    };
+  }
+
+  /**
+   * Retrieves or generates the authentic 3-page Single Natal Horoscope and uploaded horoscope document details.
+   */
+  async getSingleHoroscope(targetProfileId: string) {
+    if (!targetProfileId) {
+      throw new Error("TARGET_PROFILE_REQUIRED");
+    }
+
+    let profile: any = null;
+    try {
+      profile = await prisma.profile.findFirst({
+        where: {
+          OR: [{ id: targetProfileId }, { userId: targetProfileId }],
+        },
+        include: { media: true },
+      });
+    } catch {
+      profile = null;
+    }
+
+    if (!profile) {
+      profile = DEV_FALLBACK_PROFILES[targetProfileId] ||
+        Object.values(DEV_FALLBACK_PROFILES).find((p) => p.id === targetProfileId || p.userId === targetProfileId) ||
+        null;
+    }
+
+    if (!profile) {
+      throw new Error("PROFILE_NOT_FOUND");
+    }
+
+    const name = `${profile.firstName} ${profile.lastName || ""}`.trim() || "Candidate";
+    const dobStr = profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split("T")[0] : "1995-01-01";
+    const tobStr = profile.timeOfBirth || "10:30 AM";
+    const place = profile.placeOfBirth || profile.district || "Kerala, India";
+    const star = profile.starNakshatram || "Rohini";
+    const rasi = profile.rasi || "Vrishabha (Taurus)";
+
+    const rawReportHtml = generateSingleHoroscopeHtml({
+      name,
+      gender: profile.gender || "FEMALE",
+      dob: dobStr,
+      tob: tobStr,
+      place,
+      star,
+      rasi,
+    });
+
+    const sanitizedReportHtml = sanitizeAstrologyReportHtml(rawReportHtml);
+    const uploadedDoc = profile.horoscopeDocumentUrl || profile.horoscopeImage || null;
+
+    return {
+      success: true,
+      profile: {
+        id: profile.id,
+        userId: profile.userId,
+        name,
+        gender: profile.gender || "FEMALE",
+        dob: dobStr,
+        tob: tobStr,
+        place,
+        star,
+        rasi,
+        avatarUrl: profile.avatarUrl || (profile.media && profile.media[0] ? profile.media[0].url : null),
+        horoscopeDocumentUrl: uploadedDoc,
+      },
+      reportHtml: sanitizedReportHtml,
+      hasUploadedDocument: !!uploadedDoc,
+      uploadedDocumentUrl: uploadedDoc,
     };
   }
 }
