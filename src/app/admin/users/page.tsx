@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   Search, Filter, Plus, UserCheck, UserX, Shield, Edit3, Trash2, X,
   CheckCircle2, AlertCircle, Eye, Heart, Star, MessageSquare, PhoneCall,
   MapPin, Lock, Activity, Sparkles, Clock, GraduationCap, Briefcase,
-  Users, Home, Calendar, Award, Phone, CheckSquare
+  Users, Home, Calendar, Award, Phone, CheckSquare, ExternalLink
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -482,8 +483,27 @@ export default function AdminUsersPage() {
   // Modal states
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
   const [viewingUser, setViewingUser] = useState<UserItem | null>(null);
-  const [viewingTab, setViewingTab] = useState<"profile" | "preferences" | "verification" | "telemetry">("profile");
+  const [viewingTab, setViewingTab] = useState<"profile" | "preferences" | "verification" | "telemetry" | "horoscope">("profile");
+  const [userHoroscopeUsage, setUserHoroscopeUsage] = useState<any>(null);
+  const [loadingHoroscopeUsage, setLoadingHoroscopeUsage] = useState(false);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+
+  useEffect(() => {
+    if (!viewingUser?.id) {
+      setUserHoroscopeUsage(null);
+      return;
+    }
+    setLoadingHoroscopeUsage(true);
+    fetch(`/api/admin/horoscope-matches?userId=${viewingUser.id}&usageOnly=true`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && d.usage) {
+          setUserHoroscopeUsage(d.usage);
+        }
+      })
+      .catch((err) => console.error("Failed to load user horoscope usage:", err))
+      .finally(() => setLoadingHoroscopeUsage(false));
+  }, [viewingUser]);
 
   // New user form state
   const [newUserName, setNewUserName] = useState("");
@@ -863,6 +883,14 @@ export default function AdminUsersPage() {
               >
                 4. Activity & Telemetry
               </button>
+              <button
+                onClick={() => setViewingTab("horoscope")}
+                className={`flex-1 py-2 px-3 rounded-full transition-all whitespace-nowrap ${
+                  viewingTab === "horoscope" ? "bg-[#C81D45] text-white shadow-sm font-bold" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                5. Horoscope Activity ({userHoroscopeUsage?.total ?? 0})
+              </button>
             </div>
 
             {/* TAB 1: FULL CANDIDATE PROFILE (BIO, EDUCATION, CAREER, FAMILY, HOROSCOPE) */}
@@ -1156,6 +1184,197 @@ export default function AdminUsersPage() {
                       </p>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: HOROSCOPE ACTIVITY */}
+            {viewingTab === "horoscope" && (
+              <div className="space-y-4 text-xs">
+                {/* Section 1: HOROSCOPE MATCH USAGE Header & 4 Cards */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h4 className="font-bold text-white text-sm flex items-center gap-1.5">
+                      <Sparkles className="h-4 w-4 text-amber-400" />
+                      <span>HOROSCOPE MATCH USAGE</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-400">
+                      Astrological compatibility usage metrics & candidate check logs for this user.
+                    </p>
+                  </div>
+                  <Link
+                    href={`/admin/horoscope-matches?userId=${viewingUser.id}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 text-xs font-semibold transition-colors"
+                  >
+                    <span>View Horoscope History</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
+                    <span className="text-[10px] font-bold uppercase text-slate-400">Total Checks</span>
+                    <div className="text-xl font-extrabold text-white">
+                      {loadingHoroscopeUsage ? "..." : (userHoroscopeUsage?.total ?? 0)}
+                    </div>
+                    <span className="text-[10px] text-slate-500">All matching runs</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
+                    <span className="text-[10px] font-bold uppercase text-blue-400">Registered</span>
+                    <div className="text-xl font-extrabold text-blue-400">
+                      {loadingHoroscopeUsage ? "..." : (userHoroscopeUsage?.registered ?? 0)}
+                    </div>
+                    <span className="text-[10px] text-slate-500">Platform profiles</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
+                    <span className="text-[10px] font-bold uppercase text-amber-400">Non-Registered</span>
+                    <div className="text-xl font-extrabold text-amber-400">
+                      {loadingHoroscopeUsage ? "..." : (userHoroscopeUsage?.newPerson ?? 0)}
+                    </div>
+                    <span className="text-[10px] text-slate-500">Manual candidate inputs</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
+                    <span className="text-[10px] font-bold uppercase text-emerald-400">Last Used</span>
+                    <div className="text-xs font-bold text-white truncate">
+                      {loadingHoroscopeUsage
+                        ? "..."
+                        : userHoroscopeUsage?.lastCheckDate
+                        ? new Date(userHoroscopeUsage.lastCheckDate).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "Never"}
+                    </div>
+                    <span className="text-[10px] text-slate-500">Most recent check</span>
+                  </div>
+                </div>
+
+                {/* Section 2: HOROSCOPE CHECK HISTORY Table */}
+                <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h5 className="font-bold text-white flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                      <span>HOROSCOPE CHECK HISTORY</span>
+                    </h5>
+                    <span className="text-[10px] text-slate-400">
+                      Showing recent checks for this user
+                    </span>
+                  </div>
+
+                  {loadingHoroscopeUsage ? (
+                    <div className="p-6 text-center text-slate-400 text-xs">
+                      Loading horoscope activity records...
+                    </div>
+                  ) : !userHoroscopeUsage?.history || userHoroscopeUsage.history.length === 0 ? (
+                    <div className="p-6 text-center text-slate-400 bg-slate-900/50 rounded-xl border border-slate-800 text-xs">
+                      No horoscope matching checks recorded for this account.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto rounded-xl border border-slate-800">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-slate-900 text-slate-400 text-[10px] uppercase font-bold border-b border-slate-800">
+                            <th className="p-2.5">Date & Time</th>
+                            <th className="p-2.5">Match Type</th>
+                            <th className="p-2.5">Candidate Name</th>
+                            <th className="p-2.5">Birth Details (DOB / Time / Place)</th>
+                            <th className="p-2.5">Mobile Number</th>
+                            <th className="p-2.5">Score</th>
+                            <th className="p-2.5">Verdict</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                          {userHoroscopeUsage.history.map((check: any) => (
+                            <tr key={check.id} className="hover:bg-slate-900/50 transition-colors">
+                              <td className="p-2.5 text-slate-400 whitespace-nowrap text-[11px]">
+                                {new Date(check.createdAt).toLocaleDateString("en-IN", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                                <span className="block text-[10px] text-slate-500">
+                                  {new Date(check.createdAt).toLocaleTimeString("en-IN", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              </td>
+                              <td className="p-2.5 whitespace-nowrap">
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                    check.matchType === "NEW_PERSON"
+                                      ? "bg-amber-950/70 text-amber-300 border border-amber-500/30"
+                                      : "bg-blue-950/70 text-blue-300 border border-blue-500/30"
+                                  }`}
+                                >
+                                  {check.matchType === "NEW_PERSON" ? "Non-Registered" : "Registered Profile"}
+                                </span>
+                              </td>
+                              <td className="p-2.5 font-bold text-white whitespace-nowrap">
+                                {check.targetName}
+                                {check.targetGender && (
+                                  <span className="block text-[10px] font-normal text-slate-400">
+                                    {check.targetGender}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-2.5 text-[11px] text-slate-300">
+                                <span className="font-semibold text-white">{check.targetDob || "—"}</span>
+                                <span className="block text-[10px] text-slate-400">
+                                  {check.targetTob} • {check.targetPlace}
+                                </span>
+                              </td>
+                              <td className="p-2.5 whitespace-nowrap text-[11px]">
+                                {check.targetMobile ? (
+                                  <div className="space-y-0.5">
+                                    <span className="font-mono text-emerald-400 font-semibold flex items-center gap-1">
+                                      <Phone className="h-3 w-3 text-emerald-400" />
+                                      {check.targetMobile}
+                                    </span>
+                                    {check.marketingConsent && (
+                                      <span className="inline-block text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/30">
+                                        Marketing Agreed
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-500 italic">Not Provided</span>
+                                )}
+                              </td>
+                              <td className="p-2.5 whitespace-nowrap">
+                                <span className="font-bold text-white">{check.score}/10</span>
+                                <span className="text-[10px] text-slate-400 block">
+                                  {check.traditionalScore}/36 Guna
+                                </span>
+                              </td>
+                              <td className="p-2.5 text-[11px]">
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    check.verdict === "EXCELLENT" || check.verdict === "GOOD"
+                                      ? "bg-emerald-950 text-emerald-300 border border-emerald-500/30"
+                                      : check.verdict === "AVERAGE"
+                                      ? "bg-amber-950 text-amber-300 border border-amber-500/30"
+                                      : "bg-red-950 text-red-300 border border-red-500/30"
+                                  }`}
+                                >
+                                  {check.verdict}
+                                </span>
+                                {check.verdictMalayalam && (
+                                  <span className="block text-[10px] text-slate-400 mt-0.5">
+                                    {check.verdictMalayalam}
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

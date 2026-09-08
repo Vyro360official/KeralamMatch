@@ -1,0 +1,569 @@
+[
+  {
+    "mstr": "Ketu",
+    "sub": "Ketu",
+    "m_id": "8",
+    "s_id": "8",
+    "eng": "Distress to husband/wife/children, chances to hear bad rumours, sickness, fear of enemies loss of matter, gold or wealth, money, litigation such stakes or even dangers very close to death suffering as worse as death. "
+  },
+  {
+    "mstr": "Ketu",
+    "sub": "Venus",
+    "m_id": "8",
+    "s_id": "9",
+    "eng": "Illness of wife/husband or children, various stages of family quarrel. Loss to relatives etc. If a child is born during the impact of Venus it will be a female child."
+  },
+  {
+    "mstr": "Ketu",
+    "sub": "Sun",
+    "m_id": "8",
+    "s_id": "1",
+    "eng": "Sickness of both mind and body, obstruction to actions, living abroad and advantages due to staying outside."
+  },
+  {
+    "mstr": "Ketu",
+    "sub": "Moon",
+    "m_id": "8",
+    "s_id": "2",
+    "eng": "The suffering of life partner and children, separation of the son, mental agony, gain of wealth, and increased spending etc."
+  },
+  {
+    "mstr": "Ketu",
+    "sub": "Mars",
+    "m_id": "8",
+    "s_id": "3",
+    "eng": "Destruction of wife, husband or children, quarrel among the relatives. The anger of higher officials, state of illness etc."
+  },
+  {
+    "mstr": "Ketu",
+    "sub": "Rahu",
+    "m_id": "8",
+    "s_id": "4",
+    "eng": "Loss of materials of welfare, legal action or litigation, fear of the thieves. Sorrow, fear of fire. The anger of serpents (Snake), etc. "
+  },
+  {
+    "mstr": "Ketu",
+    "sub": "Jupiter",
+    "m_id": "8",
+    "s_id": "5",
+    "eng": "The gain of good son, gain of goods, respect of the world, fame, gain of land/property, the favour of higher offices, promotion in office etc."
+  },
+  {
+    "mstr": "Ketu",
+    "sub": "Saturn",
+    "m_id": "8",
+    "s_id": "6",
+    "eng": "Quarrel among relatives, mental agitation, loss of wealth, foreign travel/ tour etc."
+  },
+  {
+    "mstr": "Ketu",
+    "sub": "Mercury",
+    "m_id": "8",
+    "s_id": "7",
+    "eng": "The meeting of relatives, Birth of a son, respect from higher authorities, the gain of land/wealth, and advantages from education, the acknowledgement of scholars, mental comfort etc."
+  },
+  {
+    "mstr": "Venus",
+    "sub": "Ketu",
+    "m_id": "9",
+    "s_id": "8",
+    "eng": "Constant mental agony and distress, Torture, travelling, association with either crooked women or men, efforts to reach higher states etc. will be experienced."
+  },
+  {
+    "mstr": "Venus",
+    "sub": "Venus",
+    "m_id": "9",
+    "s_id": "9",
+    "eng": "Comfort from wife/husband, gain of wealth, fame (reputation) construction of Building, got clothes, ornaments, large income etc."
+  },
+  {
+    "mstr": "Venus",
+    "sub": "Sun",
+    "m_id": "9",
+    "s_id": "1",
+    "eng": "Illness of the head, stomach, eye, danger to either to father or fatherly persons and similar bad results."
+  },
+  {
+    "mstr": "Venus",
+    "sub": "Moon",
+    "m_id": "9",
+    "s_id": "2",
+    "eng": "Vata and Pitha diseases, dental illness, distress of the eyes, such evil consequences coupled with enthusiasm, gain of wife/husband, and gain of wealth such good results."
+  },
+  {
+    "mstr": "Venus",
+    "sub": "Mars",
+    "m_id": "9",
+    "s_id": "3",
+    "eng": "Family quarrels, destruction of Agricultural crops, the loss of comfort, such evil results as well as good results coming form metallic substances."
+  },
+  {
+    "mstr": "Venus",
+    "sub": "Rahu",
+    "m_id": "9",
+    "s_id": "4",
+    "eng": "Gain of material goods, giving feast to relatives, birth of son, such good results (such things do not occur if the person is in his/her boyhood or girlhood) followed by fear of fire, thieves, the imprisonment of relatives such bad results. But there will great progress in education."
+  },
+  {
+    "mstr": "Venus",
+    "sub": "Jupiter",
+    "m_id": "9",
+    "s_id": "5",
+    "eng": "Various kinds observances of charitable and religious activities. General comfort and well-being collegiate education, the welfare of husband/wife or son/children such good results."
+  },
+  {
+    "mstr": "Venus",
+    "sub": "Saturn",
+    "m_id": "9",
+    "s_id": "6",
+    "eng": "Gain of house, wealth, land, (if in boyhood western education) if grown up, union with old woman or man, cohabitation with man or woman of inferior status."
+  },
+  {
+    "mstr": "Venus",
+    "sub": "Mercury",
+    "m_id": "9",
+    "s_id": "7",
+    "eng": "Comfort, Triumph of Education, Gain of relations, gain of wealth, acquire son, great tame, high position. Such good status accompanied by bad results such as illness, sickness etc."
+  },
+  {
+    "mstr": "Sun",
+    "sub": "Ketu",
+    "m_id": "1",
+    "s_id": "8",
+    "eng": "Illness of the eye, mental agony, disappointment etc."
+  },
+  {
+    "mstr": "Sun",
+    "sub": "Venus",
+    "m_id": "1",
+    "s_id": "9",
+    "eng": "Acquire wealth, Association with very cunning and tricky women or men, rise in official status."
+  },
+  {
+    "mstr": "Sun",
+    "sub": "Sun",
+    "m_id": "1",
+    "s_id": "1",
+    "eng": "Acquisition of wealth, journey or stay in foreign countries or in Jungles/forests; mental distress."
+  },
+  {
+    "mstr": "Sun",
+    "sub": "Moon",
+    "m_id": "1",
+    "s_id": "2",
+    "eng": "Acquire wealth and fortune, association with good people."
+  },
+  {
+    "mstr": "Sun",
+    "sub": "Mars",
+    "m_id": "1",
+    "s_id": "3",
+    "eng": "Acquire wealth, the favour of high authorities permanent job, travel etc."
+  },
+  {
+    "mstr": "Sun",
+    "sub": "Rahu",
+    "m_id": "1",
+    "s_id": "4",
+    "eng": "Unexpected fear of death, unbearable headache, transfer of position, fear of enemies."
+  },
+  {
+    "mstr": "Sun",
+    "sub": "Jupiter",
+    "m_id": "1",
+    "s_id": "5",
+    "eng": "Respect from all quarters, gain of wealth, satisfaction, the contact with good people etc."
+  },
+  {
+    "mstr": "Sun",
+    "sub": "Saturn",
+    "m_id": "1",
+    "s_id": "6",
+    "eng": "Laziness in all activities, the anger and protest of colleagues, failure in achieving things."
+  },
+  {
+    "mstr": "Sun",
+    "sub": "Mercury",
+    "m_id": "1",
+    "s_id": "7",
+    "eng": "Sorrow, complete lethargy (inertia), loss of wealth, temporary comforts etc."
+  },
+  {
+    "mstr": "Moon",
+    "sub": "Ketu",
+    "m_id": "2",
+    "s_id": "8",
+    "eng": "General ill health, loss of wealth sickness mental distress, depression, such unfortunate experiences."
+  },
+  {
+    "mstr": "Moon",
+    "sub": "Venus",
+    "m_id": "2",
+    "s_id": "9",
+    "eng": "The period of Venus's impact will be generally good, happy, there is no chance for unhappiness, increase in wealth, fortune and comfort from wife/husband, comfort from the son, promotion in office could be expected during this time."
+  },
+  {
+    "mstr": "Moon",
+    "sub": "Sun",
+    "m_id": "2",
+    "s_id": "1",
+    "eng": "The time of Sun\u2019s impact will be almost very good, favour of high officials, comfort. The destruction of enemies, success of attempts, elevation of position and such results."
+  },
+  {
+    "mstr": "Moon",
+    "sub": "Moon",
+    "m_id": "2",
+    "s_id": "2",
+    "eng": "Mother, wife or husband will impart (give) good fortune, comfort etc."
+  },
+  {
+    "mstr": "Moon",
+    "sub": "Mars",
+    "m_id": "2",
+    "s_id": "3",
+    "eng": "Many kinds of distress, physical comforts will be lost, fall victim to wrong rumours etc."
+  },
+  {
+    "mstr": "Moon",
+    "sub": "Rahu",
+    "m_id": "2",
+    "s_id": "4",
+    "eng": "Ill health, distress, discomforts, spending of money, mental distress, danger from hurricane, lightning, thunder etc. accident, torture of diseases, loss or relative etc."
+  },
+  {
+    "mstr": "Moon",
+    "sub": "Jupiter",
+    "m_id": "2",
+    "s_id": "5",
+    "eng": "This will be the most favourable period, fortune smiles on you, well-being and success and progress form all around, from all quarters."
+  },
+  {
+    "mstr": "Moon",
+    "sub": "Saturn",
+    "m_id": "2",
+    "s_id": "6",
+    "eng": "All kinds of discomforts, inconveniences, and distress as will occur, death or similar sad experiences."
+  },
+  {
+    "mstr": "Moon",
+    "sub": "Mercury",
+    "m_id": "2",
+    "s_id": "7",
+    "eng": "This will be the most fortunate period, fruits of education, gain of wealth, welfare, and comfort from husband or wife. Such good results."
+  },
+  {
+    "mstr": "Mars",
+    "sub": "Ketu",
+    "m_id": "3",
+    "s_id": "8",
+    "eng": "Diseases of the stomach, and many other afflictions could come during this period."
+  },
+  {
+    "mstr": "Mars",
+    "sub": "Venus",
+    "m_id": "3",
+    "s_id": "9",
+    "eng": "Comfort of conjugal love, gain of wealth, such as everywhere, in the official world the promotion or rise desired will be won."
+  },
+  {
+    "mstr": "Mars",
+    "sub": "Sun",
+    "m_id": "3",
+    "s_id": "1",
+    "eng": "Quarrel, disease, hostility of relatives and friends and similar bad effects, but prosperity in agricultural crops, especially in grains, elevation in the profession, dignity, and such good results will also be experienced."
+  },
+  {
+    "mstr": "Mars",
+    "sub": "Moon",
+    "m_id": "3",
+    "s_id": "2",
+    "eng": "Gain or profit from all sources, marriage or the obtaining of a child, prosperity and such good results."
+  },
+  {
+    "mstr": "Mars",
+    "sub": "Mars",
+    "m_id": "3",
+    "s_id": "3",
+    "eng": "Obstruction to all attempts, diseases owing to heat, hospitality of brothers, relative etc."
+  },
+  {
+    "mstr": "Mars",
+    "sub": "Rahu",
+    "m_id": "3",
+    "s_id": "4",
+    "eng": "This will be a time of great distress and general misfortune."
+  },
+  {
+    "mstr": "Mars",
+    "sub": "Jupiter",
+    "m_id": "3",
+    "s_id": "5",
+    "eng": "This will be a very favourable period, a time of good fortune."
+  },
+  {
+    "mstr": "Mars",
+    "sub": "Saturn",
+    "m_id": "3",
+    "s_id": "6",
+    "eng": "Fear of enemies, thieves, illness, de-promotion in official life, or facing insult there, the destruction of crops, life away from nativity, travel etc."
+  },
+  {
+    "mstr": "Mars",
+    "sub": "Mercury",
+    "m_id": "3",
+    "s_id": "7",
+    "eng": "Gain of wealth, house, face-lifting and improving of old house such good things are complied with the attack of enemies, mental distress and similar bad effects."
+  },
+  {
+    "mstr": "Rahu",
+    "sub": "Ketu",
+    "m_id": "4",
+    "s_id": "8",
+    "eng": "Trouble and harassment from enemies, the resentment of relatives, loss of son, destruction of property, fear of fire danger form electricity fear of thieves, such bad effects."
+  },
+  {
+    "mstr": "Rahu",
+    "sub": "Venus",
+    "m_id": "4",
+    "s_id": "9",
+    "eng": "Gain of either wife or husband or marriage, gain of land or property, the detest or hatred of relatives, illness of a phlegmatic or a rheumatic nature such results."
+  },
+  {
+    "mstr": "Rahu",
+    "sub": "Sun",
+    "m_id": "4",
+    "s_id": "1",
+    "eng": "The attack of enemies, disease of the eye, chances for poisoning, fear from fire, travel such bad effects along with conjugal or marital bliss, gain of a non, charitable activities, satisfaction in governmental functions. Such good results."
+  },
+  {
+    "mstr": "Rahu",
+    "sub": "Moon",
+    "m_id": "4",
+    "s_id": "2",
+    "eng": "Many kinds of troubles, loss marital pleasure, mental distress, fall in the production of agricultural crops and wealth, sorrows ceased by own children."
+  },
+  {
+    "mstr": "Rahu",
+    "sub": "Mars",
+    "m_id": "4",
+    "s_id": "3",
+    "eng": "Change of place/position, mental agony illness, trouble from the government, bereavement or separation from the partner loss of cultivation of crops, loss of wealth, troubles or occupational hazards, illness owing extreme heat, are found during the impact of Mars."
+  },
+  {
+    "mstr": "Rahu",
+    "sub": "Rahu",
+    "m_id": "4",
+    "s_id": "4",
+    "eng": "Distress to the partner of life, wife or husband, legal action or litigation, loss of money and wealth, lack of enthusiasm, foreign travel etc."
+  },
+  {
+    "mstr": "Rahu",
+    "sub": "Jupiter",
+    "m_id": "4",
+    "s_id": "5",
+    "eng": "Health, the destruction of enemies, and association with good people, the affection and favour of good people, prosperity, gain of a son, marriage, well-being success rough where etc."
+  },
+  {
+    "mstr": "Rahu",
+    "sub": "Saturn",
+    "m_id": "4",
+    "s_id": "6",
+    "eng": "Many body distresses, stay far from home, and illness to relatives. Quarrel with wife/husband disease of the bile. Such bad effects."
+  },
+  {
+    "mstr": "Rahu",
+    "sub": "Mercury",
+    "m_id": "4",
+    "s_id": "7",
+    "eng": "The affectionate love of relatives, material gains, wealth, rise in position, progress at all levels."
+  },
+  {
+    "mstr": "Jupiter",
+    "sub": "Ketu",
+    "m_id": "5",
+    "s_id": "8",
+    "eng": "Lack of health, illness, restlessness and confusion in the family, hostility of the public, separation of relatives (even death of relative), such effects coupled with gain of wealth, visiting of sacred temples, (pilgrimage)"
+  },
+  {
+    "mstr": "Jupiter",
+    "sub": "Venus",
+    "m_id": "5",
+    "s_id": "9",
+    "eng": "Gain of material wealth, the well being of wife/husband and children, comforts from them, collecting of household goods, furniture etc."
+  },
+  {
+    "mstr": "Jupiter",
+    "sub": "Sun",
+    "m_id": "5",
+    "s_id": "1",
+    "eng": "The impact of Sun will be very good, fame, presentation from royalty, prosperity, getting of power, employment, or advancement in the profession, income from vehicles, the acceptance and acknowledgement from the public."
+  },
+  {
+    "mstr": "Jupiter",
+    "sub": "Moon",
+    "m_id": "5",
+    "s_id": "2",
+    "eng": "The impact of Moon as in the impact of Sun will also be very auspicious, prosperous generally good results, equal benefits as of the Sun's period."
+  },
+  {
+    "mstr": "Jupiter",
+    "sub": "Mars",
+    "m_id": "5",
+    "s_id": "3",
+    "eng": "The pleasure of the relatives will be received, gain from enemies, for example, getting court expenditure etc, from the opponents, fame, brilliance, public support, gain of landed property, promotion in the profession, such good results along with diseases of the eye, travelling, obstruction of duty, failure to fulfil duties such bad effects."
+  },
+  {
+    "mstr": "Jupiter",
+    "sub": "Rahu",
+    "m_id": "5",
+    "s_id": "4",
+    "eng": "Physical torture, mental stress and strain the loss or destruction of father and other teachers and elderly people, or death, loss of wealth, litigation, court cases \u2013 etc."
+  },
+  {
+    "mstr": "Jupiter",
+    "sub": "Jupiter",
+    "m_id": "5",
+    "s_id": "5",
+    "eng": "All round prosperity, brilliance, honour, and triumph of educational achievements are found and the impact of Jupiter during the Jupiter period is generally good."
+  },
+  {
+    "mstr": "Jupiter",
+    "sub": "Saturn",
+    "m_id": "5",
+    "s_id": "6",
+    "eng": "Association with bad people-tendency or desire to consume alcohol or to have contact with other women/men. Depressions or recession of profession, loss of wealth, travel."
+  },
+  {
+    "mstr": "Jupiter",
+    "sub": "Mercury",
+    "m_id": "5",
+    "s_id": "7",
+    "eng": "Either through women or friends chances are there for defamation or scandals. Require wealth either through trade or through education."
+  },
+  {
+    "mstr": "Saturn",
+    "sub": "Ketu",
+    "m_id": "6",
+    "s_id": "8",
+    "eng": "The period of Kethu\u2019s impact is not good trouble from fire, wind possible fear of thieves, the hazards from enemies, distresses and sorrows regarding wife/husband or children, entering old or destroyed house, where there is threatening of snake poison to wife/husband or son, or to oneself, such bad results."
+  },
+  {
+    "mstr": "Saturn",
+    "sub": "Venus",
+    "m_id": "6",
+    "s_id": "9",
+    "eng": "Great comfort and well being to wife/husband, construction of a new house, gain of wealth, fame, and literary activity or trade or commercial activity."
+  },
+  {
+    "mstr": "Saturn",
+    "sub": "Sun",
+    "m_id": "6",
+    "s_id": "1",
+    "eng": "Intense fear of enemies, separation of son, loss of relatives, disease of the eye or stomach, loss of wealth, lack of interest in work, either death or similar illness is the result."
+  },
+  {
+    "mstr": "Saturn",
+    "sub": "Moon",
+    "m_id": "6",
+    "s_id": "2",
+    "eng": "The period of the impact of Moon is the worst, either; to the person or his wife/her husband or to parents, sufferings equivalent to death will be result."
+  },
+  {
+    "mstr": "Saturn",
+    "sub": "Mars",
+    "m_id": "6",
+    "s_id": "3",
+    "eng": "Loss of elephant, change of place, disease of the eye, and other sufferings and in the end of Kuja\u2019s impact great gain of wealth."
+  },
+  {
+    "mstr": "Saturn",
+    "sub": "Rahu",
+    "m_id": "6",
+    "s_id": "4",
+    "eng": "Go by the worst paths of life, despair, roaming in many places, loss of wealth, abscess and such skin diseases and in the end of Raghu\u2019s impact there is the gain of landed property."
+  },
+  {
+    "mstr": "Saturn",
+    "sub": "Jupiter",
+    "m_id": "6",
+    "s_id": "5",
+    "eng": "Comfort of home, the well being of children, wife or husband, increase of wealth, gain in every aspect, but these good results will end period of Jupiter\u2019s impact will be very bad. During this impact of Jupiter one will conduct the marriage ceremony of relatives or friends."
+  },
+  {
+    "mstr": "Saturn",
+    "sub": "Saturn",
+    "m_id": "6",
+    "s_id": "6",
+    "eng": "Gain of wealth from people of other castes assets from cultivated land, progress in all aspects, such good results along with mental depressions and gloom, scandal owing to connection with other men/ women, quarrel between husband and wife etc. bad effects also."
+  },
+  {
+    "mstr": "Saturn",
+    "sub": "Mercury",
+    "m_id": "6",
+    "s_id": "7",
+    "eng": "Fortunes, wealth, comfort, success in all matters, gain of landed property, success in legal dispute such good results and in the end of the impact of Mercury there is chance of staying in another house."
+  },
+  {
+    "mstr": "Mercury",
+    "sub": "Ketu",
+    "m_id": "7",
+    "s_id": "8",
+    "eng": "Quarrel, agony of mind, loss of landed property, loss of materials, litigation court proceedings are the results during the impact of Kethu."
+  },
+  {
+    "mstr": "Mercury",
+    "sub": "Venus",
+    "m_id": "7",
+    "s_id": "9",
+    "eng": "Good deeds, services throughout one\u2019s activities, marriage of others conducted, ones own marriage, the contact with very good people, the fortune of having good relatives, such good things happen during the impact of Venus."
+  },
+  {
+    "mstr": "Mercury",
+    "sub": "Sun",
+    "m_id": "7",
+    "s_id": "1",
+    "eng": "Getting many presentations, participate in great treats, gain of vehicles, wealth such good results, even or good job can be expected, those who have jobs already will have promotion, lift etc. etc."
+  },
+  {
+    "mstr": "Mercury",
+    "sub": "Moon",
+    "m_id": "7",
+    "s_id": "2",
+    "eng": "During the impact of Moon, all kinds of physical illness will result, the disease of the eyes is likely."
+  },
+  {
+    "mstr": "Mercury",
+    "sub": "Mars",
+    "m_id": "7",
+    "s_id": "3",
+    "eng": "Disease of the eye, sorrow, loss of place change of position, such bad effects are followed by observing very great sacrificial duties, sacred rites, great fame such good results."
+  },
+  {
+    "mstr": "Mercury",
+    "sub": "Rahu",
+    "m_id": "7",
+    "s_id": "4",
+    "eng": "Loss of reputation, defamation, loss of wealth, failure in trade or business, threat of poisoning, fear of fire attack, such evil effects are coupled with great benefits from education, gaining of wealth etc."
+  },
+  {
+    "mstr": "Mercury",
+    "sub": "Jupiter",
+    "m_id": "7",
+    "s_id": "5",
+    "eng": "Recovery from disease, triumph over the enemy, success in good attempts, help of the son/sons; marriage of the son, if there is one could be conducted, gain of wealth such good results."
+  },
+  {
+    "mstr": "Mercury",
+    "sub": "Saturn",
+    "m_id": "7",
+    "s_id": "6",
+    "eng": "There is definite destruction of wealth and charity and dharma, illness of Phlegmatic and Rheumatic nature, the job a scribe, or the career of a writer."
+  },
+  {
+    "mstr": "Mercury",
+    "sub": "Mercury",
+    "m_id": "7",
+    "s_id": "7",
+    "eng": "Association with scholars, Brilliance to the Intellect, literary activity, gain of wealth, fame, responsibility of conducting marriages."
+  }
+]

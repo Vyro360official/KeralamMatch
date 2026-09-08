@@ -14,6 +14,39 @@ export interface BirthProfileInput {
   tz?: number;
 }
 
+export interface ManualHoroscopeProfileInput {
+  fullName: string;
+  gender?: "male" | "female" | "MALE" | "FEMALE" | string;
+  dateOfBirth: string; // YYYY-MM-DD
+  timeOfBirth: string; // HH:MM or HH:MM AM/PM
+  placeOfBirth: string;
+  mobileNumber?: string;
+  marketingConsent?: boolean;
+}
+
+export interface HoroscopeMatchHistoryItemDTO {
+  id: string;
+  createdAt: string;
+  matchType?: string; // "NEW_PERSON" | "REGISTERED_PROFILE"
+  targetName: string;
+  targetGender: string;
+  targetDob?: string;
+  targetTob?: string;
+  targetPlace?: string;
+  targetProfileId?: string | null;
+  targetMobile?: string | null;
+  marketingConsent?: boolean;
+  overallScore: number;
+  traditionalScore: number;
+  percentage: number;
+  verdict: string;
+  verdictMalayalam?: string | null;
+  currentUser: {
+    name: string;
+    gender: string;
+  };
+}
+
 export interface PoruthamItem {
   name: string; // e.g. "രാശിപൊരുത്തം" / "Rasi Porutham"
   nameEnglish: string;
@@ -111,3 +144,5 @@ export interface SoftAstroRawResponse {
   };
   report_html?: string | null;
 }
+
+export type { HoroscopeMatchResultDTO, HoroscopeProfileSummaryDTO } from "./astrology.dto";

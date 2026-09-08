@@ -19,7 +19,8 @@ import {
   Menu,
   X,
   PhoneCall,
-  CheckCircle
+  CheckCircle,
+  Sparkles
 } from "lucide-react";
 
 interface SidebarProps {
@@ -80,6 +81,7 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
     { href: "/chat", label: "Messages", icon: MessageSquare, badge: stats?.unreadMessagesCount || 0 },
     { href: "/requests", label: "Contact Requests", icon: UserCheck, badge: stats?.pendingRequestsCount || 0 },
     { href: profileUrl, label: "My Profile", icon: User, badge: 0 },
+    { href: "/horoscope-match", label: "Horoscope Match", icon: Sparkles, badge: 0 },
     { href: "/trust", label: "Trust & Verify", icon: ShieldCheck, badge: 0, checked: profile?.verificationStatus === "VERIFIED" },
     { href: "/pricing", label: "Membership", icon: Crown, badge: 0, pill: planName },
     { href: "/pricing", label: "Wallet", icon: Wallet, badge: 0, balance: `₹ ${walletBalance}` },

@@ -147,6 +147,7 @@ model User {
   calendarEvents       CalendarEvent[]
   videoCallInitiated   VideoCallSession[]   @relation("CallCaller")
   videoCallReceived    VideoCallSession[]   @relation("CallReceiver")
+  horoscopeChecks      HoroscopeMatchCheck[]
 }
 
 model Profile {
@@ -771,3 +772,33 @@ model SavedSearch {
   filters   Json
   createdAt DateTime @default(now())
 }
+
+model HoroscopeMatchCheck {
+  id               String    @id @default(uuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName         String?
+  targetProfileId  String?
+  matchType        String    @default("REGISTERED_PROFILE") // REGISTERED_PROFILE | NEW_PERSON
+  targetName       String
+  targetGender     String    @default("FEMALE")
+  targetDob        DateTime
+  targetTob        String?
+  targetPlace      String?
+  targetMobile     String?
+  marketingConsent Boolean   @default(false)
+  consentTimestamp DateTime?
+  score            Float
+  verdict          String
+  verdictMalayalam String?
+  reportSummary    Json?
+  reportHtml       String?   @db.Text
+  createdAt        DateTime  @default(now())
+
+  @@index([userId])
+  @@index([matchType])
+  @@index([createdAt])
+  @@index([targetProfileId])
+  @@index([userId, createdAt])
+}
+

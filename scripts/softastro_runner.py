@@ -33,7 +33,11 @@ def fail_with_error(message, code=1, details=None):
     sys.exit(code)
 
 def main():
-    softastro_path = os.environ.get("SOFTASTRO_PATH", r"C:\Users\DELL\Downloads\SOFTASTRO\keralam_astro")
+    repo_softastro = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "softastro"))
+    softastro_path = os.environ.get(
+        "SOFTASTRO_PATH",
+        repo_softastro if os.path.exists(repo_softastro) else r"C:\Users\DELL\Downloads\SOFTASTRO\keralam_astro"
+    )
     
     if not os.path.exists(softastro_path):
         fail_with_error(f"SoftAstro directory not found at: {softastro_path}", code=2)

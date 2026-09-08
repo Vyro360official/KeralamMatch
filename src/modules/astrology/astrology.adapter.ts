@@ -72,6 +72,21 @@ export function resolveCoordinates(districtOrPlace?: string | null): { lat: numb
   return { lat: 8.5241, lon: 76.9366 };
 }
 
+export function resolveSoftAstroPath(): string {
+  if (process.env.SOFTASTRO_PATH && fs.existsSync(process.env.SOFTASTRO_PATH)) {
+    return process.env.SOFTASTRO_PATH;
+  }
+  const bundledPath = path.join(process.cwd(), "softastro");
+  if (fs.existsSync(bundledPath)) {
+    return bundledPath;
+  }
+  const devLocalPath = "C:\\Users\\DELL\\Downloads\\SOFTASTRO\\keralam_astro";
+  if (fs.existsSync(devLocalPath)) {
+    return devLocalPath;
+  }
+  return bundledPath;
+}
+
 export function normalizeTimeTo24Hour(timeStr?: string | null): string {
   if (!timeStr || !timeStr.trim()) return "12:00";
   const raw = timeStr.trim().toUpperCase();
@@ -125,7 +140,7 @@ export async function executeSoftAstroMatch(
   }
 
   // Option B: Local Python Engine Execution if available, else Native Engine fallback
-  const softastroPath = process.env.SOFTASTRO_PATH || "C:\\Users\\DELL\\Downloads\\SOFTASTRO\\keralam_astro";
+  const softastroPath = resolveSoftAstroPath();
   const runnerScript = path.join(process.cwd(), "scripts", "softastro_runner.py");
 
   // If local SoftAstro folder or runner does not exist (e.g. on Vercel deployment), execute native authentic engine
@@ -239,7 +254,7 @@ export async function executeSoftAstroSingleHoroscope(
   reportHtml: string;
   profileData?: any;
 }> {
-  const softastroPath = process.env.SOFTASTRO_PATH || "C:\\Users\\DELL\\Downloads\\SOFTASTRO\\keralam_astro";
+  const softastroPath = resolveSoftAstroPath();
   const runnerScript = path.join(process.cwd(), "scripts", "softastro_runner.py");
 
   // If local SoftAstro folder or runner does not exist (e.g. on Vercel deployment), execute native 2-page engine

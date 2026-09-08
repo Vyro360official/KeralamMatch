@@ -75,6 +75,7 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/api/auth/:path*",
+    "/api/astrology/:path*",
     "/api/requests",
     "/api/chat/:path*",
     "/api/media/:path*",
