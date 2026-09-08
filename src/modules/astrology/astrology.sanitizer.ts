@@ -29,8 +29,8 @@ export function sanitizeAstrologyReportHtml(rawHtml: string | null | undefined):
   clean = clean.replace(/\s+on[a-zA-Z]+\s*=\s*(['"]).*?\1/gi, "");
   clean = clean.replace(/\s+on[a-zA-Z]+\s*=\s*[^"'\s>]+/gi, "");
 
-  // 3. Strip javascript: / vbscript: / data: pseudo-protocols in href or src
-  clean = clean.replace(/(href|src)\s*=\s*(['"])\s*(javascript|vbscript|data):.*?\2/gi, '$1="#"');
+  // 3. Strip javascript: / vbscript: / unsafe data: pseudo-protocols in href or src (allow safe data:image/...)
+  clean = clean.replace(/(href|src)\s*=\s*(['"])\s*(javascript|vbscript|data(?!\s*:\s*image\/(?:png|jpeg|jpg|webp|gif);base64)):.*?\2/gi, '$1="#"');
 
   // 4. Strip dangerous expressions in style attributes
   clean = clean.replace(/style\s*=\s*(['"])(.*?)\1/gi, (match, quote, styleContent) => {

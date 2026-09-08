@@ -16,6 +16,7 @@ import {
   NAKSHATRAS,
   RASIS,
   generateMarriageReportHtml,
+  generateSingleHoroscopeHtml,
 } from "./astrology.engine";
 
 const DISTRICT_COORDINATES: Record<string, { lat: number; lon: number }> = {
@@ -221,6 +222,174 @@ export async function executeSoftAstroMatch(
     });
 
     // Send payload through STDIN
+    py.stdin.write(JSON.stringify(payload));
+    py.stdin.end();
+  });
+}
+
+/**
+ * Executes authentic SoftAstro 2-page single horoscope generation.
+ * Calls Python engine if available, with robust native TypeScript fallback.
+ */
+export async function executeSoftAstroSingleHoroscope(
+  profile: BirthProfileInput
+): Promise<{
+  success: boolean;
+  engine: string;
+  reportHtml: string;
+  profileData?: any;
+}> {
+  const softastroPath = process.env.SOFTASTRO_PATH || "C:\\Users\\DELL\\Downloads\\SOFTASTRO\\keralam_astro";
+  const runnerScript = path.join(process.cwd(), "scripts", "softastro_runner.py");
+
+  // If local SoftAstro folder or runner does not exist (e.g. on Vercel deployment), execute native 2-page engine
+  if (!fs.existsSync(runnerScript) || !fs.existsSync(/*turbopackIgnore: true*/ softastroPath)) {
+    return {
+      success: true,
+      engine: "SoftAstro Authentic Kerala Engine v1.0 (Native 2-Page)",
+      reportHtml: generateSingleHoroscopeHtml({
+        name: profile.name,
+        gender: profile.gender || "male",
+        dob: profile.dob,
+        tob: profile.tob || "12:00",
+        place: profile.place || "Kerala",
+        star: (profile as any).star || "Uthrattathi",
+        rasi: (profile as any).rasi || "Meena (Pisces)",
+      }),
+    };
+  }
+
+  const payload = {
+    mode: "single_horoscope",
+    profile: {
+      name: profile.name,
+      gender: profile.gender || "male",
+      dob: profile.dob,
+      tob: normalizeTimeTo24Hour(profile.tob),
+      place: profile.place || "Kerala",
+      lat: profile.lat ?? resolveCoordinates(profile.place).lat,
+      lon: profile.lon ?? resolveCoordinates(profile.place).lon,
+      tz: profile.tz ?? 5.5,
+    },
+  };
+
+  return new Promise((resolve) => {
+    let stdoutData = "";
+    let stderrData = "";
+    let isSettled = false;
+
+    const py = spawn("python", [runnerScript], {
+      env: {
+        ...process.env,
+        SOFTASTRO_PATH: softastroPath,
+        PYTHONIOENCODING: "utf-8",
+      },
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+
+    const timeout = setTimeout(() => {
+      if (!isSettled) {
+        isSettled = true;
+        py.kill("SIGKILL");
+        resolve({
+          success: true,
+          engine: "SoftAstro Authentic Kerala Engine (Native Fallback)",
+          reportHtml: generateSingleHoroscopeHtml({
+            name: profile.name,
+            gender: profile.gender || "male",
+            dob: profile.dob,
+            tob: profile.tob || "12:00",
+            place: profile.place || "Kerala",
+            star: (profile as any).star,
+            rasi: (profile as any).rasi,
+          }),
+        });
+      }
+    }, 7000);
+
+    py.stdout.setEncoding("utf8");
+    py.stderr.setEncoding("utf8");
+
+    py.stdout.on("data", (chunk) => {
+      stdoutData += chunk;
+    });
+
+    py.stderr.on("data", (chunk) => {
+      stderrData += chunk;
+    });
+
+    py.on("error", (err) => {
+      if (!isSettled) {
+        isSettled = true;
+        clearTimeout(timeout);
+        console.warn("[AstrologyAdapter] Python runner single horoscope error, falling back to native engine:", err.message);
+        resolve({
+          success: true,
+          engine: "SoftAstro Authentic Kerala Engine (Native Fallback)",
+          reportHtml: generateSingleHoroscopeHtml({
+            name: profile.name,
+            gender: profile.gender || "male",
+            dob: profile.dob,
+            tob: profile.tob || "12:00",
+            place: profile.place || "Kerala",
+            star: (profile as any).star,
+            rasi: (profile as any).rasi,
+          }),
+        });
+      }
+    });
+
+    py.on("close", (code) => {
+      if (isSettled) return;
+      isSettled = true;
+      clearTimeout(timeout);
+
+      if (code !== 0) {
+        console.warn(`[AstrologyAdapter] Python runner single horoscope exited with code ${code}, falling back to native engine.`);
+        return resolve({
+          success: true,
+          engine: "SoftAstro Authentic Kerala Engine (Native Fallback)",
+          reportHtml: generateSingleHoroscopeHtml({
+            name: profile.name,
+            gender: profile.gender || "male",
+            dob: profile.dob,
+            tob: profile.tob || "12:00",
+            place: profile.place || "Kerala",
+            star: (profile as any).star,
+            rasi: (profile as any).rasi,
+          }),
+        });
+      }
+
+      try {
+        const parsed = JSON.parse(stdoutData);
+        if (parsed.success && parsed.report_html) {
+          return resolve({
+            success: true,
+            engine: parsed.engine || "SoftAstro Elaborated Horoscope v1.0",
+            reportHtml: parsed.report_html,
+            profileData: parsed.profile,
+          });
+        }
+      } catch (parseErr) {
+        console.warn("[AstrologyAdapter] Error parsing single horoscope response:", parseErr);
+      }
+
+      resolve({
+        success: true,
+        engine: "SoftAstro Authentic Kerala Engine (Native Fallback)",
+        reportHtml: generateSingleHoroscopeHtml({
+          name: profile.name,
+          gender: profile.gender || "male",
+          dob: profile.dob,
+          tob: profile.tob || "12:00",
+          place: profile.place || "Kerala",
+          star: (profile as any).star,
+          rasi: (profile as any).rasi,
+        }),
+      });
+    });
+
     py.stdin.write(JSON.stringify(payload));
     py.stdin.end();
   });

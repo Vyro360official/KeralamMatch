@@ -198,26 +198,31 @@ describe("4. Security & Privacy: HoroscopeMatchResultDTO Privacy Guarantee", () 
   });
 });
 
-describe("5. Single Horoscope: 3-Page Astro Software & Uploaded Document", () => {
-  it("should generate authentic 3-page natal horoscope with cover, charts, and sphutam", async () => {
+describe("5. Single Horoscope: Authentic 2-Page SoftAstro Report & Uploaded Document", () => {
+  it("should generate authentic 2-page natal horoscope strictly matching SoftAstro desktop software", async () => {
     const service = new AstrologyService();
-    const result = await service.getSingleHoroscope("prf-1");
+    const result = await service.getSingleHoroscope("me");
 
     assert.equal(result.success, true);
     assert.ok(result.profile);
-    assert.equal(result.profile.name, "Ananya Nair");
+    assert.equal(result.profile.name, "Nagarajan P");
     assert.ok(result.reportHtml);
 
-    // Verify 3 distinct pages
-    assert.ok(result.reportHtml.includes("Page 1 of 3"), "Must contain Page 1 (Cover)");
-    assert.ok(result.reportHtml.includes("Page 2 of 3"), "Must contain Page 2 (Charts & Panchangam)");
-    assert.ok(result.reportHtml.includes("Page 3 of 3"), "Must contain Page 3 (Graha Sphutam)");
+    // Verify strictly 2 pages
+    assert.ok(result.reportHtml.includes("page-cover"), "Must contain Page 1 Cover");
+    assert.ok(result.reportHtml.includes("ജാതകം"), "Must contain Malayalam Cover Title ജാതകം");
+    assert.ok(result.reportHtml.includes("Page 2 of 2"), "Must contain Page 2 of 2 indicator");
+    assert.ok(!result.reportHtml.includes("Page 3 of 3"), "Must NOT contain 3rd page");
 
-    // Verify Kerala astrological elements
-    assert.ok(result.reportHtml.includes("കൊല്ലവർഷം"), "Must include Kollam Era on Cover");
-    assert.ok(result.reportHtml.includes("രാശി ചക്രം"), "Must include Rasi Chart");
-    assert.ok(result.reportHtml.includes("നവാംശകം"), "Must include Navamsa Chart");
-    assert.ok(result.reportHtml.includes("ഗ്രഹസ്ഫുടം"), "Must include Graha Sphutam table");
+    // Verify Kerala astrological elements matching SoftAstro
+    assert.ok(result.reportHtml.includes("ജനന വിവരങ്ങൾ"), "Must include Birth Details header");
+    assert.ok(result.reportHtml.includes("കൊല്ലവർഷം"), "Must include Kollam Era");
+    assert.ok(result.reportHtml.includes("ഉത്രട്ടാതി"), "Must calculate authentic star Uthrattathi for Nagarajan");
+    assert.ok(
+      result.reportHtml.includes("രാശി & നവാംശം ചാർട്ടുകൾ") || result.reportHtml.includes("RASI & NAVAMSA CHARTS"),
+      "Must include authentic South Indian Kundli Charts"
+    );
+    assert.ok(result.reportHtml.includes("ഗ്രഹ സൂചിക"), "Must include Malayalam planet legend");
   });
 
   it("should return uploaded document metadata when present", async () => {

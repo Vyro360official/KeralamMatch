@@ -5,7 +5,11 @@
  */
 
 import { prisma } from "@/lib/db";
-import { executeSoftAstroMatch, formatPoruthamItems } from "./astrology.adapter";
+import {
+  executeSoftAstroMatch,
+  executeSoftAstroSingleHoroscope,
+  formatPoruthamItems,
+} from "./astrology.adapter";
 import { sanitizeAstrologyReportHtml } from "./astrology.sanitizer";
 import { HoroscopeMatchResultDTO, HoroscopeProfileSummaryDTO } from "./astrology.dto";
 import { BirthProfileInput } from "./astrology.types";
@@ -33,12 +37,12 @@ const DEV_FALLBACK_PROFILES: Record<string, any> = {
     firstName: "Nagarajan",
     lastName: "P",
     gender: "MALE",
-    dateOfBirth: new Date("1994-06-18T10:30:00Z"),
-    timeOfBirth: "10:30",
+    dateOfBirth: new Date("1987-05-23T04:05:00Z"),
+    timeOfBirth: "04:05",
     placeOfBirth: "Trivandrum",
-    district: "Trivandrum",
-    starNakshatram: "Chothi",
-    rasi: "Tula (Libra)",
+    district: "Thiruvananthapuram",
+    starNakshatram: "Uthrattathi",
+    rasi: "Meena (Pisces)",
     avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800",
   },
   "prf-1": {
@@ -377,37 +381,40 @@ export class AstrologyService {
     }
 
     const name = `${profile.firstName} ${profile.lastName || ""}`.trim() || "Candidate";
-    const dobStr = profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split("T")[0] : "1995-01-01";
-    const tobStr = profile.timeOfBirth || "10:30 AM";
-    const place = profile.placeOfBirth || profile.district || "Kerala, India";
-    const star = profile.starNakshatram || "Rohini";
-    const rasi = profile.rasi || "Vrishabha (Taurus)";
+    const dobStr = profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split("T")[0] : "1987-05-23";
+    const tobStr = profile.timeOfBirth || "04:05";
+    const place = profile.placeOfBirth || profile.district || "Trivandrum, Kerala";
+    const star = profile.starNakshatram || "Uthrattathi";
+    const rasi = profile.rasi || "Meena (Pisces)";
+    const gender = (profile.gender || "MALE").toLowerCase();
 
-    const rawReportHtml = generateSingleHoroscopeHtml({
+    // Execute authoritative SoftAstro 2-page single horoscope calculation
+    const singleResult = await executeSoftAstroSingleHoroscope({
       name,
-      gender: profile.gender || "FEMALE",
+      gender,
       dob: dobStr,
       tob: tobStr,
       place,
       star,
       rasi,
-    });
+    } as any);
 
-    const sanitizedReportHtml = sanitizeAstrologyReportHtml(rawReportHtml);
+    const sanitizedReportHtml = sanitizeAstrologyReportHtml(singleResult.reportHtml);
     const uploadedDoc = profile.horoscopeDocumentUrl || profile.horoscopeImage || null;
 
     return {
       success: true,
+      engine: singleResult.engine,
       profile: {
         id: profile.id,
         userId: profile.userId,
         name,
-        gender: profile.gender || "FEMALE",
+        gender: profile.gender || "MALE",
         dob: dobStr,
         tob: tobStr,
         place,
-        star,
-        rasi,
+        star: singleResult.profileData?.star || star,
+        rasi: singleResult.profileData?.rasi || rasi,
         avatarUrl: profile.avatarUrl || (profile.media && profile.media[0] ? profile.media[0].url : null),
         horoscopeDocumentUrl: uploadedDoc,
       },

@@ -50,6 +50,83 @@ def main():
     except Exception as e:
         fail_with_error(f"Invalid JSON input: {str(e)}", code=4)
 
+    mode = payload.get("mode", "marriage_match")
+
+    if mode == "single_horoscope":
+        profile_input = payload.get("profile")
+        if not profile_input:
+            fail_with_error("Missing profile payload for single horoscope", code=5)
+
+        try:
+            import engine.astro_engine as ae
+            import engine.elaborated_horoscope as eh
+        except Exception as e:
+            fail_with_error(f"Failed to import SoftAstro elaborated_horoscope: {str(e)}", code=6)
+
+        try:
+            p_name = str(profile_input.get("name", "Candidate"))
+            p_gender = str(profile_input.get("gender", "male")).lower()
+            p_dob = str(profile_input.get("dob", "1995-01-01"))
+            p_tob = str(profile_input.get("tob", "12:00"))
+            p_place = str(profile_input.get("place", "Kerala"))
+            p_lat = float(profile_input.get("lat", 8.5241))
+            p_lon = float(profile_input.get("lon", 76.9366))
+            p_tz = float(profile_input.get("tz", 5.5))
+
+            # Render 30 page report from SoftAstro engine
+            full_html = eh.render_professional_30page_report(
+                p_name, p_gender, p_dob, p_tob, p_place, p_lat, p_lon, p_tz, licence_address="KeralamMatch Verified"
+            )
+
+            # Sliced to EXACT FIRST TWO PAGES ONLY as requested by user
+            import re
+            pattern = r'(<div class="page(?: page-cover)?">[\s\S]*?)(?=<div class="page(?: page-cover)?"|\Z)'
+            pages = re.findall(pattern, full_html)
+            doc_start = full_html.split('<div class="page')[0]
+            
+            if len(pages) >= 2:
+                report_2page = doc_start + "\n".join(pages[:2]) + "\n</body>\n</html>"
+            else:
+                report_2page = full_html
+
+            # Renumber page indicator to "Page 2 of 2"
+            report_2page = re.sub(r'<div class="page-num">Page \d+ of \d+</div>', '<div class="page-num">Page 2 of 2</div>', report_2page)
+
+
+            # Base64 embed logo so it displays offline and in iframes with 100% fidelity
+            logo_path = os.path.join(softastro_path, "logo.jpg")
+            if os.path.exists(logo_path):
+                import base64
+                with open(logo_path, "rb") as lf:
+                    b64_logo = base64.b64encode(lf.read()).decode("ascii")
+                    report_2page = report_2page.replace('src="/logo.jpg"', f'src="data:image/jpeg;base64,{b64_logo}"')
+
+            # Calculate chart for metadata
+            chart = ae.calculate_chart(p_name, p_gender, p_dob, p_tob, p_place, p_lat, p_lon, p_tz)
+
+            result = {
+                "success": True,
+                "engine": "SoftAstro Elaborated Horoscope v1.0",
+                "profile": {
+                    "name": p_name,
+                    "gender": p_gender,
+                    "dob": p_dob,
+                    "tob": p_tob,
+                    "place": p_place,
+                    "star": chart.get("star"),
+                    "pada": chart.get("pada"),
+                    "rasi": chart.get("planets", {}).get("Moon", {}).get("rasi_name"),
+                    "lagna": chart.get("planets", {}).get("Lagna", {}).get("rasi_name"),
+                    "dasa_balance": chart.get("dasa_balance"),
+                },
+                "report_html": report_2page
+            }
+            sys.stdout.write(json.dumps(result, default=str, ensure_ascii=False))
+            sys.stdout.flush()
+            sys.exit(0)
+        except Exception as e:
+            fail_with_error(f"Single horoscope calculation failed: {str(e)}", code=7)
+
     bride_input = payload.get("bride")
     groom_input = payload.get("groom")
     include_html = payload.get("includeReportHtml", True)

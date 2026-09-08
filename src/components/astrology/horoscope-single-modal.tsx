@@ -67,7 +67,7 @@ export default function HoroscopeSingleModal({
     }
   }, [isOpen, initialTab, profile]);
 
-  // Load 3-page astro software report
+  // Load 2-page astro software report
   useEffect(() => {
     if (!isOpen) return;
 
@@ -195,7 +195,7 @@ export default function HoroscopeSingleModal({
         {/* Two Main Option Buttons / Tabs (Reference Image 2) */}
         <div className="px-6 pt-4 pb-2 bg-white border-b border-slate-100 flex-shrink-0">
           <div className="grid grid-cols-2 gap-3 p-1 bg-slate-100/80 rounded-2xl">
-            {/* Button 1: Astro Software (3 Pages) */}
+            {/* Button 1: Astro Software (2 Pages) */}
             <button
               onClick={() => setActiveTab("software")}
               className={`py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2.5 cursor-pointer ${
@@ -209,7 +209,7 @@ export default function HoroscopeSingleModal({
               </div>
               <div className="text-left leading-tight">
                 <span className="block font-extrabold">View Horoscope (Astro Software)</span>
-                <span className="text-[10px] text-slate-500 font-medium">First 3 Pages Only · Verified Ephemeris</span>
+                <span className="text-[10px] text-slate-500 font-medium">First 2 Pages Only · Cover & Birth Charts</span>
               </div>
             </button>
 
@@ -242,7 +242,7 @@ export default function HoroscopeSingleModal({
 
         {/* Body Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50">
-          {/* ── TAB 1: ASTRO SOFTWARE (FIRST 3 PAGES ONLY) ────────────────── */}
+          {/* ── TAB 1: ASTRO SOFTWARE (FIRST 2 PAGES ONLY) ────────────────── */}
           {activeTab === "software" && (
             <div className="space-y-4">
               {/* Action Toolbar */}
@@ -251,7 +251,7 @@ export default function HoroscopeSingleModal({
                   <Sparkles className="h-4 w-4 text-amber-500" />
                   <span>SoftAstro Generated Horoscope</span>
                   <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[10px] border border-amber-200">
-                    Pages 1 to 3 of 3
+                    Pages 1 to 2 of 2
                   </span>
                 </div>
 
@@ -271,7 +271,7 @@ export default function HoroscopeSingleModal({
               {loading && (
                 <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-white rounded-2xl border border-slate-200">
                   <div className="h-12 w-12 rounded-full border-3 border-rose-100 border-t-[#C81D45] animate-spin" />
-                  <p className="text-xs font-bold text-[#0A1F44]">Generating 3-Page Natal Horoscope...</p>
+                  <p className="text-xs font-bold text-[#0A1F44]">Generating 2-Page Natal Horoscope...</p>
                   <p className="text-[11px] text-slate-500">Calculating Nirayana Sphutam, Rasi and Navamsa positions</p>
                 </div>
               )}
@@ -370,7 +370,7 @@ export default function HoroscopeSingleModal({
                     <p className="text-xs text-[#636366] leading-relaxed max-w-sm mx-auto">
                       {isOwnProfile
                         ? "You haven't uploaded a scanned copy of your physical horoscope yet. You can upload a PDF or photo of your chart."
-                        : `${candidateName} has not uploaded a scanned physical copy of their horoscope yet. You can examine the complete 3-page chart calculated by our Astro Software in the other tab.`}
+                        : `${candidateName} has not uploaded a scanned physical copy of their horoscope yet. You can examine the complete 2-page chart calculated by our Astro Software in the other tab.`}
                     </p>
                   </div>
 

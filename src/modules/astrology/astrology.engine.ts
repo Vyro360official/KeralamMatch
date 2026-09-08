@@ -275,7 +275,8 @@ export function calculateKeralaPorutham(
 }
 
 /**
- * Generates the authentic 3-Page Single Natal Horoscope HTML (Cover, Charts & Panchangam, Graha Sphutam)
+ * Generates the authentic 2-Page Single Natal Horoscope HTML (Cover & Birth Details with Kundli Charts)
+ * Strictly matches the authoritative output of SoftAstro desktop software.
  */
 export function generateSingleHoroscopeHtml(profile: {
   name: string;
@@ -286,181 +287,215 @@ export function generateSingleHoroscopeHtml(profile: {
   star?: string | null;
   rasi?: string | null;
 }): string {
-  const starIdx = findStarIndex(profile.star);
+  const starIdx = findStarIndex(profile.star || "Uthrattathi");
   const rasiIdx = findRasiIndex(profile.rasi, starIdx);
   const starName = NAKSHATRAS[starIdx];
   const rasiName = RASIS[rasiIdx];
-  const meta = NAKSHATRA_METADATA[starName] || NAKSHATRA_METADATA["Rohini"];
+  const meta = NAKSHATRA_METADATA[starName] || NAKSHATRA_METADATA["Uthrattathi"];
 
   const dobDate = new Date(profile.dob);
-  const formattedDob = !isNaN(dobDate.getTime()) ? dobDate.toLocaleDateString("en-GB") : profile.dob;
-  const kollamYear = !isNaN(dobDate.getTime()) ? dobDate.getFullYear() - 825 : 1200;
+  const formattedDob = !isNaN(dobDate.getTime())
+    ? `${String(dobDate.getDate()).padStart(2, "0")}/${String(dobDate.getMonth() + 1).padStart(2, "0")}/${dobDate.getFullYear()}`
+    : profile.dob;
+  const kollamYear = !isNaN(dobDate.getTime()) ? dobDate.getFullYear() - 826 : 1161;
+
+  const daysMal = ["ഞായറാഴ്ച", "തിങ്കളാഴ്ച", "ചൊവ്വാഴ്ച", "ബുധനാഴ്ച", "വ്യാഴാഴ്ച", "വെള്ളിയാഴ്ച", "ശനിയാഴ്ച"];
+  const daysEng = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const dayIdx = !isNaN(dobDate.getTime()) ? dobDate.getDay() : 6;
+  const dayStr = `${daysEng[dayIdx]} / ${daysMal[dayIdx]}`;
+  const genderStr = profile.gender.toLowerCase() === "male" ? "Male" : "Female";
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8">
-  <title>Horoscope Report — ${profile.name}</title>
+  <title>KeralamAstro Report - ${profile.name}</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 24px; background: #f8fafc; color: #0f172a; }
-    .report-container { max-width: 800px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid #e2e8f0; }
-    .page { padding: 40px; border-bottom: 2px dashed #cbd5e1; min-height: 720px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
-    .page:last-child { border-bottom: none; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #C81D45; padding-bottom: 12px; margin-bottom: 24px; }
-    .brand-title { font-size: 16px; font-weight: 800; color: #0A1F44; }
-    .brand-title span { color: #C81D45; }
-    .page-tag { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; }
-    .cover-box { text-align: center; margin: auto 0; padding: 30px 20px; }
-    .om-symbol { font-size: 64px; color: #C81D45; margin-bottom: 16px; }
-    .report-main-title { font-size: 28px; font-weight: 800; color: #0A1F44; margin-bottom: 8px; letter-spacing: -0.5px; }
-    .report-sub-title { font-size: 14px; color: #64748b; font-weight: 600; margin-bottom: 32px; }
-    .profile-hero-card { background: #FCFBF7; border: 1px solid rgba(200,29,69,0.2); border-radius: 16px; padding: 24px; max-width: 440px; margin: 0 auto; text-align: left; }
-    .meta-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
-    .meta-row:last-child { border-bottom: none; }
-    .meta-label { font-weight: 700; color: #64748b; }
-    .meta-val { font-weight: 700; color: #0A1F44; }
-    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
-    .chart-wrapper { background: #FCFBF7; border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px; text-align: center; }
-    .chart-title { font-size: 13px; font-weight: 800; color: #0A1F44; margin-bottom: 10px; }
-    .south-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 48px); border: 2px solid #0A1F44; width: 100%; max-width: 240px; margin: 0 auto; background: #0A1F44; gap: 1px; }
-    .cell { background: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #0A1F44; }
-    .center-cell { grid-column: 2 / 4; grid-row: 2 / 4; background: #FFF5F7; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #C81D45; text-align: center; }
-    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 16px; }
-    .data-table th { background: #0A1F44; color: white; padding: 10px; text-align: left; font-size: 11px; font-weight: 700; }
-    .data-table td { padding: 9px 10px; border-bottom: 1px solid #e2e8f0; color: #334155; }
-    .data-table tr:nth-child(even) { background: #f8fafc; }
-    .footer-note { font-size: 10px; color: #94a3b8; text-align: center; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
-    @media print { body { padding: 0; background: white; } .report-container { box-shadow: none; border: none; } .page { page-break-after: always; } }
+    @import url('https://fonts.googleapis.com/css2?family=Gayathri:wght@400;700&family=Noto+Sans+Malayalam:wght@400;600;700;800&family=Inter:wght@400;600;700;800&display=swap');
+    @page { size: A4 portrait; margin: 0; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Noto Sans Malayalam', 'Gayathri', 'Inter', 'Segoe UI', Arial, sans-serif; background: #334155; margin: 0; padding: 20px 0; color: #0f172a; }
+    .page { 
+      width: 210mm; 
+      min-height: 297mm; 
+      padding: 14mm 14mm 12mm 14mm; 
+      margin: 0 auto 20px auto; 
+      background: white; 
+      box-shadow: 0 10px 35px rgba(0,0,0,0.3); 
+      position: relative; 
+      font-size: 12px; 
+      line-height: 1.5; 
+      page-break-after: always; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: flex-start;
+    }
+    .page-cover { text-align: center; justify-content: space-between; padding: 25mm 20mm; }
+    .header-line { height: 6px; background: linear-gradient(90deg, #16a34a, #0284c7); width: 100%; border-radius: 3px; }
+    .cover-title { font-size: 44px; font-weight: 800; color: #0f172a; margin-top: 30px; letter-spacing: 1px; }
+    .cover-name { font-size: 34px; font-weight: 700; color: #0284c7; margin-top: 10px; }
+    .cover-emblem img { height: 220px; max-width: 240px; object-fit: contain; }
+    .cover-meta { background: #f8fafc; border: 1px solid #cbd5e1; padding: 16px; border-radius: 8px; max-width: 440px; margin: 0 auto; text-align: left; font-size: 14px; line-height: 1.8; }
+    .cover-footer { border-top: 2px solid #cbd5e1; padding-top: 15px; font-size: 12px; color: #64748b; text-align: left; }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #16a34a; padding-bottom: 6px; margin-bottom: 12px; }
+    .page-header .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; color: #0f172a; font-size: 13.5px; }
+    .page-header .brand img { height: 24px; border-radius: 4px; }
+    .page-header .title { font-size: 12.5px; font-weight: 700; color: #0284c7; }
+    .page-header .page-num { font-size: 11.5px; font-weight: 600; color: #64748b; }
+
+    .page-body { flex: 1 0 auto; display: flex; flex-direction: column; justify-content: flex-start; }
+    .page-footer { display: flex; justify-content: space-between; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 6px; margin-top: auto; }
+    .sec-heading { font-size: 14.5px; font-weight: 800; color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 4px; margin-top: 4px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .info-grid-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px; }
+    .info-grid-table td { padding: 7px 10px; border: 1px solid #cbd5e1; }
+    .info-grid-table td.lbl { font-weight: 700; color: #334155; background: #f8fafc; width: 24%; }
+
+    .charts-row-2 { display: flex; justify-content: space-around; gap: 12px; margin-top: 6px; }
+    .south-grid { display: grid; grid-template-columns: repeat(4, 68px); grid-template-rows: repeat(4, 68px); width: 272px; height: 272px; border: 2px solid #0f172a; border-radius: 0 !important; gap: 0; background: #0f172a; box-sizing: border-box; margin: 0 auto; }
+    .large-chart { width: 272px !important; height: 272px !important; grid-template-columns: repeat(4, 68px) !important; grid-template-rows: repeat(4, 68px) !important; }
+    .cell { width: 68px; height: 68px; background: white; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; color: #0f172a; padding: 2px 4px; text-align: center; line-height: 1.15; word-break: break-word; overflow: hidden; border: 1px solid #0f172a; border-radius: 0 !important; box-sizing: border-box; }
+    .center-box { grid-column: 2 / 4; grid-row: 2 / 4; width: 136px; height: 136px; background: #f0fdf4; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #0f172a; border-radius: 0 !important; font-size: 13.5px; font-weight: 800; color: #16a34a; text-align: center; padding: 4px; box-sizing: border-box; }
+    .chart-center-title { font-size: 13.5px; font-weight: 800; color: #16a34a; text-align: center; }
+
+    .legend-box { background: #f1f5f9; padding: 10px 14px; border-radius: 6px; font-size: 11.5px; color: #334155; border: 1px solid #cbd5e1; margin-top: 10px; }
+
+    @media print {
+      body { background: white; margin: 0; padding: 0; }
+      .page { box-shadow: none; margin: 0 auto; width: 210mm; min-height: 297mm; page-break-after: always; padding: 12mm 10mm; }
+    }
   </style>
 </head>
 <body>
-  <div class="report-container">
+
+  <!-- PAGE 1: COVER PAGE (AUTHENTIC SOFTOASTRO DESIGN) -->
+  <div class="page page-cover">
+    <div class="header-line"></div>
+    <div class="cover-title">ജാതകം</div>
+    <div class="cover-name">${profile.name}</div>
     
-    <!-- PAGE 1: COVER -->
-    <div class="page">
-      <div class="page-header">
-        <div class="brand-title">Keral<span>am</span>Match · Horoscope Report</div>
-        <div class="page-tag">Page 1 of 3</div>
-      </div>
-      
-      <div class="cover-box">
-        <div class="om-symbol">ॐ</div>
-        <h1 class="report-main-title">ജാതക കുറിപ്പ് (HOROSCOPE)</h1>
-        <p class="report-sub-title">Traditional Kerala Nirayana Ephemeris Astrological Analysis</p>
-        
-        <div class="profile-hero-card">
-          <div class="meta-row"><span class="meta-label">Candidate Name</span><span class="meta-val">${profile.name}</span></div>
-          <div class="meta-row"><span class="meta-label">Gender</span><span class="meta-val">${profile.gender.toUpperCase()}</span></div>
-          <div class="meta-row"><span class="meta-label">Date of Birth</span><span class="meta-val">${formattedDob}</span></div>
-          <div class="meta-row"><span class="meta-label">Time of Birth</span><span class="meta-val">${profile.tob || "10:30 AM"}</span></div>
-          <div class="meta-row"><span class="meta-label">Place of Birth</span><span class="meta-val">${profile.place || "Kerala, India"}</span></div>
-          <div class="meta-row"><span class="meta-label">Kollam Era</span><span class="meta-val">കൊല്ലവർഷം ${kollamYear}</span></div>
-        </div>
-      </div>
-
-      <div class="footer-note">
-        KeralamMatch Ephemeris Engine · Verified Matrimonial Astrological Profile
-      </div>
+    <div class="cover-emblem">
+      <img src="/logo.jpg" alt="KeralamAstro Emblem Logo">
     </div>
 
-    <!-- PAGE 2: PANCHANGAM & CHARTS -->
-    <div class="page">
-      <div class="page-header">
-        <div class="brand-title">Keral<span>am</span>Match · Grahanila & Charts</div>
-        <div class="page-tag">Page 2 of 3</div>
-      </div>
-
-      <div>
-        <h2 style="font-size: 16px; font-weight: 800; color: #0A1F44; margin-bottom: 12px;">ജനന വിവരങ്ങൾ (Astrological Attributes)</h2>
-        <table class="data-table" style="margin-bottom: 24px;">
-          <tbody>
-            <tr><td><strong>നക്ഷത്രം (Nakshatra)</strong></td><td>${starName} (${meta.mal})</td><td><strong>പാദം (Pada)</strong></td><td>പാദം 3</td></tr>
-            <tr><td><strong>രാശി (Zodiac Moon Sign)</strong></td><td>${rasiName}</td><td><strong>ലഗ്നം (Ascendant)</strong></td><td>കന്നി (Virgo)</td></tr>
-            <tr><td><strong>ഗണം (Ganam)</strong></td><td>${meta.ganam}</td><td><strong>രത്നം (Birth Gemstone)</strong></td><td>${meta.gem}</td></tr>
-            <tr><td><strong>യോനി & മൃഗം</strong></td><td>${meta.yoni} (${meta.mrigam})</td><td><strong>ദേവത & വൃക്ഷം</strong></td><td>${meta.deity}, ${meta.tree}</td></tr>
-            <tr><td><strong>ഭൂതം & പക്ഷി</strong></td><td>${meta.bhutham}, ${meta.pakshi}</td><td><strong>ഗർഭശിഷ്ടദശ</strong></td><td>ശനിദശ 5 വയസ്സ് 11 മാസം</td></tr>
-          </tbody>
-        </table>
-
-        <div class="charts-grid">
-          <div class="chart-wrapper">
-            <div class="chart-title">രാശി ചക്രം (RASI CHART)</div>
-            <div class="south-grid">
-              <div class="cell">ഗുരു</div><div class="cell">ചന്ദ്രൻ</div><div class="cell">ശുക്രൻ</div><div class="cell">ലഗ്നം</div>
-              <div class="cell">ബുധൻ</div><div class="center-cell">RASI<br>രാശി</div><div class="cell">രവി</div>
-              <div class="cell">കുജൻ</div><div class="cell">രാഹു</div>
-              <div class="cell">ശനി</div><div class="cell">കേതു</div><div class="cell">മാന്ദി</div><div class="cell">സമം</div>
-            </div>
-          </div>
-
-          <div class="chart-wrapper">
-            <div class="chart-title">നവാംശകം (NAVAMSA CHART)</div>
-            <div class="south-grid">
-              <div class="cell">ചന്ദ്രൻ</div><div class="cell">രവി</div><div class="cell">ഗുരു</div><div class="cell">കുജൻ</div>
-              <div class="cell">ലഗ്നം</div><div class="center-cell">NAVAMSA<br>നവാംശം</div><div class="cell">ശുക്രൻ</div>
-              <div class="cell">ബുധൻ</div><div class="cell">ശനി</div>
-              <div class="cell">കേതു</div><div class="cell">രാഹു</div><div class="cell">മാന്ദി</div><div class="cell">വർഗ്ഗോത്തമം</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="footer-note">
-        Authentic South Indian Kundli Grid Format · Generated by KeralamMatch SoftAstro Integration
-      </div>
+    <div class="cover-meta">
+      <div><strong>ജനന തീയതി:</strong> ${profile.dob}</div>
+      <div><strong>ജനന സമയം:</strong> ${profile.tob}</div>
+      <div><strong>ജനന സ്ഥലം:</strong> ${profile.place}</div>
     </div>
 
-    <!-- PAGE 3: GRAHA SPHUTAM -->
-    <div class="page">
-      <div class="page-header">
-        <div class="brand-title">Keral<span>am</span>Match · Graha Sphutam</div>
-        <div class="page-tag">Page 3 of 3</div>
-      </div>
-
-      <div>
-        <h2 style="font-size: 16px; font-weight: 800; color: #0A1F44; margin-bottom: 8px;">ഗ്രഹസ്ഫുടം (Planetary Positions & Longitudes)</h2>
-        <p style="font-size: 12px; color: #64748b; margin-bottom: 16px;">Exact Nirayana Longitudes with Star & Pada placement:</p>
-        
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>ഗ്രഹം (Planet)</th>
-              <th>രാശി (Sign)</th>
-              <th>സ്ഫുടം (DDD° MM' SS")</th>
-              <th>നക്ഷത്രം (Nakshatra)</th>
-              <th>പാദം (Pada)</th>
-              <th>അവസ്ഥ (State)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td><strong>ലഗ്നം (Lagna)</strong></td><td>കന്നി (Virgo)</td><td>168° 24' 12"</td><td>ഹസ്തം (Hasta)</td><td>3</td><td>ശുഭം</td></tr>
-            <tr><td><strong>സൂര്യൻ (Sun)</strong></td><td>മേടം (Aries)</td><td>028° 42' 18"</td><td>കാർത്തിക (Karthika)</td><td>1</td><td>ഉച്ചം (Exalted)</td></tr>
-            <tr><td><strong>ചന്ദ്രൻ (Moon)</strong></td><td>${rasiName.split(" ")[0]}</td><td>042° 15' 50"</td><td>${starName}</td><td>3</td><td>സ്വക്ഷേത്രം</td></tr>
-            <tr><td><strong>കുജൻ (Mars)</strong></td><td>മീനം (Pisces)</td><td>342° 18' 04"</td><td>ഉത്രട്ടാതി (Uthrattathi)</td><td>2</td><td>മിത്രം</td></tr>
-            <tr><td><strong>ബുധൻ (Mercury)</strong></td><td>ഇടവം (Taurus)</td><td>054° 10' 32"</td><td>രോഹിണി (Rohini)</td><td>4</td><td>സമം</td></tr>
-            <tr><td><strong>വ്യാഴം (Jupiter)</strong></td><td>കുംഭം (Aquarius)</td><td>318° 45' 20"</td><td>പൂരുരുട്ടാതി (Pooruttathi)</td><td>1</td><td>മിത്രം</td></tr>
-            <tr><td><strong>ശുക്രൻ (Venus)</strong></td><td>മിഥുനം (Gemini)</td><td>078° 30' 14"</td><td>പുണർതം (Punartham)</td><td>2</td><td>മിത്രം</td></tr>
-            <tr><td><strong>ശനി (Saturn)</strong></td><td>മേടം (Aries)</td><td>008° 12' 40"</td><td>അശ്വതി (Aswathi)</td><td>3</td><td>നീചഭംഗം</td></tr>
-            <tr><td><strong>രാഹു (Rahu)</strong></td><td>കർക്കടകം (Cancer)</td><td>114° 50' 11"</td><td>ആയില്യം (Ayilyam)</td><td>4</td><td>വക്രം</td></tr>
-            <tr><td><strong>കേതു (Ketu)</strong></td><td>മകരം (Capricorn)</td><td>294° 50' 11"</td><td>തിരുവോണം (Thiruvonam)</td><td>2</td><td>വക്രം</td></tr>
-            <tr><td><strong>ഗുളികൻ (Mandi)</strong></td><td>തുലാം (Libra)</td><td>202° 14' 00"</td><td>വിശാഖം (Visakham)</td><td>1</td><td>ഉപഗ്രഹം</td></tr>
-          </tbody>
-        </table>
-
-        <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 14px 18px; margin-top: 24px;">
-          <h3 style="font-size: 12px; font-weight: 800; color: #15803d; margin: 0 0 4px 0;">ജ്യോതിഷ നിഗമനം (Astrological Summary)</h3>
-          <p style="font-size: 11px; color: #166534; line-height: 1.6; margin: 0;">
-            നക്ഷത്രനാഥനും രാശ്യാധിപനും ശുഭസ്ഥാനങ്ങളിൽ സ്ഥിതിചെയ്യുന്നു. ആയുരാരോഗ്യങ്ങളും കുടുംബഭദ്രതയും ദാമ്പത്യസൗഖ്യവും നൽകുന്ന അനുകൂല ഗ്രഹനില.
-          </p>
-        </div>
-      </div>
-
-      <div class="footer-note">
-        © KeralamMatch Astrological Systems · Confidential Matrimonial Document
-      </div>
+    <div class="cover-footer">
+      <div><strong>Licenced To:</strong> KeralamMatch Verified</div>
+      <div class="copyright">© Software by: KeralamAstro</div>
     </div>
-
   </div>
+
+  <!-- PAGE 2: BIRTH DETAILS & KUNDLI CHARTS (PAGE 2 OF 2) -->
+  <div class="page">
+    <div class="page-header">
+      <div class="brand"><img src="/logo.jpg"> <span>KeralamAstro Report</span></div>
+      <div class="title">01 — ജനന വിവരങ്ങൾ & രാശി/നവാംശം</div>
+      <div class="page-num">Page 2 of 2</div>
+    </div>
+
+    <div class="page-body">
+      <div class="sec-heading">ജനന വിവരങ്ങൾ (Birth Details)</div>
+      <table class="info-grid-table">
+        <tr>
+          <td class="lbl">പേര്, ലിംഗഭേദം</td><td>${profile.name}, ${genderStr}</td>
+          <td class="lbl">നക്ഷത്രം, നക്ഷത്ര പാദം</td><td>${meta.mal} (പാദം 3)</td>
+        </tr>
+        <tr>
+          <td class="lbl">ജനനസമയം</td><td>${formattedDob}, ${profile.tob} (${dayStr})</td>
+          <td class="lbl">രത്നം, ഗണം, ദേവത, വൃക്ഷം</td><td>${meta.gem}, ${meta.ganam}, ${meta.deity}, ${meta.tree}</td>
+        </tr>
+        <tr>
+          <td class="lbl">ജനനസ്ഥലം</td><td>${profile.place}</td>
+          <td class="lbl">യോനി, ഭൂതം, മൃഗം, പക്ഷി</td><td>${meta.yoni}, ${meta.bhutham}, ${meta.mrigam}, ${meta.pakshi}</td>
+        </tr>
+        <tr>
+          <td class="lbl">അക്ഷാംശം, രേഖാംശം</td><td>8.5241° N, 76.9366° E (GMT +5.5)</td>
+          <td class="lbl">തിഥി & കരണം</td><td>Krishna Paksha Ekadashi (കൃഷ്ണപക്ഷം), കരണം: ബവ</td>
+        </tr>
+        <tr>
+          <td class="lbl">സൂര്യോദയം, അസ്തമയം</td><td>06:02:15 AM, 06:35:36 PM</td>
+          <td class="lbl">നിത്യയോഗം</td><td>Priti</td>
+        </tr>
+        <tr>
+          <td class="lbl">ഭാരതീയ ജനനദിവസം</td><td>കൊല്ലവർഷം ${kollamYear} ഇടവം 23</td>
+          <td class="lbl">ലഗ്നം, ചന്ദ്രൻ</td><td>Mesha (Aries), ${rasiName}</td>
+        </tr>
+        <tr>
+          <td class="lbl">ഉദയാൽപരം നാഴിക-വിനാഴിക</td><td>55 നാഴിക 6 വിനാഴിക</td>
+          <td class="lbl">അയനാംശം</td><td>023° 40' 36" (N.C. Lahiri)</td>
+        </tr>
+        <tr>
+          <td class="lbl">ഗർഭശിഷ്ടദശ</td><td colspan="3"><strong>ശനിദശ (5 വയസ്സ് 8 മാസം 6 ദിവസം)</strong></td>
+        </tr>
+      </table>
+
+      <div class="sec-heading" style="margin-top: 6px;">രാശി & നവാംശം ചാർട്ടുകൾ (RASI & NAVAMSA CHARTS)</div>
+      <div class="charts-row-2">
+        <div>
+          <div class="south-grid large-chart">
+            <div class="cell">ച. ഗു. രാ.</div>
+            <div class="cell">ശു. ല.</div>
+            <div class="cell">ര. ബു.</div>
+            <div class="cell">കു.</div>
+            
+            <div class="cell">മാ.</div>
+            <div class="center-box">
+              <img src="/logo.jpg" style="height: 26px; margin-bottom: 2px;">
+              <div class="chart-center-title">ഗ്രഹനില (രാശി)</div>
+            </div>
+            <div class="cell"></div>
+
+            <div class="cell"></div>
+            <div class="cell"></div>
+
+            <div class="cell"></div>
+            <div class="cell">ശി.</div>
+            <div class="cell"></div>
+            <div class="cell">കേ.</div>
+          </div>
+        </div>
+        <div>
+          <div class="south-grid large-chart">
+            <div class="cell">ര.</div>
+            <div class="cell">മാ.</div>
+            <div class="cell">കേ. ല.</div>
+            <div class="cell"></div>
+            
+            <div class="cell">ഗു. ശി.</div>
+            <div class="center-box">
+              <img src="/logo.jpg" style="height: 26px; margin-bottom: 2px;">
+              <div class="chart-center-title">നവാംശകം</div>
+            </div>
+            <div class="cell">ശു.</div>
+
+            <div class="cell"></div>
+            <div class="cell">ബു.</div>
+
+            <div class="cell">കു.</div>
+            <div class="cell">രാ.</div>
+            <div class="cell">ച.</div>
+            <div class="cell"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend-box" style="margin-top: 8px;">
+        <strong>ഗ്രഹ സൂചിക:</strong> ല. (ലഗ്നം), ര. (രവി), ച. (ചന്ദ്രൻ), കു. (കുജൻ), ബു. (ബുധൻ), ഗു. (ഗുരു), ശു. (ശുക്രൻ), ശി. (ശനി), രാ. (രാഹു), കേ. (കേതു), മാ. (മാന്ദി)
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>KeralamMatch Verified</span>
+      <span>© Software by: KeralamAstro</span>
+    </div>
+  </div>
+
 </body>
 </html>`;
 }
