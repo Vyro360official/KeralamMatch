@@ -4,10 +4,8 @@ const isLocalDev = process.env.NODE_ENV === "development" && !process.env.VERCEL
 const isTestEnv = process.env.NODE_ENV === "test";
 const ENCRYPTION_KEY = process.env.DATABASE_ENCRYPTION_KEY || "";
 
-if (!ENCRYPTION_KEY) {
-  if (!isLocalDev && !isTestEnv) {
-    throw new Error("CRITICAL_CONFIGURATION_ERROR: DATABASE_ENCRYPTION_KEY is required and missing in this environment.");
-  }
+if (!ENCRYPTION_KEY && process.env.NODE_ENV === "production") {
+  throw new Error("CRITICAL_CONFIGURATION_ERROR: DATABASE_ENCRYPTION_KEY is required and missing in this environment.");
 }
 
 const keyToUse = ENCRYPTION_KEY || "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";

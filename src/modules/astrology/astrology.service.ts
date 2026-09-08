@@ -814,9 +814,14 @@ export class AstrologyService {
     if (!currentUserId || !checkId) {
       throw new Error("UNAUTHORIZED");
     }
-    const check = await prisma.horoscopeMatchCheck.findFirst({
-      where: { id: checkId, userId: currentUserId },
-    });
+    let check: any = null;
+    try {
+      check = await prisma.horoscopeMatchCheck.findFirst({
+        where: { id: checkId, userId: currentUserId },
+      });
+    } catch {
+      check = null;
+    }
     if (!check) {
       throw new Error("RECORD_NOT_FOUND");
     }
