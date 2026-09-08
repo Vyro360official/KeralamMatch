@@ -56,10 +56,19 @@ export default function HoroscopeMatchView({
   // Tabs: "manual" | "registered" | "history"
   const [activeTab, setActiveTab] = useState<"manual" | "registered" | "history">("manual");
 
-  // Manual Candidate Form State
-  const defaultTargetGender = userProfile?.gender === "FEMALE" ? "MALE" : "FEMALE";
+  // User Gender & Profile Completeness (Requirements 1, 9)
+  const userGender = (userProfile?.gender || "").trim().toUpperCase();
+  const isUserGenderMissing = !userGender || (userGender !== "MALE" && userGender !== "FEMALE");
+  const isUserDobMissing = !userProfile?.dateOfBirth;
+  const isProfileIncomplete = isUserDobMissing || isUserGenderMissing;
+
+  // Opposite-Gender Logic (Requirements 1, 3, 4):
+  // Male user -> Candidate is Bride
+  // Female user -> Candidate is Groom
+  const candidateRole = userGender === "FEMALE" ? "Groom" : "Bride";
+
+  // Manual Candidate Form State (No role or gender selector)
   const [fullName, setFullName] = useState("");
-  const [gender, setGender] = useState<"MALE" | "FEMALE">(defaultTargetGender);
   const [dob, setDob] = useState("");
   const [tob, setTob] = useState("12:00");
   const [place, setPlace] = useState("Ernakulam");
@@ -83,9 +92,6 @@ export default function HoroscopeMatchView({
   // History State
   const [historyItems, setHistoryItems] = useState<HoroscopeMatchHistoryItemDTO[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
-
-  // Check if current user has missing DOB
-  const isUserDobMissing = !userProfile?.dateOfBirth;
 
   // Load history when tab is clicked
   const loadHistory = async () => {
@@ -112,16 +118,20 @@ export default function HoroscopeMatchView({
   // Handle Manual Match Submit (Option B)
   const handleManualMatchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUserGenderMissing) {
+      setError("Please complete your gender/profile information before checking horoscope compatibility.");
+      return;
+    }
     if (isUserDobMissing) {
       setError("Your profile is missing Date of Birth. Please update your profile before calculating compatibility.");
       return;
     }
     if (!fullName.trim() || fullName.trim().length < 2) {
-      setError("Please enter the candidate's full name (at least 2 characters).");
+      setError(`Please enter the ${candidateRole.toLowerCase()}'s full name (at least 2 characters).`);
       return;
     }
     if (!dob) {
-      setError("Please select the candidate's date of birth.");
+      setError(`Please select the ${candidateRole.toLowerCase()}'s date of birth.`);
       return;
     }
 
@@ -139,7 +149,6 @@ export default function HoroscopeMatchView({
         body: JSON.stringify({
           manualProfile: {
             fullName: fullName.trim(),
-            gender,
             dateOfBirth: dob,
             timeOfBirth: tob || "12:00",
             placeOfBirth: birthPlace,
@@ -322,17 +331,21 @@ export default function HoroscopeMatchView({
         </div>
       </div>
 
-      {/* Profile Incomplete Banner */}
-      {isUserDobMissing && (
+      {/* Profile Incomplete Banner (Requirement 9) */}
+      {isProfileIncomplete && (
         <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start space-x-3">
             <ShieldAlert className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="text-xs sm:text-sm font-bold text-amber-900">
-                Your birth details are incomplete
+                {isUserGenderMissing
+                  ? "Please complete your gender/profile information before checking horoscope compatibility."
+                  : "Your birth details are incomplete"}
               </h3>
               <p className="text-xs text-amber-800 mt-0.5">
-                Vedic horoscope matching requires your Date of Birth. Please update your profile before checking compatibility.
+                {isUserGenderMissing
+                  ? "Your profile requires gender specification to calculate compatibility roles automatically."
+                  : "Vedic horoscope matching requires your Date of Birth. Please update your profile before checking compatibility."}
               </p>
             </div>
           </div>
@@ -399,62 +412,30 @@ export default function HoroscopeMatchView({
         <div className="bg-white rounded-3xl p-5 sm:p-7 border border-[rgba(28,28,30,0.06)] shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-4">
             <h2 className="text-base font-extrabold text-[#0A1F44] flex items-center space-x-2">
-              <span>Enter Bride / Groom Details</span>
+              <span>Enter {candidateRole} Details</span>
             </h2>
             <p className="text-xs text-[#636366] mt-1 leading-relaxed">
-              Calculate genuine 10-Porutham compatibility with any bride or groom without creating a user account.
+              Calculate genuine 10-Porutham compatibility with any {candidateRole.toLowerCase()} without creating a user account.
               The details you enter are kept private and never published.
             </p>
           </div>
 
           <form onSubmit={handleManualMatchSubmit} className="space-y-5">
-            {/* Name & Gender */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-[#0A1F44]">
-                  Name <span className="text-rose-600">*</span>
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter bride/groom name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#C81D45] focus:ring-1 focus:ring-[#C81D45]"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-[#0A1F44]">
-                  Role in Horoscope Matching <span className="text-rose-600">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setGender("FEMALE")}
-                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border text-center transition-all cursor-pointer ${
-                      gender === "FEMALE"
-                        ? "bg-rose-50 border-rose-300 text-rose-800"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                    }`}
-                  >
-                    👰 Bride (Female)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setGender("MALE")}
-                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border text-center transition-all cursor-pointer ${
-                      gender === "MALE"
-                        ? "bg-blue-50 border-blue-300 text-blue-800"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                    }`}
-                  >
-                    🤵 Groom (Male)
-                  </button>
-                </div>
+            {/* Candidate Name (Opposite Role determined automatically) */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-[#0A1F44]">
+                {candidateRole} Name <span className="text-rose-600">*</span>
+              </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  required
+                  placeholder={`Enter ${candidateRole.toLowerCase()} name`}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#C81D45] focus:ring-1 focus:ring-[#C81D45]"
+                />
               </div>
             </div>
 
@@ -589,9 +570,9 @@ export default function HoroscopeMatchView({
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={calculating || isUserDobMissing}
+                disabled={calculating || isProfileIncomplete}
                 className={`w-full py-3.5 px-6 rounded-2xl text-xs font-bold flex items-center justify-center space-x-2 shadow-md transition-all cursor-pointer ${
-                  calculating || isUserDobMissing
+                  calculating || isProfileIncomplete
                     ? "bg-slate-300 text-slate-500 cursor-not-allowed"
                     : "bg-[#C81D45] hover:bg-[#A31636] text-white hover:shadow-lg"
                 }`}
@@ -714,9 +695,9 @@ export default function HoroscopeMatchView({
           {/* Submit Action */}
           <button
             onClick={handleRegisteredMatchSubmit}
-            disabled={calculating || isUserDobMissing || !selectedCandidateId}
+            disabled={calculating || isProfileIncomplete || !selectedCandidateId}
             className={`w-full py-3.5 px-6 rounded-2xl text-xs font-bold flex items-center justify-center space-x-2 shadow-md transition-all cursor-pointer ${
-              calculating || isUserDobMissing || !selectedCandidateId
+              calculating || isProfileIncomplete || !selectedCandidateId
                 ? "bg-slate-300 text-slate-500 cursor-not-allowed"
                 : "bg-[#C81D45] hover:bg-[#A31636] text-white hover:shadow-lg"
             }`}
@@ -847,72 +828,96 @@ export default function HoroscopeMatchView({
             </button>
           </div>
 
-          {/* Profile Comparison Header */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)]">
-            {/* Current User */}
-            <div className="space-y-1.5 text-left border-r border-slate-200/80 pr-2">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-[#8E8E93] block">
-                You ({result.currentUser.gender === "FEMALE" ? "Bride" : "Groom"})
-              </span>
-              <div className="flex items-center space-x-2">
-                {result.currentUser.avatarUrl ? (
-                  <img
-                    src={result.currentUser.avatarUrl}
-                    alt=""
-                    className="h-8 w-8 rounded-full object-cover border border-[#C81D45]/30"
-                  />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-[#FCE8EC] text-[#C81D45] flex items-center justify-center font-bold text-xs">
-                    {result.currentUser.displayName.charAt(0)}
-                  </div>
-                )}
-                <span className="text-xs font-bold text-[#0A1F44] truncate block">
-                  {result.currentUser.displayName}
-                </span>
-              </div>
-              <div className="text-[10px] text-[#636366] space-y-0.5 pt-1">
-                <div className="font-semibold text-[#0A1F44]">
-                  ★ {result.currentUser.starNakshatram} ({result.currentUser.rasi})
-                </div>
-                <div className="flex items-center gap-1 text-[9px] text-[#8E8E93]">
-                  <Calendar className="h-2.5 w-2.5" />
-                  <span>{result.currentUser.dateOfBirth} · {result.currentUser.timeOfBirth}</span>
-                </div>
-              </div>
-            </div>
+          {/* Profile Comparison Header (Requirement 5) */}
+          {(() => {
+            const isCurrentUserMale = (result.currentUser.gender || "").toUpperCase() === "MALE";
+            const groomUser = isCurrentUserMale ? result.currentUser : result.targetUser;
+            const brideUser = isCurrentUserMale ? result.targetUser : result.currentUser;
+            const isGroomSelf = isCurrentUserMale;
+            const isBrideSelf = !isCurrentUserMale;
 
-            {/* Target User */}
-            <div className="space-y-1.5 text-left pl-2">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-[#8E8E93] block">
-                Candidate ({result.targetUser.gender === "FEMALE" ? "Bride" : "Groom"})
-              </span>
-              <div className="flex items-center space-x-2">
-                {result.targetUser.avatarUrl ? (
-                  <img
-                    src={result.targetUser.avatarUrl}
-                    alt=""
-                    className="h-8 w-8 rounded-full object-cover border border-[#C81D45]/30"
-                  />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-[#FCE8EC] text-[#C81D45] flex items-center justify-center font-bold text-xs">
-                    {result.targetUser.displayName.charAt(0)}
+            return (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)]">
+                {/* Groom Section */}
+                <div className="space-y-1.5 text-left border-r border-slate-200/80 pr-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 flex items-center gap-1">
+                      <span>🤵 Groom:</span>
+                    </span>
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                      isGroomSelf ? "bg-blue-100 text-blue-800" : "bg-slate-200 text-slate-700"
+                    }`}>
+                      {isGroomSelf ? "You (Logged-In)" : "Candidate"}
+                    </span>
                   </div>
-                )}
-                <span className="text-xs font-bold text-[#0A1F44] truncate block">
-                  {result.targetUser.displayName}
-                </span>
-              </div>
-              <div className="text-[10px] text-[#636366] space-y-0.5 pt-1">
-                <div className="font-semibold text-[#0A1F44]">
-                  ★ {result.targetUser.starNakshatram} ({result.targetUser.rasi})
+                  <div className="flex items-center space-x-2">
+                    {groomUser.avatarUrl ? (
+                      <img
+                        src={groomUser.avatarUrl}
+                        alt=""
+                        className="h-8 w-8 rounded-full object-cover border border-blue-300"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs">
+                        {groomUser.displayName?.charAt(0) || "G"}
+                      </div>
+                    )}
+                    <span className="text-xs font-bold text-[#0A1F44] truncate block">
+                      {groomUser.displayName}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-[#636366] space-y-0.5 pt-1">
+                    <div className="font-semibold text-[#0A1F44]">
+                      ★ {groomUser.starNakshatram} ({groomUser.rasi})
+                    </div>
+                    <div className="flex items-center gap-1 text-[9px] text-[#8E8E93]">
+                      <Calendar className="h-2.5 w-2.5" />
+                      <span>{groomUser.dateOfBirth} · {groomUser.timeOfBirth}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 text-[9px] text-[#8E8E93]">
-                  <Calendar className="h-2.5 w-2.5" />
-                  <span>{result.targetUser.dateOfBirth} · {result.targetUser.timeOfBirth}</span>
+
+                {/* Bride Section */}
+                <div className="space-y-1.5 text-left pl-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-700 flex items-center gap-1">
+                      <span>👰 Bride:</span>
+                    </span>
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                      isBrideSelf ? "bg-rose-100 text-rose-800" : "bg-slate-200 text-slate-700"
+                    }`}>
+                      {isBrideSelf ? "You (Logged-In)" : "Candidate"}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {brideUser.avatarUrl ? (
+                      <img
+                        src={brideUser.avatarUrl}
+                        alt=""
+                        className="h-8 w-8 rounded-full object-cover border border-rose-300"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-rose-100 text-rose-800 flex items-center justify-center font-bold text-xs">
+                        {brideUser.displayName?.charAt(0) || "B"}
+                      </div>
+                    )}
+                    <span className="text-xs font-bold text-[#0A1F44] truncate block">
+                      {brideUser.displayName}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-[#636366] space-y-0.5 pt-1">
+                    <div className="font-semibold text-[#0A1F44]">
+                      ★ {brideUser.starNakshatram} ({brideUser.rasi})
+                    </div>
+                    <div className="flex items-center gap-1 text-[9px] text-[#8E8E93]">
+                      <Calendar className="h-2.5 w-2.5" />
+                      <span>{brideUser.dateOfBirth} · {brideUser.timeOfBirth}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Overall Score Card */}
           <div className="p-6 rounded-2xl bg-gradient-to-br from-rose-50/70 via-white to-amber-50/50 border border-rose-100/80 text-center space-y-3">

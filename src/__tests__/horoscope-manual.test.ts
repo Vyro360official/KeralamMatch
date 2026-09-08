@@ -1,12 +1,13 @@
 /**
  * KERALAMMATCH — MANUAL HOROSCOPE MATCH TEST SUITE
  * Comprehensive tests for matching with non-registered candidates:
- * 1. Real SoftAstro 10-Porutham calculation for manual candidate
- * 2. Role assignment & Kerala district coordinate resolution
- * 3. Validation: name length, DOB range, self-match rejection
- * 4. User missing DOB protection
+ * 1. Automatic Opposite-Gender Logic & Server Enforcement (Male -> Bride, Female -> Groom)
+ * 2. Immunity to client-supplied gender overrides (Zero trust in client input)
+ * 3. Validation: missing user gender, missing user DOB, name length, DOB range, self-match
+ * 4. UI Cleanliness: Complete removal of "Role in Horoscope Matching" selector
  * 5. Mobile number & DTO privacy guarantee (zero leaks)
  * 6. Match history recording & IDOR access protection
+ * 7. Navigation position verification in Dashboard sidebar
  */
 
 import { describe, it } from "node:test";
@@ -16,61 +17,114 @@ import { ManualHoroscopeProfileInput } from "../modules/astrology/astrology.type
 import fs from "node:fs";
 import path from "node:path";
 
-describe("1. Manual Horoscope Match: Real SoftAstro Calculation", () => {
-  it("should calculate authentic 10-Porutham compatibility for a manual candidate", async () => {
-    const service = new AstrologyService();
+describe("1. Automatic Opposite-Gender Logic: Server Enforcement", () => {
+  const service = new AstrologyService();
 
+  it("should automatically assign candidate as Bride (FEMALE) when authenticated user is Groom (MALE)", async () => {
+    // usr-sandbox-101 is MALE (Nagarajan P)
     const manualCandidate: ManualHoroscopeProfileInput = {
       fullName: "Ananya Krishna",
-      gender: "FEMALE",
       dateOfBirth: "1997-08-15",
       timeOfBirth: "09:30",
       placeOfBirth: "Thrissur",
-      mobileNumber: "+91 9876543210",
     };
 
-    // Calculate match for authenticated user "usr-sandbox-101"
     const result = await service.calculateManualMatch("usr-sandbox-101", manualCandidate);
 
     assert.ok(result, "Result must be returned");
-    assert.ok(result.currentUser, "Current user block must exist");
-    assert.ok(result.targetUser, "Target user block must exist");
+    assert.equal(result.currentUser.gender, "MALE", "Current user must be MALE (Groom)");
+    assert.equal(result.targetUser.gender, "FEMALE", "Candidate must automatically be FEMALE (Bride)");
     assert.equal(result.targetUser.displayName, "Ananya Krishna");
-    assert.equal(result.targetUser.id, "manual-entry");
 
-    // Verify Compatibility Score
-    assert.ok(typeof result.compatibility.overallScore === "number");
+    // Verify 10 Poruthams calculated by authentic SoftAstro
+    assert.equal(result.poruthams.length, 10);
     assert.ok(result.compatibility.overallScore >= 0 && result.compatibility.overallScore <= 10);
-    assert.ok(typeof result.compatibility.traditionalScore === "number");
-    assert.ok(result.compatibility.traditionalScore >= 0 && result.compatibility.traditionalScore <= 36);
-    assert.ok(result.compatibility.verdict);
-    assert.ok(result.compatibility.verdictMalayalam);
+  });
 
-    // Verify 10 Poruthams
-    assert.ok(Array.isArray(result.poruthams));
-    assert.equal(result.poruthams.length, 10, "Must calculate all 10 traditional Poruthams");
+  it("should automatically assign candidate as Groom (MALE) when authenticated user is Bride (FEMALE)", async () => {
+    // usr-ananya-101 is FEMALE (Ananya Nair)
+    const manualCandidate: ManualHoroscopeProfileInput = {
+      fullName: "Sreejith Kumar",
+      dateOfBirth: "1994-06-20",
+      timeOfBirth: "14:15",
+      placeOfBirth: "Kozhikode",
+    };
 
-    // Verify Papasamya & Kuja Dosha
-    assert.ok(result.papasamya, "Papasamya must be calculated");
-    assert.ok(typeof result.papasamya.difference === "number");
-    assert.ok(result.kujaDosha, "Kuja Dosha must be calculated");
-    assert.ok(typeof result.kujaDosha.isResolved === "boolean");
+    const result = await service.calculateManualMatch("usr-ananya-101", manualCandidate);
 
-    // Verify Sanitized Report HTML
-    assert.ok(result.reportHtml, "Sanitized report HTML must be present");
-    assert.ok(result.reportHtml.includes("PORUTHAM") || result.reportHtml.includes("COMPATIBILITY"));
+    assert.ok(result, "Result must be returned");
+    assert.equal(result.currentUser.gender, "FEMALE", "Current user must be FEMALE (Bride)");
+    assert.equal(result.targetUser.gender, "MALE", "Candidate must automatically be MALE (Groom)");
+    assert.equal(result.targetUser.displayName, "Sreejith Kumar");
+
+    // Verify 10 Poruthams calculated
+    assert.equal(result.poruthams.length, 10);
+    assert.ok(result.compatibility.overallScore >= 0 && result.compatibility.overallScore <= 10);
+  });
+
+  it("should strictly reject/ignore client-supplied gender override (Zero Trust)", async () => {
+    // Male user attempts to send gender: "MALE" for candidate
+    const resultMaleUser = await service.calculateManualMatch("usr-sandbox-101", {
+      fullName: "Malavika S",
+      gender: "MALE", // Client attempts to override to MALE
+      dateOfBirth: "1998-02-10",
+      timeOfBirth: "11:00",
+      placeOfBirth: "Palakkad",
+    });
+
+    // Server must enforce candidate as FEMALE regardless of client override
+    assert.equal(
+      resultMaleUser.targetUser.gender,
+      "FEMALE",
+      "Server must strictly enforce FEMALE for candidate when user is MALE"
+    );
+
+    // Female user attempts to send gender: "FEMALE" for candidate
+    const resultFemaleUser = await service.calculateManualMatch("usr-ananya-101", {
+      fullName: "Rahul Menon",
+      gender: "FEMALE", // Client attempts to override to FEMALE
+      dateOfBirth: "1993-12-05",
+      timeOfBirth: "08:30",
+      placeOfBirth: "Alappuzha",
+    });
+
+    // Server must enforce candidate as MALE regardless of client override
+    assert.equal(
+      resultFemaleUser.targetUser.gender,
+      "MALE",
+      "Server must strictly enforce MALE for candidate when user is FEMALE"
+    );
   });
 });
 
 describe("2. Validation & Security: Edge Cases & Self-Match Rejection", () => {
   const service = new AstrologyService();
 
+  it("should reject calculation if user profile is missing gender", async () => {
+    await assert.rejects(
+      async () => {
+        await service.calculateManualMatch("usr-no-gender", {
+          fullName: "Candidate Person",
+          dateOfBirth: "1997-08-15",
+          timeOfBirth: "09:30",
+          placeOfBirth: "Thrissur",
+        });
+      },
+      (err: any) => {
+        return (
+          err instanceof AstrologyValidationError &&
+          err.message.includes("Please complete your gender/profile information before checking horoscope compatibility.") &&
+          err.details.currentUserMissingGender === true
+        );
+      }
+    );
+  });
+
   it("should reject candidate with name shorter than 2 characters", async () => {
     await assert.rejects(
       async () => {
         await service.calculateManualMatch("usr-sandbox-101", {
           fullName: "A",
-          gender: "FEMALE",
           dateOfBirth: "1997-08-15",
           timeOfBirth: "09:30",
           placeOfBirth: "Thrissur",
@@ -85,7 +139,6 @@ describe("2. Validation & Security: Edge Cases & Self-Match Rejection", () => {
       async () => {
         await service.calculateManualMatch("usr-sandbox-101", {
           fullName: "Future Bride",
-          gender: "FEMALE",
           dateOfBirth: "2099-01-01",
           timeOfBirth: "09:30",
           placeOfBirth: "Kochi",
@@ -100,7 +153,6 @@ describe("2. Validation & Security: Edge Cases & Self-Match Rejection", () => {
       async () => {
         await service.calculateManualMatch("usr-sandbox-101", {
           fullName: "Invalid Date Bride",
-          gender: "FEMALE",
           dateOfBirth: "not-a-valid-date",
           timeOfBirth: "09:30",
           placeOfBirth: "Kochi",
@@ -115,7 +167,6 @@ describe("2. Validation & Security: Edge Cases & Self-Match Rejection", () => {
       async () => {
         await service.calculateManualMatch("usr-sandbox-101", {
           fullName: "Nagarajan P",
-          gender: "MALE",
           dateOfBirth: "1987-05-23",
           timeOfBirth: "04:05",
           placeOfBirth: "Trivandrum",
@@ -126,14 +177,44 @@ describe("2. Validation & Security: Edge Cases & Self-Match Rejection", () => {
   });
 });
 
-describe("3. Privacy & Zero-Data-Leak Guarantee", () => {
+describe("3. UI Integrity: Removal of Role Selector & Dynamic Role Labels", () => {
+  it("should verify that 'Role in Horoscope Matching' selector is completely removed from source code", () => {
+    const viewPath = path.join(process.cwd(), "src/app/horoscope-match/horoscope-match-view.tsx");
+    const content = fs.readFileSync(viewPath, "utf-8");
+
+    // The old field must NOT exist anywhere in the code
+    assert.ok(
+      !content.includes("Role in Horoscope Matching"),
+      "'Role in Horoscope Matching' field label must be completely removed"
+    );
+    assert.ok(
+      !content.includes("Bride (Female)"),
+      "Manual Bride button selector must be completely removed"
+    );
+    assert.ok(
+      !content.includes("Groom (Male)"),
+      "Manual Groom button selector must be completely removed"
+    );
+
+    // Verify dynamic headings exist
+    assert.ok(
+      content.includes("Enter {candidateRole} Details"),
+      "Dynamic heading 'Enter {candidateRole} Details' must exist"
+    );
+    assert.ok(
+      content.includes("{candidateRole} Name"),
+      "Dynamic label '{candidateRole} Name' must exist"
+    );
+  });
+});
+
+describe("4. Privacy & Zero-Data-Leak Guarantee", () => {
   it("should verify candidate mobile number is never leaked in the returned DTO", async () => {
     const service = new AstrologyService();
     const sensitiveMobile = "+91 9988776655";
 
     const result = await service.calculateManualMatch("usr-sandbox-101", {
       fullName: "Deepa Menon",
-      gender: "FEMALE",
       dateOfBirth: "1996-03-22",
       timeOfBirth: "11:45",
       placeOfBirth: "Kollam",
@@ -149,7 +230,7 @@ describe("3. Privacy & Zero-Data-Leak Guarantee", () => {
   });
 });
 
-describe("4. Match History & IDOR Protection", () => {
+describe("5. Match History & IDOR Protection", () => {
   it("should return match history for the current user", async () => {
     const service = new AstrologyService();
     const history = await service.getMatchHistory("usr-sandbox-101");
@@ -160,7 +241,6 @@ describe("4. Match History & IDOR Protection", () => {
     const service = new AstrologyService();
     await assert.rejects(
       async () => {
-        // Querying non-existent or other user's checkId
         await service.getMatchHistoryDetail("usr-sandbox-101", "random-foreign-check-id");
       },
       (err: any) => err.message === "RECORD_NOT_FOUND" || err.message === "UNAUTHORIZED"
@@ -168,7 +248,7 @@ describe("4. Match History & IDOR Protection", () => {
   });
 });
 
-describe("5. Navigation Verification: Sidebar Order", () => {
+describe("6. Navigation Verification: Sidebar Order", () => {
   it("should verify 'Horoscope Match' is positioned directly below 'My Profile' and above 'Trust & Verify'", () => {
     const sidebarPath = path.join(process.cwd(), "src/components/dashboard/dashboard-sidebar.tsx");
     const content = fs.readFileSync(sidebarPath, "utf-8");

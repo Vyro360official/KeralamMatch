@@ -581,7 +581,7 @@ function AdminHoroscopeMatchesContent() {
                     <div className="text-sm font-bold text-white flex items-center gap-2">
                       <span>{selectedMatch.targetName}</span>
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">
-                        {selectedMatch.targetGender === "FEMALE" ? "Bride" : "Groom"}
+                        Candidate Gender: {selectedMatch.targetGender === "FEMALE" ? "Female / Bride" : "Male / Groom"}
                       </span>
                     </div>
                     <div className="text-slate-400">

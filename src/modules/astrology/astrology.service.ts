@@ -23,12 +23,13 @@ import { generateSingleHoroscopeHtml } from "./astrology.engine";
 
 export class AstrologyValidationError extends Error {
   public details: {
-    currentUserMissingDob: boolean;
-    targetUserMissingDob: boolean;
+    currentUserMissingGender?: boolean;
+    currentUserMissingDob?: boolean;
+    targetUserMissingDob?: boolean;
     missingFields: string[];
   };
 
-  constructor(message: string, details: { currentUserMissingDob: boolean; targetUserMissingDob: boolean; missingFields: string[] }) {
+  constructor(message: string, details: { currentUserMissingGender?: boolean; currentUserMissingDob?: boolean; targetUserMissingDob?: boolean; missingFields: string[] }) {
     super(message);
     this.name = "AstrologyValidationError";
     this.details = details;
@@ -92,6 +93,16 @@ const DEV_FALLBACK_PROFILES: Record<string, any> = {
     starNakshatram: "Rohini",
     rasi: "Vrishabha (Taurus)",
     avatarUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800",
+  },
+  "usr-no-gender": {
+    id: "prf-no-gender",
+    userId: "usr-no-gender",
+    firstName: "Incomplete",
+    lastName: "Profile",
+    gender: null,
+    dateOfBirth: new Date("1995-01-01T10:00:00Z"),
+    timeOfBirth: "10:00",
+    placeOfBirth: "Kochi",
   },
 };
 
@@ -164,7 +175,19 @@ export class AstrologyService {
       throw new Error("CANNOT_MATCH_SELF");
     }
 
-    // 4. Validate Birth Details Completeness
+    // 4. Validate Birth Details & Gender Completeness
+    const userGenderRaw = (currentProfile.gender || "").trim().toUpperCase();
+    if (!userGenderRaw || (userGenderRaw !== "MALE" && userGenderRaw !== "FEMALE")) {
+      throw new AstrologyValidationError(
+        "Please complete your gender/profile information before checking horoscope compatibility.",
+        {
+          currentUserMissingGender: true,
+          currentUserMissingDob: false,
+          missingFields: ["Please complete your gender/profile information before checking horoscope compatibility."],
+        }
+      );
+    }
+
     const currentDobMissing = !currentProfile.dateOfBirth;
     const targetDobMissing = !targetProfile.dateOfBirth;
 
@@ -176,6 +199,7 @@ export class AstrologyService {
       throw new AstrologyValidationError(
         "Horoscope matching requires complete birth details for both profiles.",
         {
+          currentUserMissingGender: false,
           currentUserMissingDob: currentDobMissing,
           targetUserMissingDob: targetDobMissing,
           missingFields: missing,
@@ -435,11 +459,24 @@ export class AstrologyService {
       throw new Error("CURRENT_PROFILE_NOT_FOUND");
     }
 
-    // 2. Validate Current User's Birth Details Completeness
+    // 2. Validate Current User's Profile Completeness (Gender & DOB)
+    const userGenderRaw = (currentProfile.gender || "").trim().toUpperCase();
+    if (!userGenderRaw || (userGenderRaw !== "MALE" && userGenderRaw !== "FEMALE")) {
+      throw new AstrologyValidationError(
+        "Please complete your gender/profile information before checking horoscope compatibility.",
+        {
+          currentUserMissingGender: true,
+          currentUserMissingDob: false,
+          missingFields: ["Please complete your gender/profile information before checking horoscope compatibility."],
+        }
+      );
+    }
+
     if (!currentProfile.dateOfBirth) {
       throw new AstrologyValidationError(
         "Your birth details are incomplete. Please update your profile before checking horoscope compatibility.",
         {
+          currentUserMissingGender: false,
           currentUserMissingDob: true,
           targetUserMissingDob: false,
           missingFields: ["Your profile is missing Date of Birth. Please update your profile."],
@@ -478,10 +515,12 @@ export class AstrologyService {
       throw new Error("CANNOT_MATCH_SELF");
     }
 
-    // 5. Determine Bride and Groom Roles for SoftAstro Engine
-    const isCurrentFemale = currentProfile.gender === "FEMALE";
-    const manualGenderUpper = (manualProfile.gender || "").toUpperCase();
-    const isTargetFemale = manualGenderUpper ? manualGenderUpper === "FEMALE" : !isCurrentFemale;
+    // 5. Automatic Opposite-Gender Logic (Strictly Server-Enforced)
+    // The authenticated user's profile gender strictly determines the candidate's role.
+    // Client-supplied gender is never trusted or used.
+    const isCurrentFemale = userGenderRaw === "FEMALE";
+    const isTargetFemale = !isCurrentFemale;
+    const targetGender = isTargetFemale ? "FEMALE" : "MALE";
 
     const currentCoords = resolveCoordinates(currentProfile.placeOfBirth || currentProfile.district);
     const manualCoords = resolveCoordinates(manualPlace);
@@ -489,7 +528,8 @@ export class AstrologyService {
     let brideInput: BirthProfileInput;
     let groomInput: BirthProfileInput;
 
-    if (isCurrentFemale && !isTargetFemale) {
+    if (isCurrentFemale) {
+      // Authenticated user is FEMALE (Bride), manual candidate is MALE (Groom)
       brideInput = {
         name: `${currentProfile.firstName} ${currentProfile.lastName || ""}`.trim(),
         gender: "female",
@@ -511,6 +551,7 @@ export class AstrologyService {
         tz: 5.5,
       };
     } else {
+      // Authenticated user is MALE (Groom), manual candidate is FEMALE (Bride)
       brideInput = {
         name: cleanName,
         gender: "female",
@@ -544,7 +585,7 @@ export class AstrologyService {
           action: "MANUAL_HOROSCOPE_MATCH_CALCULATED",
           details: JSON.stringify({
             targetName: cleanName,
-            targetGender: isTargetFemale ? "FEMALE" : "MALE",
+            targetGender: targetGender,
             poruthamScore: rawResult.porutham?.total_score ?? 0,
             engine: rawResult.engine || "SoftAstro",
           }),
