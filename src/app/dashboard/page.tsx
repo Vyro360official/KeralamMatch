@@ -9,6 +9,7 @@ import { getNotificationsAction } from "@/modules/notification/notification.cont
 import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
+import HoroscopeMatchButton from "@/components/astrology/horoscope-match-button";
 import { prisma } from "@/lib/db";
 import {
   Eye,
@@ -216,22 +217,29 @@ export default async function DashboardPage() {
                             </p>
                           </div>
 
-                          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                            <div className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-                              <Star className="h-3 w-3 fill-emerald-500 text-emerald-500" />
-                              <span>92% Match</span>
+                          <div className="pt-2 border-t border-slate-100 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
+                                <Star className="h-3 w-3 fill-emerald-500 text-emerald-500" />
+                                <span>92% Match</span>
+                              </div>
+                              <div className="flex items-center space-x-1.5">
+                                <Link
+                                  href={`/profile/${item.id}`}
+                                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-[10px] font-bold transition-colors"
+                                >
+                                  View
+                                </Link>
+                                <button className="p-1.5 rounded-lg bg-[#C81D45] hover:bg-[#A51436] text-white transition-colors" title="Send Interest">
+                                  <Send className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex items-center space-x-1.5">
-                              <Link
-                                href={`/profile/${item.id}`}
-                                className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-[10px] font-bold transition-colors"
-                              >
-                                View
-                              </Link>
-                              <button className="p-1.5 rounded-lg bg-[#C81D45] hover:bg-[#A51436] text-white transition-colors" title="Send Interest">
-                                <Send className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
+                            <HoroscopeMatchButton
+                              targetProfile={item}
+                              currentUserId={session.user?.id}
+                              variant="card"
+                            />
                           </div>
                         </div>
                       </div>

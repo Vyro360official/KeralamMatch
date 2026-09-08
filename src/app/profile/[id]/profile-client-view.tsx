@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { sendContactRequestAction, getUnlockedContactAction } from "@/modules/contact/contact.controller";
 import { formatDateDDMMYYYY } from "@/lib/utils";
+import HoroscopeMatchButton from "@/components/astrology/horoscope-match-button";
 
 interface ProfileClientViewProps {
   targetProfile: any;
@@ -243,6 +244,18 @@ export default function ProfileClientView({
                 <MessageSquare className="h-4 w-4" />
                 <span>Message</span>
               </Link>
+
+              <HoroscopeMatchButton
+                targetProfile={{
+                  id: targetProfile.id,
+                  userId: targetProfile.userId,
+                  firstName: targetProfile.firstName,
+                  lastName: targetProfile.lastName,
+                  avatarUrl: targetProfile.media && targetProfile.media[0] ? targetProfile.media[0].url : null,
+                }}
+                currentUserId={currentUserId}
+                variant="primary"
+              />
             </div>
 
             {/* Tabs Row */}
@@ -510,10 +523,17 @@ export default function ProfileClientView({
                     {targetProfile.horoscopeRequired ? "Horoscope match is mandatory for this profile" : "Horoscope available on request"}
                   </p>
                 </div>
-                <button className="px-5 py-2 rounded-full border border-[rgba(28,28,30,0.12)] text-xs font-bold text-[#0A1F44] hover:bg-gray-50 flex items-center space-x-1.5">
-                  <FileText className="h-4 w-4 text-[#D4AF37]" />
-                  <span>View Horoscope</span>
-                </button>
+                <HoroscopeMatchButton
+                  targetProfile={{
+                    id: targetProfile.id,
+                    userId: targetProfile.userId,
+                    firstName: targetProfile.firstName,
+                    lastName: targetProfile.lastName,
+                    avatarUrl: targetProfile.media && targetProfile.media[0] ? targetProfile.media[0].url : null,
+                  }}
+                  currentUserId={currentUserId}
+                  variant="primary"
+                />
               </div>
             </>
           )}

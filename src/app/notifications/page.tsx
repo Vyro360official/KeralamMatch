@@ -6,7 +6,9 @@ import Footer from "@/components/shared/footer";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Bell, BellOff, Check, AlertCircle, Coins, Heart, MessageCircle, UserCheck } from "lucide-react";
+import Link from "next/link";
 import { getProfileDetailsAction } from "@/modules/profile/profile.controller";
+import HoroscopeMatchButton from "@/components/astrology/horoscope-match-button";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   CONTACT_REQUEST: <Heart className="h-4 w-4 text-[#C81D45]" />,
@@ -137,7 +139,40 @@ export default function NotificationsPage() {
                             {new Date(n.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-xs text-[#636366] mt-1">{n.body}</p>
+                        <p className="text-xs text-[#636366] mt-1">{n.body || n.message}</p>
+                        {(() => {
+                          const profileMatch = n.link ? n.link.match(/\/profile\/([a-zA-Z0-9_-]+)/) : null;
+                          const userMatch = n.link ? n.link.match(/[?&]userId=([a-zA-Z0-9_-]+)/) : null;
+                          const candidateId = profileMatch ? profileMatch[1] : (userMatch ? userMatch[1] : null);
+
+                          if (!n.link && !candidateId) return null;
+
+                          return (
+                            <div className="mt-3 flex items-center gap-3 pt-1">
+                              {n.link && (
+                                <Link
+                                  href={n.link}
+                                  className="text-[11px] font-bold text-[#0A369D] hover:underline"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  View Details →
+                                </Link>
+                              )}
+                              {candidateId && (
+                                <div onClick={(e) => e.stopPropagation()}>
+                                  <HoroscopeMatchButton
+                                    targetProfile={{
+                                      id: candidateId,
+                                      firstName: n.title?.split(" ")[0] || "Candidate",
+                                    }}
+                                    currentUserId={currentUserProfile?.userId}
+                                    variant="compact"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   );

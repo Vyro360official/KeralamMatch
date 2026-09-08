@@ -5,6 +5,7 @@ import Link from "next/link";
 import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
+import HoroscopeMatchButton from "@/components/astrology/horoscope-match-button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { searchProfilesAction, getProfileDetailsAction } from "@/modules/profile/profile.controller";
@@ -530,20 +531,27 @@ export default function DiscoverPage() {
                           </span>
                         </div>
 
-                        <div className="flex gap-2">
-                          <Link
-                            href={`/profile/${item.id}`}
-                            className="flex-1 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-[10px] font-bold text-center transition-colors"
-                          >
-                            View Profile
-                          </Link>
-                          <button
-                            onClick={() => alert("Interest sent successfully!")}
-                            className="flex-1 py-1.5 rounded-lg bg-[#C81D45] hover:bg-[#A51436] text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
-                          >
-                            <Send className="h-3 w-3" />
-                            <span>Send Interest</span>
-                          </button>
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <Link
+                              href={`/profile/${item.id}`}
+                              className="flex-1 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-[10px] font-bold text-center transition-colors"
+                            >
+                              View Profile
+                            </Link>
+                            <button
+                              onClick={() => alert("Interest sent successfully!")}
+                              className="flex-1 py-1.5 rounded-lg bg-[#C81D45] hover:bg-[#A51436] text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
+                            >
+                              <Send className="h-3 w-3" />
+                              <span>Send Interest</span>
+                            </button>
+                          </div>
+                          <HoroscopeMatchButton
+                            targetProfile={item}
+                            currentUserId={currentUserProfile?.userId}
+                            variant="card"
+                          />
                         </div>
                       </div>
                     </div>

@@ -8,6 +8,7 @@ import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, ArrowUpRight, ArrowDownLeft, AlertCircle, CheckCircle, XCircle, ShieldAlert, Phone, Mail } from "lucide-react";
 import { getProfileDetailsAction } from "@/modules/profile/profile.controller";
+import HoroscopeMatchButton from "@/components/astrology/horoscope-match-button";
 
 export default function RequestsPage() {
   const [activeTab, setActiveTab] = useState<"received" | "sent" | "active" | "expired">("received");
@@ -222,7 +223,20 @@ export default function RequestsPage() {
                       </div>
 
                       {/* Status and consent action triggers */}
-                      <div className="flex items-center justify-end flex-shrink-0 self-end md:self-center">
+                      <div className="flex items-center gap-2 justify-end flex-shrink-0 self-end md:self-center">
+                        {profileInfo?.id && (
+                          <HoroscopeMatchButton
+                            targetProfile={{
+                              id: profileInfo.id,
+                              userId: otherUser?.id,
+                              firstName: profileInfo.firstName,
+                              lastName: profileInfo.lastName,
+                              avatarUrl: profileInfo.avatarUrl || (profileInfo.media && profileInfo.media[0] ? profileInfo.media[0].url : null),
+                            }}
+                            currentUserId={currentUserProfile?.userId}
+                            variant="compact"
+                          />
+                        )}
                         {r.isIncoming && r.status === "PENDING" ? (
                           <div className="flex space-x-2">
                             <button

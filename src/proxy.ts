@@ -9,7 +9,7 @@ export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   // ── Admin Route Protection ─────────────────────────────────────────
-  if (path.startsWith("/admin")) {
+  if (path.startsWith("/admin") && path !== "/admin/login") {
     const sessionCookie = req.cookies.get("km_session");
     if (!sessionCookie || !sessionCookie.value) {
       return NextResponse.redirect(new URL("/auth", req.url));
@@ -21,6 +21,8 @@ export async function proxy(req: NextRequest) {
 
   if (path.startsWith("/api/auth/")) {
     limitConfig = { limit: 10, window: 60 }; // 10 req/min
+  } else if (path.startsWith("/api/astrology/")) {
+    limitConfig = { limit: 15, window: 60 }; // 15 calculations/min
   } else if (path === "/api/requests" && req.method === "POST") {
     limitConfig = { limit: 5, window: 60 }; // 5 requests/min
   } else if (path.startsWith("/api/chat/") && req.method === "POST") {

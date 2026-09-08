@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { HoroscopeMatchProvider } from "@/components/astrology/horoscope-match-context";
+import HoroscopeMatchModal from "@/components/astrology/horoscope-match-modal";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,15 +26,18 @@ export const metadata: Metadata = {
     "Kerala grooms",
     "Trivandrum matrimony",
     "Nair matrimony",
+    "Ezhava matrimony",
     "Christian matrimony Kerala",
     "Muslim matrimony Kerala",
-    "Ezhava matrimony",
-    "privacy-first matrimony",
   ],
   authors: [{ name: "KeralamMatch" }],
   creator: "KeralamMatch",
   publisher: "KeralamMatch Technologies Pvt. Ltd.",
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
   openGraph: {
     type: "website",
     locale: "en_IN",
@@ -41,9 +46,7 @@ export const metadata: Metadata = {
     title: "KeralamMatch — Premium Matrimony for Malayali Community",
     description:
       "Kerala's most trusted matrimonial platform. Privacy-first. Verified profiles. Find your perfect match.",
-    images: [
-      { url: "/og-image.jpg", width: 1200, height: 630, alt: "KeralamMatch — Premium Matrimony" },
-    ],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "KeralamMatch" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -60,7 +63,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
   const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID;
 
@@ -68,12 +75,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#d4a853" />
+        <meta name="theme-color" content="#C81D45" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-
-        {/* Structured Data — Organization */}
+        <link rel="icon" href="/icons/icon-192.png" />
+        {/* Structured Data: Organization */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -99,7 +106,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-full flex flex-col">
-        {children}
+        <HoroscopeMatchProvider>
+          {children}
+          <HoroscopeMatchModal />
+        </HoroscopeMatchProvider>
 
         {/* Google Analytics 4 */}
         {gaId && (

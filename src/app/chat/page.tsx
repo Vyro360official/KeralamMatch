@@ -7,11 +7,14 @@ import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Send, UserX, MessageSquare, AlertCircle, Check, CheckCheck, Lock, ChevronLeft, ShieldCheck } from "lucide-react";
+import HoroscopeMatchButton from "@/components/astrology/horoscope-match-button";
 
 interface Thread {
   partnerId: string;
+  profileId?: string;
   firstName: string;
   lastName: string;
+  avatarUrl?: string | null;
   lastMessage: string;
   timestamp: string;
   unreadCount: number;
@@ -58,12 +61,14 @@ export default function ChatPage() {
       const targetName = searchParams.get("name") || "Candidate";
 
       if (targetUserId) {
+        const targetProfileId = searchParams.get("profileId") || undefined;
         const parts = targetName.split(" ");
         const first = parts[0] || "Candidate";
         const last = parts.slice(1).join(" ") || "";
 
         const candidateThread: Thread = {
           partnerId: targetUserId,
+          profileId: targetProfileId,
           firstName: first,
           lastName: last,
           lastMessage: "Start a conversation...",
@@ -298,13 +303,27 @@ export default function ChatPage() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={handleBlockUser}
-                        className="text-xs font-bold text-slate-400 hover:text-red-600 flex items-center space-x-1.5 transition-colors"
-                      >
-                        <UserX className="h-4 w-4" />
-                        <span>Block</span>
-                      </button>
+                      <div className="flex items-center space-x-3">
+                        <HoroscopeMatchButton
+                          targetProfile={{
+                            id: activeThread.profileId || activeThread.partnerId,
+                            userId: activeThread.partnerId,
+                            firstName: activeThread.firstName,
+                            lastName: activeThread.lastName,
+                            avatarUrl: activeThread.avatarUrl,
+                          }}
+                          currentUserId={currentUserId || undefined}
+                          variant="compact"
+                        />
+
+                        <button
+                          onClick={handleBlockUser}
+                          className="text-xs font-bold text-slate-400 hover:text-red-600 flex items-center space-x-1.5 transition-colors"
+                        >
+                          <UserX className="h-4 w-4" />
+                          <span>Block</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Security warning banner */}

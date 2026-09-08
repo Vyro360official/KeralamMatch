@@ -56,13 +56,16 @@ export async function GET(req: NextRequest) {
     for (const [partnerId, data] of threadMap.entries()) {
       const partnerProfile = await prisma.profile.findUnique({
         where: { userId: partnerId },
+        include: { media: true },
       });
 
       if (partnerProfile) {
         threads.push({
           partnerId,
+          profileId: partnerProfile.id,
           firstName: partnerProfile.firstName,
           lastName: partnerProfile.lastName,
+          avatarUrl: partnerProfile.media && partnerProfile.media[0] ? partnerProfile.media[0].url : null,
           lastMessage: data.lastMessage,
           timestamp: data.timestamp,
           unreadCount: data.unreadCount,
