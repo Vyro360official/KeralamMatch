@@ -71,6 +71,9 @@ export interface SoftAstroRawResponse {
     tob: string;
     place: string;
     dasa_balance: string;
+    rasi_chart?: Record<number, string[]>;
+    navamsa_chart?: Record<number, string[]>;
+    planets?: Record<string, any>;
   };
   groom?: {
     name: string;
@@ -82,6 +85,9 @@ export interface SoftAstroRawResponse {
     tob: string;
     place: string;
     dasa_balance: string;
+    rasi_chart?: Record<number, string[]>;
+    navamsa_chart?: Record<number, string[]>;
+    planets?: Record<string, any>;
   };
   porutham?: {
     items: Array<{

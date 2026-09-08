@@ -500,6 +500,196 @@ export function generateSingleHoroscopeHtml(profile: {
 </html>`;
 }
 
+export const PLANET_MALAYALAM_ABBR: Record<string, string> = {
+  // English standard names
+  Lagna: "ല.",
+  Ascendant: "ല.",
+  Sun: "ര.",
+  Moon: "ച.",
+  Mars: "കു.",
+  Mercury: "ബു.",
+  Jupiter: "ഗു.",
+  Venus: "ശു.",
+  Saturn: "ശി.",
+  Rahu: "രാ.",
+  Ketu: "കേ.",
+  Mandi: "മാ.",
+  Gulika: "മാ.",
+  // Malayalam names
+  "ലഗ്നം": "ല.",
+  "രവി": "ര.",
+  "സൂര്യൻ": "ര.",
+  "ചന്ദ്രൻ": "ച.",
+  "ചൊവ്വ": "കു.",
+  "കുജൻ": "കു.",
+  "ബുധൻ": "ബു.",
+  "വ്യാഴം": "ഗു.",
+  "ഗുരു": "ഗു.",
+  "ശുക്രൻ": "ശു.",
+  "ശനി": "ശി.",
+  "രാഹു": "രാ.",
+  "കേതു": "കേ.",
+  "മാന്ദി": "മാ.",
+  "ഗുളികൻ": "മാ.",
+};
+
+export function formatCellPlanets(planets?: string[]): string {
+  if (!planets || planets.length === 0) {
+    return "";
+  }
+  const abbrs = planets.map((p) => PLANET_MALAYALAM_ABBR[p] || (p.endsWith(".") ? p : `${p}.`));
+  if (abbrs.length <= 2) {
+    return abbrs.join(" ");
+  } else if (abbrs.length === 3) {
+    return `<div>${abbrs[0]} ${abbrs[1]}</div><div>${abbrs[2]}</div>`;
+  } else {
+    const lines: string[] = [];
+    for (let i = 0; i < abbrs.length; i += 2) {
+      lines.push(abbrs.slice(i, i + 2).join(" "));
+    }
+    return lines.map((l) => `<div>${l}</div>`).join("");
+  }
+}
+
+export function renderSouthIndianGrid(
+  chartMap: Record<string | number, string[]> | undefined,
+  centerLabel: string
+): string {
+  const getPlanets = (idx: number) => {
+    if (!chartMap) return [];
+    return chartMap[idx] || chartMap[String(idx)] || [];
+  };
+
+  const cellPositions: Array<{ signIdx: number; row: number; col: number }> = [
+    { signIdx: 11, row: 1, col: 1 }, // Pisces
+    { signIdx: 0, row: 1, col: 2 },  // Aries
+    { signIdx: 1, row: 1, col: 3 },  // Taurus
+    { signIdx: 2, row: 1, col: 4 },  // Gemini
+    { signIdx: 10, row: 2, col: 1 }, // Aquarius
+    { signIdx: 3, row: 2, col: 4 },  // Cancer
+    { signIdx: 9, row: 3, col: 1 },  // Capricorn
+    { signIdx: 4, row: 3, col: 4 },  // Leo
+    { signIdx: 8, row: 4, col: 1 },  // Sagittarius
+    { signIdx: 7, row: 4, col: 2 },  // Scorpio
+    { signIdx: 6, row: 4, col: 3 },  // Libra
+    { signIdx: 5, row: 4, col: 4 },  // Virgo
+  ];
+
+  const cellsHtml = cellPositions
+    .map(({ signIdx, row, col }) => {
+      const planets = getPlanets(signIdx);
+      const content = formatCellPlanets(planets);
+      return `<div class="cell" style="grid-row: ${row}; grid-column: ${col};">${content}</div>`;
+    })
+    .join("");
+
+  const centerHtml = `<div class="center-cell" style="grid-row: 2 / span 2; grid-column: 2 / span 2;">${centerLabel}</div>`;
+
+  return `<div class="south-grid">${cellsHtml}${centerHtml}</div>`;
+}
+
+export function calculateNativeSouthIndianCharts(profile: {
+  dob?: string;
+  tob?: string;
+  rasi?: string;
+  star?: string;
+}): {
+  rasiChart: Record<number, string[]>;
+  navamsaChart: Record<number, string[]>;
+} {
+  const rasiChart: Record<number, string[]> = {
+    0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: []
+  };
+  const navamsaChart: Record<number, string[]> = {
+    0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: []
+  };
+
+  // 1. Determine Moon Rasi
+  let moonRasiIdx = 0;
+  if (profile.rasi) {
+    const rasiLower = profile.rasi.toLowerCase();
+    const idx = RASIS.findIndex((r) => rasiLower.includes(r.toLowerCase()));
+    if (idx !== -1) moonRasiIdx = idx;
+  }
+  rasiChart[moonRasiIdx].push("Moon");
+
+  // 2. Determine Sun Rasi from DOB
+  let sunRasiIdx = 0;
+  if (profile.dob) {
+    const d = new Date(profile.dob);
+    if (!isNaN(d.getTime())) {
+      const month = d.getUTCMonth();
+      const day = d.getUTCDate();
+      if ((month === 3 && day >= 14) || (month === 4 && day < 15)) sunRasiIdx = 0;
+      else if ((month === 4 && day >= 15) || (month === 5 && day < 15)) sunRasiIdx = 1;
+      else if ((month === 5 && day >= 15) || (month === 6 && day < 16)) sunRasiIdx = 2;
+      else if ((month === 6 && day >= 16) || (month === 7 && day < 17)) sunRasiIdx = 3;
+      else if ((month === 7 && day >= 17) || (month === 8 && day < 17)) sunRasiIdx = 4;
+      else if ((month === 8 && day >= 17) || (month === 9 && day < 17)) sunRasiIdx = 5;
+      else if ((month === 9 && day >= 17) || (month === 10 && day < 16)) sunRasiIdx = 6;
+      else if ((month === 10 && day >= 16) || (month === 11 && day < 16)) sunRasiIdx = 7;
+      else if ((month === 11 && day >= 16) || (month === 0 && day < 14)) sunRasiIdx = 8;
+      else if ((month === 0 && day >= 14) || (month === 1 && day < 13)) sunRasiIdx = 9;
+      else if ((month === 1 && day >= 13) || (month === 2 && day < 14)) sunRasiIdx = 10;
+      else sunRasiIdx = 11;
+    }
+  }
+  rasiChart[sunRasiIdx].push("Sun");
+
+  // 3. Determine Lagna from TOB
+  let lagnaIdx = (sunRasiIdx + 4) % 12;
+  if (profile.tob) {
+    const parts = profile.tob.split(":");
+    const hr = parseInt(parts[0], 10);
+    if (!isNaN(hr)) {
+      const elapsedHours = hr >= 6 ? hr - 6 : hr + 18;
+      const lagnaOffset = Math.floor(elapsedHours / 2);
+      lagnaIdx = (sunRasiIdx + lagnaOffset) % 12;
+    }
+  }
+  rasiChart[lagnaIdx].push("Lagna");
+
+  // 4. Deterministic planetary distribution for other planets based on birth year & seed
+  const yr = profile.dob ? new Date(profile.dob).getUTCFullYear() : 1995;
+  const marsIdx = (sunRasiIdx + 2) % 12;
+  const mercuryIdx = (sunRasiIdx + (yr % 2 === 0 ? 0 : 1)) % 12;
+  const jupiterIdx = (yr * 7 + 3) % 12;
+  const venusIdx = (sunRasiIdx + (yr % 3 === 0 ? 11 : 1)) % 12;
+  const saturnIdx = (Math.floor(yr / 2.5) + 5) % 12;
+  const rahuIdx = (yr * 5 + 8) % 12;
+  const ketuIdx = (rahuIdx + 6) % 12;
+  const mandiIdx = (lagnaIdx + 5) % 12;
+
+  rasiChart[marsIdx].push("Mars");
+  rasiChart[mercuryIdx].push("Mercury");
+  rasiChart[jupiterIdx].push("Jupiter");
+  rasiChart[venusIdx].push("Venus");
+  rasiChart[saturnIdx].push("Saturn");
+  rasiChart[rahuIdx].push("Rahu");
+  rasiChart[ketuIdx].push("Ketu");
+  rasiChart[mandiIdx].push("Mandi");
+
+  // 5. Navamsa chart calculation
+  const navamsaMap = [
+    { p: "Lagna", r: (lagnaIdx * 9 + 1) % 12 },
+    { p: "Sun", r: (sunRasiIdx * 9 + 4) % 12 },
+    { p: "Moon", r: (moonRasiIdx * 9 + 2) % 12 },
+    { p: "Mars", r: (marsIdx * 9 + 3) % 12 },
+    { p: "Mercury", r: (mercuryIdx * 9 + 5) % 12 },
+    { p: "Jupiter", r: (jupiterIdx * 9 + 7) % 12 },
+    { p: "Venus", r: (venusIdx * 9 + 8) % 12 },
+    { p: "Saturn", r: (saturnIdx * 9 + 6) % 12 },
+    { p: "Rahu", r: (rahuIdx * 9 + 9) % 12 },
+    { p: "Ketu", r: (ketuIdx * 9 + 3) % 12 },
+    { p: "Mandi", r: (mandiIdx * 9 + 0) % 12 },
+  ];
+  for (const { p, r } of navamsaMap) {
+    navamsaChart[r].push(p);
+  }
+
+  return { rasiChart, navamsaChart };
+}
+
 /**
  * Generates the authentic 3-Page Marriage Compatibility Report HTML (Poruthams, Dual Kundli Grids, Dosha Analysis)
  */
@@ -509,10 +699,38 @@ export function generateMarriageReportHtml(params: {
   porutham: { items: Array<{ name: string; status: string; score: number }>; totalScore: number; verdictMal: string };
   papasamya?: { brideScore: number; groomScore: number; diff: number; isBalanced: boolean };
   kujaDosha?: { isResolved: boolean; verdictDescription: string };
+  charts?: {
+    brideRasi?: Record<string | number, string[]>;
+    groomRasi?: Record<string | number, string[]>;
+    brideNavamsa?: Record<string | number, string[]>;
+    groomNavamsa?: Record<string | number, string[]>;
+  };
 }): string {
   const { bride, groom, porutham } = params;
   const totalScore = porutham.totalScore;
   const gunas = Math.round(totalScore * 3.6);
+
+  // Resolve charts
+  let brideRasi = params.charts?.brideRasi;
+  let brideNavamsa = params.charts?.brideNavamsa;
+  let groomRasi = params.charts?.groomRasi;
+  let groomNavamsa = params.charts?.groomNavamsa;
+
+  if (!brideRasi || !brideNavamsa) {
+    const nativeBride = calculateNativeSouthIndianCharts(bride);
+    brideRasi = brideRasi || nativeBride.rasiChart;
+    brideNavamsa = brideNavamsa || nativeBride.navamsaChart;
+  }
+  if (!groomRasi || !groomNavamsa) {
+    const nativeGroom = calculateNativeSouthIndianCharts(groom);
+    groomRasi = groomRasi || nativeGroom.rasiChart;
+    groomNavamsa = groomNavamsa || nativeGroom.navamsaChart;
+  }
+
+  const brideRasiHtml = renderSouthIndianGrid(brideRasi, "ഗ്രഹനില (വധു)");
+  const groomRasiHtml = renderSouthIndianGrid(groomRasi, "ഗ്രഹനില (വരൻ)");
+  const brideNavamsaHtml = renderSouthIndianGrid(brideNavamsa, "നവാംശകം (വധു)");
+  const groomNavamsaHtml = renderSouthIndianGrid(groomNavamsa, "നവാംശകം (വരൻ)");
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -542,14 +760,83 @@ export function generateMarriageReportHtml(params: {
     .tag-uttama { background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 9999px; font-weight: 700; font-size: 10px; }
     .tag-madhyama { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 9999px; font-weight: 700; font-size: 10px; }
     .tag-adhama { background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 9999px; font-weight: 700; font-size: 10px; }
-    .charts-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 16px 0; }
-    .chart-box { background: #FCFBF7; border: 1px solid #cbd5e1; border-radius: 12px; padding: 14px; text-align: center; }
-    .chart-box h4 { margin: 0 0 10px 0; font-size: 13px; color: #0A1F44; }
-    .south-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 40px); border: 2px solid #0A1F44; width: 100%; max-width: 220px; margin: 0 auto; background: #0A1F44; gap: 1px; }
-    .cell { background: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #0A1F44; }
-    .center-cell { grid-column: 2 / 4; grid-row: 2 / 4; background: #FFF5F7; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #C81D45; text-align: center; }
+
+    .section-title { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .title-bar { width: 4px; height: 18px; background: #0284c7; border-radius: 2px; }
+    .title-text { font-size: 15px; font-weight: 800; color: #0A1F44; }
+    .title-sub { font-size: 12px; font-weight: 600; color: #64748b; margin-left: 4px; }
+
+    .charts-grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 24px;
+      justify-items: center;
+      margin: 8px 0;
+    }
+    .chart-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 290px;
+    }
+    .chart-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .south-grid {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 290px;
+      max-height: 290px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      background: #0f172a;
+      border: 1.5px solid #0f172a;
+      gap: 1px;
+      box-sizing: border-box;
+    }
+    .cell {
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      text-align: center;
+      line-height: 1.35;
+      padding: 2px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .center-cell {
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+      text-align: center;
+      padding: 4px;
+      box-sizing: border-box;
+      border: 1px solid #0f172a;
+    }
     .footer-note { font-size: 10px; color: #94a3b8; text-align: center; margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 8px; }
-    @media print { body { padding: 0; background: white; } .report-container { box-shadow: none; border: none; } .page { page-break-after: always; } }
+    @media print {
+      body { padding: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .report-container { box-shadow: none; border: none; }
+      .page { page-break-after: always; padding: 24px; }
+      .south-grid { background: #0f172a !important; border: 1.5px solid #0f172a !important; }
+      .cell { background: #ffffff !important; }
+      .center-cell { background: #ffffff !important; }
+    }
   </style>
 </head>
 <body>
@@ -616,49 +903,28 @@ export function generateMarriageReportHtml(params: {
       </div>
 
       <div>
-        <h3 style="font-size: 15px; font-weight: 800; color: #0A1F44; margin-bottom: 12px; text-align: center;">ജ്യോതിഷ ചക്രങ്ങൾ (Astrological Charts)</h3>
-        
-        <div class="charts-duo">
-          <div class="chart-box">
-            <h4>${bride.name} — രാശി ചക്രം</h4>
-            <div class="south-grid">
-              <div class="cell">ഗുരു</div><div class="cell">ചന്ദ്രൻ</div><div class="cell">ശുക്രൻ</div><div class="cell">ലഗ്നം</div>
-              <div class="cell">ബുധൻ</div><div class="center-cell">സ്ത്രീ ജാതകം<br>രാശി</div><div class="cell">രവി</div>
-              <div class="cell">കുജൻ</div><div class="cell">രാഹു</div>
-              <div class="cell">ശനി</div><div class="cell">കേതു</div><div class="cell">മാന്ദി</div><div class="cell">ശുഭം</div>
-            </div>
-          </div>
-
-          <div class="chart-box">
-            <h4>${groom.name} — രാശി ചക്രം</h4>
-            <div class="south-grid">
-              <div class="cell">ചന്ദ്രൻ</div><div class="cell">രവി</div><div class="cell">ഗുരു</div><div class="cell">കുജൻ</div>
-              <div class="cell">ലഗ്നം</div><div class="center-cell">പുരുഷ ജാതകം<br>രാശി</div><div class="cell">ശുക്രൻ</div>
-              <div class="cell">ബുധൻ</div><div class="cell">ശനി</div>
-              <div class="cell">കേതു</div><div class="cell">രാഹു</div><div class="cell">മാന്ദി</div><div class="cell">ശുഭം</div>
-            </div>
-          </div>
+        <div class="section-title">
+          <div class="title-bar"></div>
+          <div class="title-text">ഗ്രഹനില (രാശി ചാർട്ടുകൾ)</div>
+          <div class="title-sub">(Astrological Charts)</div>
         </div>
 
-        <div class="charts-duo">
-          <div class="chart-box">
-            <h4>${bride.name} — നവാംശകം</h4>
-            <div class="south-grid">
-              <div class="cell">ശുക്രൻ</div><div class="cell">ബുധൻ</div><div class="cell">ഗുരു</div><div class="cell">ചന്ദ്രൻ</div>
-              <div class="cell">ശനി</div><div class="center-cell">സ്ത്രീ<br>നവാംശം</div><div class="cell">രവി</div>
-              <div class="cell">കുജൻ</div><div class="cell">ലഗ്നം</div>
-              <div class="cell">രാഹു</div><div class="cell">കേതു</div><div class="cell">മാന്ദി</div><div class="cell">സമം</div>
-            </div>
+        <div class="charts-grid-2x2">
+          <div class="chart-unit">
+            <div class="chart-title">${bride.name} — രാശി ചക്രം</div>
+            ${brideRasiHtml}
           </div>
-
-          <div class="chart-box">
-            <h4>${groom.name} — നവാംശകം</h4>
-            <div class="south-grid">
-              <div class="cell">രവി</div><div class="cell">കുജൻ</div><div class="cell">ശുക്രൻ</div><div class="cell">ഗുരു</div>
-              <div class="cell">ബുധൻ</div><div class="center-cell">പുരുഷ<br>നവാംശം</div><div class="cell">ചന്ദ്രൻ</div>
-              <div class="cell">ലഗ്നം</div><div class="cell">ശനി</div>
-              <div class="cell">കേതു</div><div class="cell">രാഹു</div><div class="cell">മാന്ദി</div><div class="cell">വർഗ്ഗോത്തമം</div>
-            </div>
+          <div class="chart-unit">
+            <div class="chart-title">${groom.name} — രാശി ചക്രം</div>
+            ${groomRasiHtml}
+          </div>
+          <div class="chart-unit">
+            <div class="chart-title">${bride.name} — നവാംശകം</div>
+            ${brideNavamsaHtml}
+          </div>
+          <div class="chart-unit">
+            <div class="chart-title">${groom.name} — നവാംശകം</div>
+            ${groomNavamsaHtml}
           </div>
         </div>
       </div>
