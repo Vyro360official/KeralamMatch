@@ -15,12 +15,13 @@ export interface MatrimonialLogoLoaderProps {
   useVideo?: boolean;
 }
 
+// Increased sizes from 100% up for bold, prominent branding
 const SIZE_MAP = {
-  xs: { w: 42, h: 28 },
-  sm: { w: 84, h: 56 },
-  md: { w: 138, h: 93 },
-  lg: { w: 190, h: 128 },
-  xl: { w: 250, h: 168 },
+  xs: { w: 60, h: 44 },
+  sm: { w: 120, h: 88 },
+  md: { w: 200, h: 146 },
+  lg: { w: 280, h: 204 },
+  xl: { w: 380, h: 277 },
 };
 
 export default function MatrimonialLogoLoader({
@@ -37,7 +38,7 @@ export default function MatrimonialLogoLoader({
 }: MatrimonialLogoLoaderProps) {
   const dimensions =
     typeof size === "number"
-      ? { w: size, h: Math.round(size * 0.672) }
+      ? { w: size, h: Math.round(size * 0.729) }
       : SIZE_MAP[size] || SIZE_MAP.md;
 
   const isMini = typeof size === "string" && size === "xs";
@@ -279,7 +280,7 @@ export default function MatrimonialLogoLoader({
           />
         </div>
       ) : (
-        /* High-Performance Animated WebP Mode (Instant 0ms, Zero Video Latency) */
+        /* Single Animated WebP Mode (Instant 0ms, Zero Video Latency, Scaled Up) */
         <>
           <img
             src="/brand/loader/matrimonial-loader.webp"
