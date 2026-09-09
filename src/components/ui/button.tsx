@@ -3,6 +3,7 @@
 import * as React from "react";
 import { motion, HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
+import MatrimonialLogoLoader from "@/components/ui/matrimonial-logo-loader";
 
 // Create cn helper if not present
 export interface ButtonProps extends Omit<HTMLMotionProps<"button">, "type"> {
@@ -40,7 +41,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props as any}
       >
         {isLoading ? (
-          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <span className="mr-2 inline-flex items-center">
+            <MatrimonialLogoLoader size="xs" inline />
+          </span>
         ) : null}
         {children}
       </motion.button>

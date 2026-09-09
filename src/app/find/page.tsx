@@ -8,6 +8,7 @@ import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import HoroscopeMatchButton from "@/components/astrology/horoscope-match-button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import MatrimonialLogoLoader from "@/components/ui/matrimonial-logo-loader";
 import { searchProfilesAction, getProfileDetailsAction } from "@/modules/profile/profile.controller";
 import {
   Search,
@@ -462,16 +463,12 @@ export default function DiscoverPage() {
 
             {/* Candidates profiles grid */}
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {[1, 2, 4].map((i) => (
-                  <div key={i} className="bg-white rounded-2xl overflow-hidden p-0 border border-slate-100">
-                    <Skeleton className="aspect-[4/5] w-full" />
-                    <div className="p-4 space-y-2">
-                      <Skeleton className="h-4 w-1/2" />
-                      <Skeleton className="h-3.5 w-3/4" />
-                    </div>
-                  </div>
-                ))}
+              <div className="bg-white rounded-2xl p-16 flex flex-col items-center justify-center border border-[rgba(28,28,30,0.06)] shadow-xs">
+                <MatrimonialLogoLoader
+                  size="md"
+                  text="Finding Matches in Kerala..."
+                  subtext="Filtering verified profiles according to your preferences"
+                />
               </div>
             ) : profiles.length === 0 ? (
               <div className="bg-white rounded-2xl p-16 text-center text-xs text-[#636366] border border-[rgba(28,28,30,0.06)] shadow-xs">

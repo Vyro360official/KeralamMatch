@@ -13,27 +13,32 @@ export default function Logo({ variant = "default", className = "", href = "/" }
 
   const content = (
     <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
-      {/* Official 3D Nilavilakku & Lotus Emblem */}
-      <div className="relative flex items-center justify-center h-9 w-9 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-[#0A1F44]">
+      {/* Official Matrimonial Emblem */}
+      <div className="relative flex items-center justify-center h-9 w-9 flex-shrink-0">
         <Image
-          src="/KM LOGO.png"
+          src="/brand/emblem.png"
           alt="KeralamMatch Emblem"
           width={36}
           height={36}
-          className="object-cover h-full w-full"
+          className="object-contain h-full w-full drop-shadow-xs"
           priority
         />
       </div>
 
       {/* Brand Logotype */}
       {variant !== "compact" && (
-        <div className="flex flex-col leading-none">
-          <span className={`text-lg font-bold tracking-tight ${isDarkBg ? "text-white" : "text-[#0A1F44]"}`}>
-            Keralam<span className="text-[#C81D45]">Match</span>
-          </span>
+        <div className="flex items-center gap-1.5">
+          <Image
+            src="/brand/logotype.png"
+            alt="Keralam Match"
+            width={160}
+            height={24}
+            className={`h-6 w-auto object-contain ${isDarkBg ? "brightness-110 drop-shadow-xs" : ""}`}
+            priority
+          />
           {variant === "admin" && (
-            <span className="text-[10px] uppercase font-semibold tracking-widest text-[#D4AF37] mt-0.5">
-              Admin Portal
+            <span className="text-[10px] uppercase font-semibold tracking-widest text-[#D4AF37] px-1.5 py-0.5 rounded-sm bg-amber-950/60 border border-amber-500/30">
+              Admin
             </span>
           )}
         </div>

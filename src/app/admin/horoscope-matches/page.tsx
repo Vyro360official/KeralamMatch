@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useTransition, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import MatrimonialLogoLoader from "@/components/ui/matrimonial-logo-loader";
 import {
   Search,
   Filter,
@@ -398,9 +399,8 @@ function AdminHoroscopeMatchesContent() {
             <tbody className="divide-y divide-slate-800">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-slate-500">
-                    <RefreshCw className="h-6 w-6 animate-spin mx-auto text-[#C81D45] mb-2" />
-                    <span>Loading horoscope records...</span>
+                  <td colSpan={7} className="py-12 text-center text-slate-500">
+                    <MatrimonialLogoLoader size="sm" text="Loading horoscope records..." />
                   </td>
                 </tr>
               ) : matches.length === 0 ? (
@@ -705,7 +705,7 @@ export default function AdminHoroscopeMatchesPage() {
     <Suspense
       fallback={
         <div className="flex min-h-[400px] items-center justify-center">
-          <div className="animate-spin rounded-full border-2 border-amber-500 border-t-transparent h-8 w-8" />
+          <MatrimonialLogoLoader size="md" text="Loading Horoscope Admin..." />
         </div>
       }
     >

@@ -6,6 +6,7 @@ import {
   MapPin, AlertOctagon, LineChart, Target, Compass, Sparkles, AlertCircle,
   HelpCircle, ShieldAlert, Award, ArrowUpRight, CheckCircle2
 } from "lucide-react";
+import MatrimonialLogoLoader from "@/components/ui/matrimonial-logo-loader";
 
 interface GrowthData {
   totalMembers: number;
@@ -54,7 +55,7 @@ export default function GrowthCenterPage() {
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C81D45]" />
+        <MatrimonialLogoLoader size="md" text="Loading Growth Metrics..." />
       </div>
     );
   }

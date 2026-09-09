@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { HoroscopeMatchProvider } from "@/components/astrology/horoscope-match-context";
 import HoroscopeMatchModal from "@/components/astrology/horoscope-match-modal";
+import { LoadingProvider } from "@/components/providers/loading-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -106,10 +107,12 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <HoroscopeMatchProvider>
-          {children}
-          <HoroscopeMatchModal />
-        </HoroscopeMatchProvider>
+        <LoadingProvider>
+          <HoroscopeMatchProvider>
+            {children}
+            <HoroscopeMatchModal />
+          </HoroscopeMatchProvider>
+        </LoadingProvider>
 
         {/* Google Analytics 4 */}
         {gaId && (

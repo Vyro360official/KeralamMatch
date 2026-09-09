@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
+import MatrimonialLogoLoader from "@/components/ui/matrimonial-logo-loader";
 
 export default function DashboardLoading() {
   return (
@@ -34,13 +35,13 @@ export default function DashboardLoading() {
           {/* Main Content Area Skeleton */}
           <main className="lg:col-span-9 space-y-6">
             
-            {/* Header Welcome Block Skeleton */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-pulse">
-              <div className="space-y-2">
-                <div className="h-7 w-64 bg-slate-200 rounded-lg" />
-                <div className="h-4 w-48 bg-slate-100 rounded-md" />
-              </div>
-              <div className="h-8 w-28 bg-slate-200 rounded-full" />
+            {/* Branded Loading Card */}
+            <div className="bg-white rounded-3xl p-8 border border-[rgba(28,28,30,0.06)] shadow-xs flex flex-col items-center justify-center text-center">
+              <MatrimonialLogoLoader
+                size="md"
+                text="Loading Your Dashboard..."
+                subtext="Preparing your personalized Malayali matches and statistics"
+              />
             </div>
 
             {/* KPI Statistics Row (5 cards) */}

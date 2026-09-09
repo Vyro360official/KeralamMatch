@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import MatrimonialLogoLoader from "@/components/ui/matrimonial-logo-loader";
 import {
   Sparkles,
   Calendar,
@@ -579,7 +580,7 @@ export default function HoroscopeMatchView({
               >
                 {calculating ? (
                   <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    <MatrimonialLogoLoader size="xs" inline />
                     <span>Calculating SoftAstro Ephemeris & 10 Poruthams...</span>
                   </>
                 ) : (
@@ -704,7 +705,7 @@ export default function HoroscopeMatchView({
           >
             {calculating ? (
               <>
-                <RefreshCw className="h-4 w-4 animate-spin" />
+                <MatrimonialLogoLoader size="xs" inline />
                 <span>Calculating SoftAstro Ephemeris & 10 Poruthams...</span>
               </>
             ) : (
@@ -738,9 +739,8 @@ export default function HoroscopeMatchView({
           </div>
 
           {loadingHistory ? (
-            <div className="py-12 text-center text-xs text-slate-500 flex flex-col items-center justify-center space-y-2">
-              <RefreshCw className="h-5 w-5 animate-spin text-[#C81D45]" />
-              <span>Loading your match history...</span>
+            <div className="py-12 flex flex-col items-center justify-center">
+              <MatrimonialLogoLoader size="sm" text="Loading your match history..." />
             </div>
           ) : historyItems.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-500 space-y-2">

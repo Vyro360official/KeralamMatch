@@ -16,6 +16,7 @@ import {
   ZoomOut,
   RefreshCw,
 } from "lucide-react";
+import MatrimonialLogoLoader from "@/components/ui/matrimonial-logo-loader";
 
 interface HoroscopeSingleModalProps {
   isOpen: boolean;
@@ -269,10 +270,12 @@ export default function HoroscopeSingleModal({
 
               {/* Loading State */}
               {loading && (
-                <div className="py-24 flex flex-col items-center justify-center space-y-3 bg-white rounded-2xl border border-slate-200">
-                  <div className="h-12 w-12 rounded-full border-3 border-rose-100 border-t-[#C81D45] animate-spin" />
-                  <p className="text-xs font-bold text-[#0A1F44]">Generating 2-Page Natal Horoscope...</p>
-                  <p className="text-[11px] text-slate-500">Calculating Nirayana Sphutam, Rasi and Navamsa positions</p>
+                <div className="py-16 flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200">
+                  <MatrimonialLogoLoader
+                    size="md"
+                    text="Generating 2-Page Natal Horoscope..."
+                    subtext="Calculating Nirayana Sphutam, Rasi and Navamsa positions"
+                  />
                 </div>
               )}
 

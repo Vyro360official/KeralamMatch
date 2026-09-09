@@ -10,6 +10,7 @@ import { ShieldCheck, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import { auth as clientAuth } from "@/lib/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { loginAction } from "@/modules/auth/auth.controller";
+import MatrimonialLogoLoader from "@/components/ui/matrimonial-logo-loader";
 
 function AuthForm() {
   const router = useRouter();
@@ -369,9 +370,16 @@ function AuthForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 rounded-full bg-[#C81D45] hover:bg-[#A51436] text-white text-sm font-bold shadow-md transition-all flex items-center justify-center"
+                className="w-full h-12 rounded-full bg-[#C81D45] hover:bg-[#A51436] text-white text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2"
               >
-                {loading ? "Sending OTP..." : "Continue with Mobile OTP"}
+                {loading ? (
+                  <>
+                    <MatrimonialLogoLoader size="xs" inline />
+                    <span>Sending OTP...</span>
+                  </>
+                ) : (
+                  "Continue with Mobile OTP"
+                )}
               </button>
             </form>
           ) : (
@@ -414,9 +422,16 @@ function AuthForm() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-1/2 h-11 rounded-full bg-[#C81D45] hover:bg-[#A51436] text-white text-xs font-bold shadow-md"
+                  className="w-1/2 h-11 rounded-full bg-[#C81D45] hover:bg-[#A51436] text-white text-xs font-bold shadow-md flex items-center justify-center gap-2"
                 >
-                  {loading ? "Verifying..." : "Verify Code"}
+                  {loading ? (
+                    <>
+                      <MatrimonialLogoLoader size="xs" inline />
+                      <span>Verifying...</span>
+                    </>
+                  ) : (
+                    "Verify Code"
+                  )}
                 </button>
               </div>
             </form>
@@ -461,11 +476,15 @@ function AuthForm() {
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-[#FCFBF7]">
-        <div className="animate-spin rounded-full border-2 border-[#C81D45] border-t-transparent h-8 w-8" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <MatrimonialLogoLoader
+          fullscreen
+          text="Welcome to KeralamMatch"
+          subtext="Securing your private session..."
+        />
+      }
+    >
       <AuthForm />
     </Suspense>
   );

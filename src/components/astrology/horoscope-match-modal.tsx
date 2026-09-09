@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { useHoroscopeMatch } from "./horoscope-match-context";
+import MatrimonialLogoLoader from "@/components/ui/matrimonial-logo-loader";
 import {
   X,
   Sparkles,
@@ -98,19 +99,12 @@ export default function HoroscopeMatchModal() {
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 text-[#1C1C1E]">
           {/* Loading State */}
           {loading && (
-            <div className="py-16 flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="relative">
-                <div className="h-16 w-16 rounded-full border-4 border-rose-100 border-t-[#C81D45] animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center text-[#C81D45] text-lg font-bold">
-                  ॐ
-                </div>
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-[#0A1F44]">Calculating Horoscope Compatibility...</h3>
-                <p className="text-xs text-[#636366] mt-1 max-w-xs leading-relaxed">
-                  Executing high-precision planetary calculations and traditional Kerala Porutham alignments.
-                </p>
-              </div>
+            <div className="py-12 flex flex-col items-center justify-center">
+              <MatrimonialLogoLoader
+                size="md"
+                text="Calculating Horoscope Compatibility..."
+                subtext="Executing high-precision planetary calculations and traditional Kerala Porutham alignments."
+              />
             </div>
           )}
 
