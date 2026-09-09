@@ -59,6 +59,17 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
     setDrawerOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    const handleOpenSidebar = () => setDrawerOpen(true);
+    const handleToggleSidebar = () => setDrawerOpen((prev) => !prev);
+    window.addEventListener("km:open-sidebar", handleOpenSidebar);
+    window.addEventListener("km:toggle-sidebar", handleToggleSidebar);
+    return () => {
+      window.removeEventListener("km:open-sidebar", handleOpenSidebar);
+      window.removeEventListener("km:toggle-sidebar", handleToggleSidebar);
+    };
+  }, []);
+
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     router.replace("/auth");
@@ -204,16 +215,6 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
           <SidebarContent />
         </div>
       </aside>
-
-      {/* Mobile top floating hamburger button */}
-      <button
-        type="button"
-        onClick={() => setDrawerOpen(true)}
-        className="lg:hidden fixed bottom-6 left-4 z-40 flex items-center justify-center w-12 h-12 bg-[#C81D45] text-white rounded-full shadow-lg hover:bg-[#A51436] transition-all cursor-pointer"
-        aria-label="Open menu drawer"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
 
       {/* Mobile backdrop */}
       {drawerOpen && (

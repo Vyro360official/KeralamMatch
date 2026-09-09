@@ -1118,6 +1118,8 @@ export class AstrologyService {
                 select: {
                   firstName: true,
                   lastName: true,
+                  dateOfBirth: true,
+                  timeOfBirth: true,
                 },
               },
             },
@@ -1166,6 +1168,8 @@ export class AstrologyService {
         userId: r.userId,
         userName: performingUserName,
         userEmail: r.user?.email || "",
+        userDob: r.user?.profile?.dateOfBirth ? r.user.profile.dateOfBirth.toISOString().split("T")[0] : null,
+        userTob: r.user?.profile?.timeOfBirth || null,
         matchType: r.matchType,
         targetProfileId: r.targetProfileId,
         targetName: r.targetName,

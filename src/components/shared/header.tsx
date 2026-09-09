@@ -11,7 +11,8 @@ import {
   User,
   Settings,
   HelpCircle,
-  ChevronDown
+  ChevronDown,
+  Menu
 } from "lucide-react";
 import { logoutAction } from "@/modules/auth/auth.controller";
 
@@ -110,6 +111,14 @@ export default function Header() {
 
         {/* Authenticated Icons vs Guest Action Buttons */}
         <div className="flex items-center space-x-4">
+          {/* Mobile dropdown backdrop */}
+          {activeDropdown && (
+            <div
+              className="sm:hidden fixed inset-0 top-16 bg-black/25 backdrop-blur-2xs z-40"
+              onClick={() => setActiveDropdown(null)}
+            />
+          )}
+
           {stats ? (
             <>
               {/* Premium Plan Indicator / Upgrade Button */}
@@ -129,7 +138,7 @@ export default function Header() {
                   </button>
 
                   {activeDropdown === "upgrade" && (
-                    <div className="absolute right-0 mt-2 w-72 rounded-2xl border border-slate-100 bg-white p-4 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-72 max-w-sm mx-auto sm:max-w-none rounded-2xl border border-slate-100 bg-white p-4 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                       <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#636366] mb-3">
                         Premium Memberships
                       </h3>
@@ -181,7 +190,7 @@ export default function Header() {
                 </button>
 
                 {activeDropdown === "messages" && (
-                  <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-100 bg-white p-3 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 max-w-sm mx-auto sm:max-w-none rounded-2xl border border-slate-100 bg-white p-3 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="flex items-center justify-between px-2 py-1 mb-2">
                       <span className="text-xs font-extrabold uppercase tracking-wider text-[#636366]">
                         Recent Chats
@@ -258,7 +267,7 @@ export default function Header() {
                 </button>
 
                 {activeDropdown === "notifications" && (
-                  <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-100 bg-white p-3 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 max-w-sm mx-auto sm:max-w-none rounded-2xl border border-slate-100 bg-white p-3 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="flex items-center justify-between px-2 py-1 mb-2">
                       <span className="text-xs font-extrabold uppercase tracking-wider text-[#636366]">
                         Notifications
@@ -337,7 +346,7 @@ export default function Header() {
                 </button>
 
                 {activeDropdown === "profile" && (
-                  <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-100 bg-white p-3 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-64 max-w-xs ml-auto sm:max-w-none rounded-2xl border border-slate-100 bg-white p-3 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     {/* Header */}
                     <div className="px-3 py-2 border-b border-slate-50 mb-2 text-left">
                       <div className="text-xs font-extrabold text-[#0A1F44]">
@@ -384,6 +393,18 @@ export default function Header() {
                   </div>
                 )}
               </div>
+
+              {/* Mobile Navigation Drawer Toggle (Matching Image 4) */}
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("km:open-sidebar"));
+                }}
+                className="lg:hidden flex items-center justify-center h-8 px-3 rounded-full bg-[#1C1C1E] hover:bg-black text-white shadow-sm transition-all cursor-pointer focus:outline-hidden ml-1"
+                aria-label="Open navigation menu"
+              >
+                <Menu className="h-4.5 w-4.5 text-white" />
+              </button>
             </>
           ) : (
             <>

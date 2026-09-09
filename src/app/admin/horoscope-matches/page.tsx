@@ -34,6 +34,8 @@ interface MatchItem {
   userId: string;
   userName: string;
   userEmail: string;
+  userDob?: string | null;
+  userTob?: string | null;
   matchType: "NEW_PERSON" | "REGISTERED_PROFILE";
   targetProfileId?: string | null;
   targetName: string;
@@ -52,6 +54,53 @@ interface MatchItem {
   reportHtml?: string | null;
   repeatCheckCount: number;
   hasMultipleChecks: boolean;
+}
+
+function formatDateDMY(dateVal?: string | Date | null): string {
+  if (!dateVal) return "—";
+  if (typeof dateVal === "string") {
+    const parts = dateVal.split("T")[0].split("-");
+    if (parts.length === 3 && parts[0].length === 4) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+  }
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return String(dateVal);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+function formatTimeClean(timeVal?: string | null): string {
+  if (!timeVal || timeVal === "—") return "—";
+  if (timeVal.toUpperCase().includes("AM") || timeVal.toUpperCase().includes("PM")) {
+    return timeVal.toUpperCase();
+  }
+  const match = timeVal.match(/^(\d{1,2}):(\d{2})/);
+  if (match) {
+    let hours = parseInt(match[1], 10);
+    const mins = match[2];
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    return `${String(hours).padStart(2, "0")}:${mins} ${ampm}`;
+  }
+  return timeVal;
+}
+
+function formatDateChecked(dateVal?: string | Date | null): string {
+  if (!dateVal) return "—";
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return "—";
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+  const day = d.getDate();
+  const mon = months[d.getMonth()];
+  const yr = String(d.getFullYear()).slice(-2);
+  return `${day}-${mon}-${yr}`;
 }
 
 interface AdminStats {
@@ -337,11 +386,8 @@ function AdminHoroscopeMatchesContent() {
           <table className="w-full text-left text-xs text-slate-300">
             <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
               <tr>
-                <th className="p-3.5">User Name</th>
+                <th className="p-3.5">User Name / DOB/TOB</th>
                 <th className="p-3.5">Bride/Groom Name</th>
-                <th className="p-3.5">Date of Birth</th>
-                <th className="p-3.5">Time of Birth</th>
-                <th className="p-3.5">Place of Birth</th>
                 <th className="p-3.5">Mobile Number</th>
                 <th className="p-3.5">Marketing Consent</th>
                 <th className="p-3.5">Score</th>
@@ -352,14 +398,14 @@ function AdminHoroscopeMatchesContent() {
             <tbody className="divide-y divide-slate-800">
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="py-16 text-center text-slate-500">
+                  <td colSpan={7} className="py-16 text-center text-slate-500">
                     <RefreshCw className="h-6 w-6 animate-spin mx-auto text-[#C81D45] mb-2" />
                     <span>Loading horoscope records...</span>
                   </td>
                 </tr>
               ) : matches.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-16 text-center text-slate-500">
+                  <td colSpan={7} className="py-16 text-center text-slate-500">
                     <Sparkles className="h-8 w-8 text-slate-600 mx-auto mb-2" />
                     <p className="font-bold text-white">No horoscope match checks found</p>
                     <p className="text-slate-400 text-[11px] mt-1">
@@ -369,26 +415,33 @@ function AdminHoroscopeMatchesContent() {
                 </tr>
               ) : (
                 matches.map((item) => {
-                  const isNewPerson = item.matchType === "NEW_PERSON";
                   return (
                     <tr
                       key={item.id}
                       className="hover:bg-slate-850/60 transition-colors cursor-pointer"
                       onClick={() => setSelectedMatch(item)}
                     >
-                      {/* Performing User */}
-                      <td className="p-3.5">
-                        <div className="font-bold text-white flex items-center gap-1.5">
-                          <span>{item.userName}</span>
+                      {/* Performing User: Name, DOB, TOB */}
+                      <td className="p-3.5 align-top">
+                        <div className="font-bold text-white leading-snug">
+                          {item.userName}
                         </div>
-                        <span className="text-[10px] text-slate-500 truncate block max-w-[140px]">
-                          {item.userEmail || item.userId}
-                        </span>
+                        <div className="text-slate-300 font-mono text-[11px] leading-tight mt-0.5">
+                          {formatDateDMY(item.userDob)}
+                        </div>
+                        <div className="text-slate-400 font-mono text-[11px] leading-tight">
+                          {formatTimeClean(item.userTob)}
+                        </div>
+                        {item.userEmail && (
+                          <span className="text-[10px] text-slate-500 truncate block max-w-[140px] mt-0.5">
+                            {item.userEmail}
+                          </span>
+                        )}
                       </td>
 
-                      {/* Candidate Name & Repeat Notice */}
-                      <td className="p-3.5">
-                        <div className="font-bold text-white flex items-center gap-1.5">
+                      {/* Bride/Groom: Name, DOB, TOB */}
+                      <td className="p-3.5 align-top">
+                        <div className="font-bold text-white flex items-center gap-1.5 flex-wrap leading-snug">
                           <span>{item.targetName}</span>
                           <span
                             className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
@@ -400,46 +453,34 @@ function AdminHoroscopeMatchesContent() {
                             {item.targetGender === "FEMALE" ? "Bride" : "Groom"}
                           </span>
                         </div>
+                        <div className="text-slate-300 font-mono text-[11px] leading-tight mt-0.5">
+                          {formatDateDMY(item.targetDob)}
+                        </div>
+                        <div className="text-slate-400 font-mono text-[11px] leading-tight">
+                          {formatTimeClean(item.targetTob)}
+                        </div>
                         {item.hasMultipleChecks && (
                           <span className="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-950/80 text-amber-300 border border-amber-500/30">
                             ⚠ Checked by {item.repeatCheckCount} users
                           </span>
                         )}
-                        <span className="text-[9px] text-slate-500 block">
-                          {isNewPerson ? "Non-Registered" : "KeralamMatch Profile"}
-                        </span>
                       </td>
 
-                      {/* DOB */}
-                      <td className="p-3.5 whitespace-nowrap font-medium">
-                        {item.targetDob || "—"}
-                      </td>
-
-                      {/* TOB */}
-                      <td className="p-3.5 whitespace-nowrap text-slate-400">
-                        {item.targetTob || "—"}
-                      </td>
-
-                      {/* Place */}
-                      <td className="p-3.5 max-w-[140px] truncate text-slate-300">
-                        {item.targetPlace || "—"}
-                      </td>
-
-                      {/* Mobile Number (Requirement 7: — if not provided) */}
-                      <td className="p-3.5 whitespace-nowrap font-mono text-slate-200">
+                      {/* Mobile Number */}
+                      <td className="p-3.5 whitespace-nowrap font-mono text-slate-200 align-middle">
                         {item.targetMobile ? (
                           <span className="text-emerald-400 font-bold">
                             {item.targetMobile}
                           </span>
                         ) : (
-                          <span className="text-slate-600">—</span>
+                          <span className="text-slate-500 font-sans">—</span>
                         )}
                       </td>
 
-                      {/* Marketing Consent (Requirement 15, 16) */}
-                      <td className="p-3.5 whitespace-nowrap">
+                      {/* Marketing Consent */}
+                      <td className="p-3.5 whitespace-nowrap align-middle">
                         {!item.targetMobile ? (
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-800 text-slate-500">
+                          <span className="font-extrabold text-[11px] text-slate-300 uppercase tracking-wide">
                             NOT PROVIDED
                           </span>
                         ) : item.marketingConsent ? (
@@ -454,26 +495,24 @@ function AdminHoroscopeMatchesContent() {
                       </td>
 
                       {/* Compatibility Score */}
-                      <td className="p-3.5 whitespace-nowrap">
-                        <span className="font-extrabold text-amber-400">
-                          {item.score}/10
-                        </span>
-                        <span className="text-[10px] text-slate-400 block">
-                          {item.verdictMalayalam || item.verdict}
-                        </span>
+                      <td className="p-3.5 whitespace-nowrap align-middle">
+                        <div className="flex items-baseline gap-1">
+                          <span className="font-extrabold text-white text-sm">
+                            {item.score}/10
+                          </span>
+                          <span className="text-amber-400 font-semibold text-xs">
+                            {item.verdictMalayalam || item.verdict}
+                          </span>
+                        </div>
                       </td>
 
                       {/* Checked Date */}
-                      <td className="p-3.5 whitespace-nowrap text-slate-400 text-[11px]">
-                        {new Date(item.createdAt).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                      <td className="p-3.5 whitespace-nowrap text-slate-300 text-xs font-medium align-middle">
+                        {formatDateChecked(item.createdAt)}
                       </td>
 
                       {/* Action */}
-                      <td className="p-3.5 text-right whitespace-nowrap">
+                      <td className="p-3.5 text-right whitespace-nowrap align-middle">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
