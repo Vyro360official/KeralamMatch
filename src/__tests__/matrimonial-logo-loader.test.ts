@@ -1,6 +1,6 @@
 /**
- * KERALAMMATCH � MATRIMONIAL LOGO LOADER & BRAND ASSETS TEST SUITE
- * Rigorous automated tests for the centralized 60 FPS SVG + CSS matrimonial logo loader,
+ * KERALAMMATCH — MATRIMONIAL LOGO LOADER & BRAND ASSETS TEST SUITE
+ * Rigorous automated tests for the centralized 60 FPS matrimonial logo loader,
  * brand logo asset integration, accessibility, and global loading provider architecture.
  */
 
@@ -11,21 +11,29 @@ import path from "node:path";
 
 const PROJECT_ROOT = path.resolve(__dirname, "../..");
 
-describe("1. Brand Assets & Logo System", () => {
+describe("1. Brand Assets and Logo System", () => {
   it("should have official brand emblem and logotype assets in public/brand/", () => {
     const emblemPng = path.join(PROJECT_ROOT, "public/brand/emblem.png");
     const logotypePng = path.join(PROJECT_ROOT, "public/brand/logotype.png");
-    const emblemJpg = path.join(PROJECT_ROOT, "public/brand/emblem.jpg");
     const kmLogoPng = path.join(PROJECT_ROOT, "public/KM LOGO.png");
 
     assert.ok(fs.existsSync(emblemPng), "public/brand/emblem.png must exist");
     assert.ok(fs.existsSync(logotypePng), "public/brand/logotype.png must exist");
-    assert.ok(fs.existsSync(emblemJpg), "public/brand/emblem.jpg must exist");
     assert.ok(fs.existsSync(kmLogoPng), "public/KM LOGO.png must exist");
 
     assert.ok(fs.statSync(emblemPng).size > 1000, "emblem.png must be non-empty");
     assert.ok(fs.statSync(logotypePng).size > 1000, "logotype.png must be non-empty");
     assert.ok(fs.statSync(kmLogoPng).size > 1000, "KM LOGO.png must be non-empty");
+  });
+
+  it("should have Video Project 2 animation video assets in public/brand/loader/", () => {
+    const mp4Video = path.join(PROJECT_ROOT, "public/brand/loader/video-project-2.mp4");
+    const webmVideo = path.join(PROJECT_ROOT, "public/brand/loader/video-project-2.webm");
+
+    assert.ok(fs.existsSync(mp4Video), "video-project-2.mp4 must exist");
+    assert.ok(fs.existsSync(webmVideo), "video-project-2.webm must exist");
+    assert.ok(fs.statSync(mp4Video).size > 10000, "video-project-2.mp4 must be non-empty");
+    assert.ok(fs.statSync(webmVideo).size > 10000, "video-project-2.webm must be non-empty");
   });
 
   it("should render official brand assets in Logo component", () => {
@@ -56,34 +64,18 @@ describe("2. Centralized Matrimonial Logo Loader Component", () => {
     );
   });
 
-  it("should contain pure SVG vector paths for Groom, Bride, Heart, Sparks, and Wedding Rings", () => {
+  it("should implement the exact 4-step sequence: Blue -> Pink -> Rings -> Bright", () => {
     const content = fs.readFileSync(loaderFile, "utf-8");
 
-    // Vector parts
-    assert.ok(content.includes("km-groom-group"), "Must have groom group");
-    assert.ok(content.includes("km-bride-group"), "Must have bride group");
-    assert.ok(content.includes("km-sparks-group"), "Must have celebration sparks");
-    assert.ok(content.includes("km-ring-blue-group"), "Must have blue ring");
-    assert.ok(content.includes("km-ring-pink-group"), "Must have pink ring");
-    assert.ok(content.includes("km-interlock-group"), "Must have interlocked rings");
+    assert.ok(content.includes("km-flow-blue"), "Must have first blue layer");
+    assert.ok(content.includes("km-flow-pink"), "Must have second pink layer");
+    assert.ok(content.includes("km-flow-rings"), "Must have third rings layer");
+    assert.ok(content.includes("km-flow-bright"), "Must have then bright layer");
 
-    // Brand Gradients
-    assert.ok(content.includes("kmGroomGrad"), "Must define groom gradient");
-    assert.ok(content.includes("kmBrideGrad"), "Must define bride gradient");
-    assert.ok(content.includes("kmBlueRingGrad"), "Must define gold gradient");
-  });
-
-  it("should implement the complete 2.8s 60 FPS CSS animation sequence", () => {
-    const content = fs.readFileSync(loaderFile, "utf-8");
-
-    assert.ok(content.includes("@keyframes kmGroomAnim"), "Must define kmGroomAnim keyframe");
-    assert.ok(content.includes("@keyframes kmBrideAnim"), "Must define kmBrideAnim keyframe");
-    assert.ok(content.includes("@keyframes kmSparksBurst"), "Must define kmSparksBurst keyframe");
-    assert.ok(content.includes("@keyframes kmBlueRingMove"), "Must define kmBlueRingMove keyframe");
-    assert.ok(content.includes("@keyframes kmPinkRingMove"), "Must define kmPinkRingMove keyframe");
-    assert.ok(content.includes("@keyframes kmInterlockAppear"), "Must define kmInterlockAppear keyframe");
-    assert.ok(content.includes("@keyframes kmOverallPulse"), "Must define kmOverallPulse keyframe");
-    assert.ok(content.includes("2.8s"), "Animation duration must be 2.8s");
+    assert.ok(content.includes("@keyframes kmFirstBlue"), "Must define kmFirstBlue keyframe");
+    assert.ok(content.includes("@keyframes kmSecondPink"), "Must define kmSecondPink keyframe");
+    assert.ok(content.includes("@keyframes kmThirdRings"), "Must define kmThirdRings keyframe");
+    assert.ok(content.includes("@keyframes kmThenBrightShine"), "Must define kmThenBrightShine keyframe");
   });
 
   it("should honor prefers-reduced-motion for accessibility", () => {
@@ -99,13 +91,21 @@ describe("2. Centralized Matrimonial Logo Loader Component", () => {
     assert.ok(content.includes("fullscreen"), "Must support fullscreen prop");
     assert.ok(content.includes("inline"), "Must support inline prop");
     assert.ok(content.includes("overlay"), "Must support overlay prop");
-    assert.ok(content.includes("size = \"md\""), "Must have default size md");
+    assert.ok(content.includes('size = "md"'), "Must have default size md");
     assert.ok(content.includes("text"), "Must support text prop");
     assert.ok(content.includes("subtext"), "Must support subtext prop");
   });
+
+  it("should integrate Video Project 2 video animation with seamless fallback", () => {
+    const content = fs.readFileSync(loaderFile, "utf-8");
+    assert.ok(content.includes("video-project-2.webm"), "Must reference video-project-2.webm");
+    assert.ok(content.includes("video-project-2.mp4"), "Must reference video-project-2.mp4");
+    assert.ok(content.includes("km-flow-video"), "Must define km-flow-video class");
+    assert.ok(content.includes('variant = "video"'), "Must default to video variant");
+  });
 });
 
-describe("3. Global Loading Architecture & Integration", () => {
+describe("3. Global Loading Architecture and Integration", () => {
   it("should provide LoadingProvider and useLoading hook", () => {
     const providerFile = path.join(PROJECT_ROOT, "src/components/providers/loading-provider.tsx");
     assert.ok(fs.existsSync(providerFile), "loading-provider.tsx must exist");
@@ -156,7 +156,7 @@ describe("3. Global Loading Architecture & Integration", () => {
     );
   });
 
-  it("should integrate MatrimonialLogoLoader into Horoscope Match modal & single report modal", () => {
+  it("should integrate MatrimonialLogoLoader into Horoscope Match modal and single report modal", () => {
     const matchModal = path.join(PROJECT_ROOT, "src/components/astrology/horoscope-match-modal.tsx");
     const singleModal = path.join(PROJECT_ROOT, "src/components/astrology/horoscope-single-modal.tsx");
 
