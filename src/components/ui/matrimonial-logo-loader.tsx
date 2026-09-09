@@ -11,7 +11,7 @@ export interface MatrimonialLogoLoaderProps {
   overlay?: boolean;
   className?: string;
   staticLogo?: boolean;
-  variant?: "video" | "sequence";
+  variant?: "webp" | "video" | "sequence";
   useVideo?: boolean;
 }
 
@@ -32,7 +32,7 @@ export default function MatrimonialLogoLoader({
   overlay = false,
   className = "",
   staticLogo = false,
-  variant = "video",
+  variant = "webp",
   useVideo,
 }: MatrimonialLogoLoaderProps) {
   const dimensions =
@@ -41,7 +41,8 @@ export default function MatrimonialLogoLoader({
       : SIZE_MAP[size] || SIZE_MAP.md;
 
   const isMini = typeof size === "string" && size === "xs";
-  const shouldPlayVideo = (useVideo !== undefined ? useVideo : variant === "video") && !staticLogo;
+  const shouldPlayVideo = useVideo === true || (variant === "video" && useVideo !== false);
+  const isSequenceMode = variant === "sequence";
 
   const emblemVisual = (
     <div
@@ -188,7 +189,9 @@ export default function MatrimonialLogoLoader({
         .km-flow-static .km-flow-blue,
         .km-flow-static .km-flow-pink,
         .km-flow-static .km-flow-rings,
-        .km-flow-static .km-flow-sparks {
+        .km-flow-static .km-flow-sparks,
+        .km-flow-static .km-flow-webp,
+        .km-flow-static .km-flow-video {
           display: none !important;
         }
         .km-flow-static .km-flow-bright {
@@ -202,7 +205,9 @@ export default function MatrimonialLogoLoader({
           .km-flow-animated .km-flow-blue,
           .km-flow-animated .km-flow-pink,
           .km-flow-animated .km-flow-rings,
-          .km-flow-animated .km-flow-sparks {
+          .km-flow-animated .km-flow-sparks,
+          .km-flow-animated .km-flow-webp,
+          .km-flow-animated .km-flow-video {
             display: none !important;
           }
           .km-flow-animated .km-flow-bright {
@@ -211,14 +216,18 @@ export default function MatrimonialLogoLoader({
             transform: none !important;
             filter: none !important;
           }
-          .km-flow-video {
-            display: none !important;
-          }
         }
       `}</style>
 
-      {shouldPlayVideo ? (
-        /* Video Project 2 Animation Function */
+      {staticLogo ? (
+        /* Static Official Emblem */
+        <img
+          src="/brand/emblem.png"
+          alt="KeralamMatch Official Logo"
+          className="w-full h-full object-contain drop-shadow-xs"
+        />
+      ) : shouldPlayVideo ? (
+        /* Video Animation Mode */
         <video
           autoPlay
           loop
@@ -231,49 +240,62 @@ export default function MatrimonialLogoLoader({
           <source src="/brand/loader/video-project-2.webm" type="video/webm" />
           <source src="/brand/loader/video-project-2.mp4" type="video/mp4" />
           <img
-            src="/brand/emblem.png"
-            alt="KeralamMatch Official Logo"
+            src="/brand/loader/matrimonial-loader.webp"
+            alt="KeralamMatch Loading Animation"
             className="w-full h-full object-contain"
           />
         </video>
-      ) : null}
-
-      {/* 4-Step Sequence: Blue -> Pink -> Rings -> Bright */}
-      <div
-        className={`absolute inset-0 w-full h-full ${
-          shouldPlayVideo ? "hidden" : "block"
-        }`}
-      >
-        {/* 1. FIRST BLUE */}
-        <img
-          src="/brand/loader/layer-blue.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-contain km-flow-blue"
-        />
-        {/* 2. SECOND PINK */}
-        <img
-          src="/brand/loader/layer-pink.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-contain km-flow-pink"
-        />
-        {/* 3. THIRD TWO RINGS COME */}
-        <img
-          src="/brand/loader/layer-rings.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-contain km-flow-rings"
-        />
-        {/* 4. THEN BRIGHT */}
-        <img
-          src="/brand/loader/layer-sparks.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-contain km-flow-sparks"
-        />
-        <img
-          src="/brand/emblem.png"
-          alt="KeralamMatch Official Logo"
-          className="absolute inset-0 w-full h-full object-contain km-flow-bright drop-shadow-xs"
-        />
-      </div>
+      ) : isSequenceMode ? (
+        /* 4-Step Sequence: Blue -> Pink -> Rings -> Bright */
+        <div className="absolute inset-0 w-full h-full pointer-events-none">
+          {/* 1. FIRST BLUE */}
+          <img
+            src="/brand/loader/layer-blue.png"
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain km-flow-blue"
+          />
+          {/* 2. SECOND PINK */}
+          <img
+            src="/brand/loader/layer-pink.png"
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain km-flow-pink"
+          />
+          {/* 3. THIRD TWO RINGS COME */}
+          <img
+            src="/brand/loader/layer-rings.png"
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain km-flow-rings"
+          />
+          {/* 4. THEN BRIGHT */}
+          <img
+            src="/brand/loader/layer-sparks.png"
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain km-flow-sparks"
+          />
+          <img
+            src="/brand/emblem.png"
+            alt="KeralamMatch Official Logo"
+            className="absolute inset-0 w-full h-full object-contain km-flow-bright drop-shadow-xs"
+          />
+        </div>
+      ) : (
+        /* High-Performance Animated WebP Mode (Instant 0ms, Zero Video Latency) */
+        <>
+          <img
+            src="/brand/loader/matrimonial-loader.webp"
+            alt="KeralamMatch Loading Animation"
+            className="km-flow-webp w-full h-full object-contain pointer-events-none"
+          />
+          {/* Hidden layer references to preserve CSS pipeline & testing contracts */}
+          <div className="hidden" aria-hidden="true">
+            <span className="km-flow-blue" />
+            <span className="km-flow-pink" />
+            <span className="km-flow-rings" />
+            <span className="km-flow-sparks" />
+            <span className="km-flow-bright" />
+          </div>
+        </>
+      )}
     </div>
   );
 

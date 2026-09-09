@@ -30,6 +30,9 @@ describe("1. Brand Assets and Logo System", () => {
     const mp4Video = path.join(PROJECT_ROOT, "public/brand/loader/video-project-2.mp4");
     const webmVideo = path.join(PROJECT_ROOT, "public/brand/loader/video-project-2.webm");
 
+    const webpAsset = path.join(PROJECT_ROOT, "public/brand/loader/matrimonial-loader.webp");
+    assert.ok(fs.existsSync(webpAsset), "matrimonial-loader.webp must exist");
+    assert.ok(fs.statSync(webpAsset).size > 10000, "matrimonial-loader.webp must be non-empty");
     assert.ok(fs.existsSync(mp4Video), "video-project-2.mp4 must exist");
     assert.ok(fs.existsSync(webmVideo), "video-project-2.webm must exist");
     assert.ok(fs.statSync(mp4Video).size > 10000, "video-project-2.mp4 must be non-empty");
@@ -100,9 +103,10 @@ describe("2. Centralized Matrimonial Logo Loader Component", () => {
     const content = fs.readFileSync(loaderFile, "utf-8");
     assert.ok(content.includes("video-project-2.webm"), "Must reference video-project-2.webm");
     assert.ok(content.includes("video-project-2.mp4"), "Must reference video-project-2.mp4");
+    assert.ok(content.includes("matrimonial-loader.webp"), "Must reference matrimonial-loader.webp");
+    assert.ok(content.includes('variant = "webp"'), "Must default to webp variant for instant performance");
     assert.ok(content.includes("km-flow-video"), "Must define km-flow-video class");
-    assert.ok(content.includes('variant = "video"'), "Must default to video variant");
-  });
+      });
 });
 
 describe("3. Global Loading Architecture and Integration", () => {
