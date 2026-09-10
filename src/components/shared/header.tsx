@@ -183,9 +183,11 @@ export default function Header() {
                   title="Messages"
                 >
                   <MessageSquare className="h-4.5 w-4.5" />
-                  <span className="absolute top-1.5 right-1.5 h-4 min-w-[16px] px-1 bg-[#FF1475] text-white rounded-full flex items-center justify-center font-bold text-[8px]">
-                    {stats?.unreadMessagesCount ?? 1}
-                  </span>
+                  {(stats?.unreadMessagesCount ?? 0) > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 bg-[#FF1475] text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-xs">
+                      {stats!.unreadMessagesCount}
+                    </span>
+                  )}
                 </button>
 
                 {activeDropdown === "messages" && (
@@ -194,9 +196,11 @@ export default function Header() {
                       <span className="text-xs font-extrabold uppercase tracking-wider text-[#636366] dark:text-slate-400">
                         Recent Chats
                       </span>
-                      <span className="text-[9px] font-bold text-[#FF1475] bg-[#FCE8EC] dark:bg-pink-950/40 px-2 py-0.5 rounded-full">
-                        {stats?.unreadMessagesCount ?? 1} New
-                      </span>
+                      {(stats?.unreadMessagesCount ?? 0) > 0 && (
+                        <span className="text-[9px] font-bold text-[#FF1475] bg-[#FCE8EC] dark:bg-pink-950/40 px-2 py-0.5 rounded-full">
+                          {stats!.unreadMessagesCount} New
+                        </span>
+                      )}
                     </div>
                     <div className="space-y-1 max-h-64 overflow-y-auto">
                       <Link
@@ -257,9 +261,11 @@ export default function Header() {
                   title="Notifications"
                 >
                   <Bell className="h-4.5 w-4.5" />
-                  <span className="absolute top-1.5 right-1.5 h-4 min-w-[16px] px-1 bg-[#FF1475] text-white rounded-full flex items-center justify-center font-bold text-[8px]">
-                    {stats?.unreadNotificationsCount ?? 12}
-                  </span>
+                  {(stats?.unreadNotificationsCount ?? 0) > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 bg-[#FF1475] text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-xs">
+                      {stats!.unreadNotificationsCount}
+                    </span>
+                  )}
                 </button>
 
                 {activeDropdown === "notifications" && (

@@ -10,6 +10,7 @@ import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import HoroscopeMatchButton from "@/components/astrology/horoscope-match-button";
+import CandidateImage from "@/components/dashboard/candidate-image";
 import { prisma } from "@/lib/db";
 import {
   Eye,
@@ -247,7 +248,7 @@ export default async function DashboardPage() {
     <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] text-[#1C1C1E] dark:text-slate-100 transition-colors">
       <Header />
 
-      <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-6 mb-16 lg:mb-8">
+      <div className="flex-1 mx-auto max-w-[1440px] w-full px-4 sm:px-6 lg:px-8 py-6 mb-16 lg:mb-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Left Sidebar Navigation */}
           <DashboardSidebar userProfile={profile} />
@@ -369,44 +370,44 @@ export default async function DashboardPage() {
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 py-2 text-[10px] font-semibold">
-                  <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">Mobile Verified</span>
+                <div className="grid grid-cols-2 gap-x-2.5 gap-y-2 py-2 text-[11px] font-semibold">
+                  <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="whitespace-nowrap">Mobile Verified</span>
                   </div>
-                  <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">Email Verified</span>
+                  <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="whitespace-nowrap">Email Verified</span>
                   </div>
                   <div
-                    className={`flex items-center gap-1 ${
+                    className={`flex items-center gap-1.5 ${
                       profile.verificationStatus === "VERIFIED"
                         ? "text-emerald-600 dark:text-emerald-400"
                         : "text-amber-600 dark:text-amber-400"
                     }`}
                   >
                     {profile.verificationStatus === "VERIFIED" ? (
-                      <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
+                      <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
                     ) : (
-                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                     )}
-                    <span className="truncate">
+                    <span className="whitespace-nowrap">
                       ID {profile.verificationStatus === "VERIFIED" ? "Verified" : "Pending"}
                     </span>
                   </div>
                   <div
-                    className={`flex items-center gap-1 ${
+                    className={`flex items-center gap-1.5 ${
                       profileChecks.photos
                         ? "text-emerald-600 dark:text-emerald-400"
                         : "text-amber-600 dark:text-amber-400"
                     }`}
                   >
                     {profileChecks.photos ? (
-                      <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
+                      <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
                     ) : (
-                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                     )}
-                    <span className="truncate">
+                    <span className="whitespace-nowrap">
                       Photo {profileChecks.photos ? "Verified" : "Pending"}
                     </span>
                   </div>
@@ -502,33 +503,14 @@ export default async function DashboardPage() {
                           className="group bg-white dark:bg-[#0D1E3D] rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
                         >
                           {/* Portrait Image Header */}
-                          <div className="aspect-[4/5] relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                            <img
-                              src={photo}
-                              alt={`${item.firstName || "Profile"}`}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              loading="lazy"
-                            />
-
-                            {/* Badges Over Image */}
-                            <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-bold shadow-xs">
-                                New
-                              </span>
-                              {item.verificationStatus === "VERIFIED" && (
-                                <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-bold shadow-xs">
-                                  Verified
-                                </span>
-                              )}
-                            </div>
-
-                            <button
-                              className="absolute top-3 right-3 h-7 w-7 rounded-full bg-white/90 dark:bg-[#0A1F44]/90 backdrop-blur-xs flex items-center justify-center text-slate-400 hover:text-[#FF1475] shadow-xs transition-colors cursor-pointer"
-                              title="Add to Shortlist"
-                            >
-                              <Heart className="h-4 w-4" />
-                            </button>
-                          </div>
+                          <CandidateImage
+                            src={photo}
+                            alt={`${item.firstName || "Profile"}`}
+                            initials={item.firstName ? item.firstName.charAt(0).toUpperCase() : "K"}
+                            gender={item.gender}
+                            isVerified={item.verificationStatus === "VERIFIED"}
+                            isNew={true}
+                          />
 
                           {/* Candidate Details */}
                           <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
@@ -550,17 +532,18 @@ export default async function DashboardPage() {
 
                             {/* Action Buttons */}
                             <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                              <div className="grid grid-cols-2 gap-2">
+                              <div className="flex items-center gap-2">
                                 <button
-                                  className="py-2 px-3 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-[11px] font-bold transition-colors flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                                  type="button"
+                                  className="flex-1 py-2 px-2.5 rounded-xl bg-[#FF1475] hover:bg-[#E60067] active:scale-[0.98] text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs whitespace-nowrap cursor-pointer"
                                   title="Send Interest"
                                 >
-                                  <Heart className="h-3 w-3 fill-current" />
+                                  <Heart className="h-3.5 w-3.5 fill-current" />
                                   <span>Send Interest</span>
                                 </button>
                                 <Link
                                   href={`/profile/${item.id}`}
-                                  className="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-white/5 text-[#0A1F44] dark:text-white text-[11px] font-bold text-center transition-colors truncate"
+                                  className="flex-1 py-2 px-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-[0.98] text-[#0A1F44] dark:text-white text-xs font-bold text-center transition-all whitespace-nowrap flex items-center justify-center"
                                 >
                                   View Profile
                                 </Link>
@@ -591,8 +574,8 @@ export default async function DashboardPage() {
               )}
             </div>
 
-            {/* 4. COMPLETE PROFILE + QUICK ACTIONS + MEMBERSHIP & WALLET + RECENT ACTIVITY (4 Equal Columns) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4.5 items-stretch">
+            {/* 4. COMPLETE PROFILE + QUICK ACTIONS + MEMBERSHIP & WALLET + RECENT ACTIVITY (4 Balanced Cards) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 items-stretch">
               {/* Column 1: Complete Your Profile Checklist */}
               <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
                 <div>
@@ -610,11 +593,11 @@ export default async function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* 2-Column Real Checklist */}
-                  <div className="grid grid-cols-2 gap-2.5 py-4 text-xs font-semibold">
+                  {/* 2-Column Real Checklist without truncation */}
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-3 py-4 text-xs font-semibold">
                     <div
                       className={`flex items-center gap-1.5 ${
-                        profileChecks.basicInfo ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                        profileChecks.basicInfo ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
                       }`}
                     >
                       {profileChecks.basicInfo ? (
@@ -622,12 +605,12 @@ export default async function DashboardPage() {
                       ) : (
                         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                       )}
-                      <span className="truncate">Basic Info</span>
+                      <span className="whitespace-nowrap">Basic Info</span>
                     </div>
 
                     <div
                       className={`flex items-center gap-1.5 ${
-                        profileChecks.photos ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                        profileChecks.photos ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
                       }`}
                     >
                       {profileChecks.photos ? (
@@ -635,12 +618,12 @@ export default async function DashboardPage() {
                       ) : (
                         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                       )}
-                      <span className="truncate">Photos ({profileChecks.photoCount}/4)</span>
+                      <span className="whitespace-nowrap">Photos ({profileChecks.photoCount}/4)</span>
                     </div>
 
                     <div
                       className={`flex items-center gap-1.5 ${
-                        profileChecks.aboutMe ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                        profileChecks.aboutMe ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
                       }`}
                     >
                       {profileChecks.aboutMe ? (
@@ -648,12 +631,12 @@ export default async function DashboardPage() {
                       ) : (
                         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                       )}
-                      <span className="truncate">About Me</span>
+                      <span className="whitespace-nowrap">About Me</span>
                     </div>
 
                     <div
                       className={`flex items-center gap-1.5 ${
-                        profileChecks.lifestyle ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                        profileChecks.lifestyle ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
                       }`}
                     >
                       {profileChecks.lifestyle ? (
@@ -661,12 +644,12 @@ export default async function DashboardPage() {
                       ) : (
                         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                       )}
-                      <span className="truncate">Lifestyle</span>
+                      <span className="whitespace-nowrap">Lifestyle</span>
                     </div>
 
                     <div
                       className={`flex items-center gap-1.5 ${
-                        profileChecks.familyDetails ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                        profileChecks.familyDetails ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
                       }`}
                     >
                       {profileChecks.familyDetails ? (
@@ -674,12 +657,12 @@ export default async function DashboardPage() {
                       ) : (
                         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                       )}
-                      <span className="truncate">Family Details</span>
+                      <span className="whitespace-nowrap">Family Details</span>
                     </div>
 
                     <div
                       className={`flex items-center gap-1.5 ${
-                        profileChecks.horoscope ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                        profileChecks.horoscope ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
                       }`}
                     >
                       {profileChecks.horoscope ? (
@@ -687,7 +670,7 @@ export default async function DashboardPage() {
                       ) : (
                         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                       )}
-                      <span className="truncate">Horoscope</span>
+                      <span className="whitespace-nowrap">Horoscope</span>
                     </div>
                   </div>
                 </div>
@@ -700,7 +683,7 @@ export default async function DashboardPage() {
                 </Link>
               </div>
 
-              {/* Column 2: Quick Actions 6-Tile Grid */}
+              {/* Column 2: Quick Actions 2x3 Grid with Full Readable Labels */}
               <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -712,14 +695,14 @@ export default async function DashboardPage() {
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 py-3 text-center">
+                  <div className="grid grid-cols-2 gap-2.5 py-3">
                     {/* Find Matches */}
                     <Link
                       href="/find"
-                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-pink-50 dark:hover:bg-pink-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                      className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-pink-50 dark:hover:bg-pink-950/20 border border-slate-100 dark:border-slate-800/80 flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5 group shadow-xs"
                     >
-                      <Search className="h-4 w-4 text-slate-600 dark:text-slate-300 group-hover:text-[#FF1475]" />
-                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      <Search className="h-5 w-5 text-slate-600 dark:text-slate-300 group-hover:text-[#FF1475] transition-colors" />
+                      <span className="text-[11px] font-bold text-[#0A1F44] dark:text-white text-center leading-tight">
                         Find Matches
                       </span>
                     </Link>
@@ -727,15 +710,15 @@ export default async function DashboardPage() {
                     {/* Messages */}
                     <Link
                       href="/chat"
-                      className="relative p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                      className="relative p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-950/20 border border-slate-100 dark:border-slate-800/80 flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5 group shadow-xs"
                     >
                       {unreadMessagesCount > 0 && (
-                        <span className="absolute top-1 right-1 h-3.5 min-w-[14px] px-1 rounded-full bg-[#FF1475] text-white text-[8px] font-extrabold flex items-center justify-center">
+                        <span className="absolute top-1.5 right-1.5 h-4 min-w-[16px] px-1 rounded-full bg-[#FF1475] text-white text-[9px] font-extrabold flex items-center justify-center shadow-xs">
                           {unreadMessagesCount}
                         </span>
                       )}
-                      <MessageSquare className="h-4 w-4 text-blue-600 group-hover:scale-110 transition-transform" />
-                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      <MessageSquare className="h-5 w-5 text-blue-600 group-hover:scale-110 transition-transform" />
+                      <span className="text-[11px] font-bold text-[#0A1F44] dark:text-white text-center leading-tight">
                         Messages
                       </span>
                     </Link>
@@ -743,15 +726,15 @@ export default async function DashboardPage() {
                     {/* Requests */}
                     <Link
                       href="/requests"
-                      className="relative p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                      className="relative p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 border border-slate-100 dark:border-slate-800/80 flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5 group shadow-xs"
                     >
                       {pendingRequestsCount > 0 && (
-                        <span className="absolute top-1 right-1 h-3.5 min-w-[14px] px-1 rounded-full bg-[#FF1475] text-white text-[8px] font-extrabold flex items-center justify-center">
+                        <span className="absolute top-1.5 right-1.5 h-4 min-w-[16px] px-1 rounded-full bg-[#FF1475] text-white text-[9px] font-extrabold flex items-center justify-center shadow-xs">
                           {pendingRequestsCount}
                         </span>
                       )}
-                      <UserCheck className="h-4 w-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      <UserCheck className="h-5 w-5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                      <span className="text-[11px] font-bold text-[#0A1F44] dark:text-white text-center leading-tight">
                         Requests
                       </span>
                     </Link>
@@ -759,23 +742,23 @@ export default async function DashboardPage() {
                     {/* Horoscope Match */}
                     <Link
                       href="/horoscope-match"
-                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-purple-50 dark:hover:bg-purple-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                      className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-purple-50 dark:hover:bg-purple-950/20 border border-slate-100 dark:border-slate-800/80 flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5 group shadow-xs"
                     >
-                      <span className="text-purple-600 font-extrabold text-sm leading-none group-hover:scale-110 transition-transform">
+                      <span className="text-purple-600 font-extrabold text-base leading-none group-hover:scale-110 transition-transform">
                         ॐ
                       </span>
-                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
-                        Horoscope
+                      <span className="text-[11px] font-bold text-[#0A1F44] dark:text-white text-center leading-tight">
+                        Horoscope Match
                       </span>
                     </Link>
 
                     {/* Boost Profile */}
                     <Link
                       href="/pricing"
-                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                      className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/20 border border-slate-100 dark:border-slate-800/80 flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5 group shadow-xs"
                     >
-                      <Rocket className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      <Rocket className="h-5 w-5 text-amber-500 group-hover:scale-110 transition-transform" />
+                      <span className="text-[11px] font-bold text-[#0A1F44] dark:text-white text-center leading-tight">
                         Boost Profile
                       </span>
                     </Link>
@@ -783,10 +766,10 @@ export default async function DashboardPage() {
                     {/* Membership */}
                     <Link
                       href="/pricing"
-                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                      className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/20 border border-slate-100 dark:border-slate-800/80 flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5 group shadow-xs"
                     >
-                      <Crown className="h-4 w-4 text-[#D4A853] group-hover:scale-110 transition-transform" />
-                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      <Crown className="h-5 w-5 text-[#D4A853] group-hover:scale-110 transition-transform" />
+                      <span className="text-[11px] font-bold text-[#0A1F44] dark:text-white text-center leading-tight">
                         Membership
                       </span>
                     </Link>
@@ -794,45 +777,48 @@ export default async function DashboardPage() {
                 </div>
               </div>
 
-              {/* Column 3: Your Membership & Wallet Balance (Combined Card) */}
-              <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-3">
+              {/* Column 3: Your Membership & Wallet Balance (Clean Divider Separation) */}
+              <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
                 {/* Membership Section */}
-                <div className="space-y-2 pb-3.5 border-b border-slate-100 dark:border-slate-800">
-                  <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-1.5">
                       <Crown className="h-4 w-4 text-[#D4A853]" />
-                      <span className="text-xs font-bold text-[#0A1F44] dark:text-white">Your Membership</span>
+                      <span className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">Membership</span>
                     </div>
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                       {planName}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                    Upgrade to access direct contacts and more features.
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-2.5">
+                    Upgrade to access direct contacts and premium features.
                   </p>
                   <Link
                     href="/pricing"
-                    className="block w-full py-2 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-[11px] font-bold text-center transition-colors shadow-xs"
+                    className="mt-3 block w-full py-2 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-xs font-bold text-center transition-colors shadow-xs"
                   >
-                    Upgrade Now →
+                    Upgrade Plan →
                   </Link>
                 </div>
 
+                {/* Divider */}
+                <div className="my-3 border-t border-slate-100 dark:border-slate-800" />
+
                 {/* Wallet Balance Section */}
-                <div className="space-y-1.5 pt-1">
+                <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#0A1F44] dark:text-white">Wallet Balance</span>
+                    <span className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">Wallet Balance</span>
                     <Wallet className="h-4 w-4 text-slate-400" />
                   </div>
-                  <div className="text-xl font-extrabold text-[#0A1F44] dark:text-white">
+                  <div className="text-2xl font-extrabold text-[#0A1F44] dark:text-white mt-1">
                     ₹ {walletBalance.toLocaleString("en-IN")}
                   </div>
-                  <p className="text-[10px] text-slate-400 leading-snug">
-                    Purchase wallet credits to reveal contact details.
+                  <p className="text-[10px] text-slate-400 leading-snug mt-1">
+                    Purchase wallet credits to reveal verified contact details.
                   </p>
                   <Link
                     href="/pricing"
-                    className="inline-block text-[11px] font-bold text-[#FF1475] hover:underline"
+                    className="mt-2 inline-block text-xs font-bold text-[#FF1475] hover:underline"
                   >
                     Top Up Wallet →
                   </Link>
@@ -861,10 +847,14 @@ export default async function DashboardPage() {
                   </div>
 
                   {notifications.length === 0 ? (
-                    <div className="py-6 text-center text-xs text-slate-400 dark:text-slate-500">
-                      <FileText className="h-7 w-7 text-slate-300 dark:text-slate-600 mx-auto mb-2 opacity-60" />
-                      <p className="font-semibold text-slate-600 dark:text-slate-300">No recent activities recorded.</p>
-                      <p className="text-[11px] mt-0.5 text-slate-400">Your latest activity will appear here.</p>
+                    <div className="py-7 text-center flex flex-col items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-2.5">
+                        <Clock className="h-5 w-5" />
+                      </div>
+                      <p className="text-xs font-bold text-slate-700 dark:text-slate-200">No recent activity yet.</p>
+                      <p className="text-[11px] mt-1 text-slate-400 dark:text-slate-500 max-w-[200px]">
+                        Your latest notifications and interactions will appear here.
+                      </p>
                     </div>
                   ) : (
                     <div className="divide-y divide-slate-100 dark:divide-slate-800">

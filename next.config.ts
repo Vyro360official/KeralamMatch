@@ -5,7 +5,7 @@ const ContentSecurityPolicy = `
   script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://checkout.razorpay.com https://cdn.razorpay.com https://www.clarity.ms https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://apis.google.com/ https://vercel.live https://*.vercel.live;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com/ https://vercel.live https://*.vercel.live;
   font-src 'self' https://fonts.gstatic.com https://www.gstatic.com/ https://vercel.live https://*.vercel.live;
-  img-src 'self' blob: data: https://res.cloudinary.com https://www.google-analytics.com https://lh3.googleusercontent.com https://www.gstatic.com/ https://www.google.com/ https://vercel.live https://*.vercel.live https://*.vercel.app;
+  img-src 'self' blob: data: https://res.cloudinary.com https://images.unsplash.com https://www.google-analytics.com https://lh3.googleusercontent.com https://www.gstatic.com/ https://www.google.com/ https://vercel.live https://*.vercel.live https://*.vercel.app;
   connect-src 'self' https://www.google-analytics.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://checkout.razorpay.com https://www.google.com/recaptcha/ https://apis.google.com/ https://vercel.live https://*.vercel.live https://keralammatch.firebaseapp.com wss://*.pusher.com https://*.pusher.com;
   frame-src https://checkout.razorpay.com https://api.razorpay.com https://www.google.com/recaptcha/ https://recaptcha.google.com/ https://vercel.live https://*.vercel.live https://keralammatch.firebaseapp.com/;
   manifest-src 'self' blob: https://vercel.com https://*.vercel.com https://*.vercel.app;
@@ -33,6 +33,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
     ],
     minimumCacheTTL: 86400,
   },
