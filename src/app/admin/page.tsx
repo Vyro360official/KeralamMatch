@@ -179,6 +179,78 @@ function SvgDonutChart({
 }
 
 /**
+ * Dynamic, sensible Y-axis scale calculation for charts.
+ * Prevents flatline rendering when data is small (e.g. 1-10 items).
+ */
+function calculateSensibleYAxis(rawMax: number) {
+  const max = Math.max(rawMax, 1);
+  let yMax = 5;
+  if (max <= 5) yMax = 5;
+  else if (max <= 10) yMax = 10;
+  else if (max <= 20) yMax = 20;
+  else if (max <= 50) yMax = 50;
+  else if (max <= 100) yMax = 100;
+  else if (max <= 250) yMax = 250;
+  else if (max <= 500) yMax = 500;
+  else if (max <= 1000) yMax = 1000;
+  else if (max <= 2500) yMax = 2500;
+  else if (max <= 5000) yMax = 5000;
+  else yMax = Math.ceil(max / 1000) * 1000;
+
+  const yTicks = [
+    yMax,
+    Math.round(yMax * 0.75),
+    Math.round(yMax * 0.5),
+    Math.round(yMax * 0.25),
+    0,
+  ];
+
+  return { yMax, yTicks };
+}
+
+/**
+ * Honest, non-misleading KPI growth indicator badge.
+ * Shows 'New' or 'No previous data' when prior period is zero rather than fake +100%.
+ */
+function KpiGrowthBadge({ growth, isPositive }: { growth?: string; isPositive?: boolean }) {
+  if (!growth || growth === "No previous data" || growth === "No data") {
+    return (
+      <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
+        No previous data
+      </span>
+    );
+  }
+
+  if (growth === "New") {
+    return (
+      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+        New
+      </span>
+    );
+  }
+
+  if (growth === "All Time" || growth === "Active") {
+    return (
+      <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
+        {growth}
+      </span>
+    );
+  }
+
+  return isPositive ? (
+    <span className="text-emerald-600 dark:text-emerald-400 flex items-center text-[11px] font-semibold">
+      <TrendingUp className="h-3 w-3 mr-0.5" />
+      {growth}
+    </span>
+  ) : (
+    <span className="text-rose-600 dark:text-rose-400 flex items-center text-[11px] font-semibold">
+      <TrendingDown className="h-3 w-3 mr-0.5" />
+      {growth}
+    </span>
+  );
+}
+
+/**
  * Stacked Bar Chart Component for Users vs Unique Horoscope Users
  */
 function StackedBarChart({
@@ -191,17 +263,15 @@ function StackedBarChart({
     combinedTotal: number;
   }>;
 }) {
-  const chartHeight = 150;
-  const maxVal = Math.max(...months.map((m) => m.totalUsers + m.usedHoroscope), 10);
-  // Nice round max ceiling
-  const yMax = Math.ceil(maxVal / 5000) * 5000 || 20000;
-  const yTicks = [yMax, Math.round(yMax * 0.75), Math.round(yMax * 0.5), Math.round(yMax * 0.25), 0];
+  const chartHeight = 120;
+  const maxVal = Math.max(...months.map((m) => Math.max(m.totalUsers, m.usedHoroscope)), 1);
+  const { yMax, yTicks } = calculateSensibleYAxis(maxVal);
 
   return (
     <div className="w-full flex flex-col justify-end pt-2">
-      <div className="flex items-end h-[160px] gap-2 sm:gap-3 w-full pl-8 sm:pl-10 pr-2 relative">
+      <div className="flex items-end h-[135px] gap-2 sm:gap-3 w-full pl-7 sm:pl-8 pr-2 relative">
         {/* Y-axis gridlines & labels */}
-        <div className="absolute left-0 top-0 bottom-6 w-8 sm:w-9 flex flex-col justify-between text-[9px] font-semibold text-slate-400 select-none">
+        <div className="absolute left-0 top-0 bottom-6 w-6 sm:w-7 flex flex-col justify-between text-[9px] font-semibold text-slate-400 select-none">
           {yTicks.map((val) => (
             <span key={val} className="truncate text-right pr-1">
               {val === 0 ? "0" : formatCompactNumber(val)}
@@ -210,7 +280,7 @@ function StackedBarChart({
         </div>
 
         {/* Horizontal grid lines */}
-        <div className="absolute left-8 sm:left-10 right-2 top-0 bottom-6 flex flex-col justify-between pointer-events-none">
+        <div className="absolute left-7 sm:left-8 right-2 top-0 bottom-6 flex flex-col justify-between pointer-events-none">
           {yTicks.map((val) => (
             <div key={val} className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
           ))}
@@ -230,7 +300,7 @@ function StackedBarChart({
               </span>
 
               {/* Stacked Pillar */}
-              <div className="w-full max-w-[32px] sm:max-w-[40px] flex flex-col justify-end rounded-t-md overflow-hidden shadow-xs">
+              <div className="w-full max-w-[28px] sm:max-w-[34px] flex flex-col justify-end rounded-t-md overflow-hidden shadow-xs">
                 {/* Upper stack: Unique Horoscope Users (Pink #FF1475) */}
                 <div
                   style={{ height: `${Math.max(usedHoroHeight, m.usedHoroscope > 0 ? 3 : 0)}px` }}
@@ -280,9 +350,8 @@ function UserGrowthAreaChart({
     );
   }
 
-  const maxVal = Math.max(...data.map((d) => d.totalUsers), 10);
-  const yMax = Math.ceil(maxVal / 5000) * 5000 || 20000;
-  const yTicks = [yMax, Math.round(yMax * 0.75), Math.round(yMax * 0.5), Math.round(yMax * 0.25), 0];
+  const maxVal = Math.max(...data.map((d) => Math.max(d.totalUsers, d.verifiedUsers)), 1);
+  const { yMax, yTicks } = calculateSensibleYAxis(maxVal);
 
   const svgWidth = 650;
   const svgHeight = 170;
@@ -592,18 +661,8 @@ export default function AdminDashboard() {
             <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
               {kpis?.totalUsers.value.toLocaleString("en-IN") || "0"}
             </span>
-            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
-              {kpis?.totalUsers.isPositive ? (
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-0.5" />
-                  {kpis.totalUsers.growth}
-                </span>
-              ) : (
-                <span className="text-rose-600 dark:text-rose-400 flex items-center">
-                  <TrendingDown className="h-3 w-3 mr-0.5" />
-                  {kpis?.totalUsers.growth}
-                </span>
-              )}
+            <div className="flex items-center gap-1 mt-1">
+              <KpiGrowthBadge growth={kpis?.totalUsers.growth} isPositive={kpis?.totalUsers.isPositive} />
             </div>
           </div>
         </div>
@@ -620,18 +679,8 @@ export default function AdminDashboard() {
             <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
               {kpis?.verifiedUsers.value.toLocaleString("en-IN") || "0"}
             </span>
-            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
-              {kpis?.verifiedUsers.isPositive ? (
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-0.5" />
-                  {kpis.verifiedUsers.growth}
-                </span>
-              ) : (
-                <span className="text-rose-600 dark:text-rose-400 flex items-center">
-                  <TrendingDown className="h-3 w-3 mr-0.5" />
-                  {kpis?.verifiedUsers.growth}
-                </span>
-              )}
+            <div className="flex items-center gap-1 mt-1">
+              <KpiGrowthBadge growth={kpis?.verifiedUsers.growth} isPositive={kpis?.verifiedUsers.isPositive} />
             </div>
           </div>
         </div>
@@ -648,18 +697,8 @@ export default function AdminDashboard() {
             <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
               {kpis?.activeUsers.value.toLocaleString("en-IN") || "0"}
             </span>
-            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
-              {kpis?.activeUsers.isPositive ? (
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-0.5" />
-                  {kpis.activeUsers.growth}
-                </span>
-              ) : (
-                <span className="text-rose-600 dark:text-rose-400 flex items-center">
-                  <TrendingDown className="h-3 w-3 mr-0.5" />
-                  {kpis?.activeUsers.growth}
-                </span>
-              )}
+            <div className="flex items-center gap-1 mt-1">
+              <KpiGrowthBadge growth={kpis?.activeUsers.growth} isPositive={kpis?.activeUsers.isPositive} />
             </div>
           </div>
         </div>
@@ -676,18 +715,8 @@ export default function AdminDashboard() {
             <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
               {kpis?.newSignups.value.toLocaleString("en-IN") || "0"}
             </span>
-            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
-              {kpis?.newSignups.isPositive ? (
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-0.5" />
-                  {kpis.newSignups.growth}
-                </span>
-              ) : (
-                <span className="text-rose-600 dark:text-rose-400 flex items-center">
-                  <TrendingDown className="h-3 w-3 mr-0.5" />
-                  {kpis?.newSignups.growth}
-                </span>
-              )}
+            <div className="flex items-center gap-1 mt-1">
+              <KpiGrowthBadge growth={kpis?.newSignups.growth} isPositive={kpis?.newSignups.isPositive} />
             </div>
           </div>
         </div>
@@ -704,18 +733,8 @@ export default function AdminDashboard() {
             <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
               {kpis?.premiumMembers.value.toLocaleString("en-IN") || "0"}
             </span>
-            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
-              {kpis?.premiumMembers.isPositive ? (
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-0.5" />
-                  {kpis.premiumMembers.growth}
-                </span>
-              ) : (
-                <span className="text-rose-600 dark:text-rose-400 flex items-center">
-                  <TrendingDown className="h-3 w-3 mr-0.5" />
-                  {kpis?.premiumMembers.growth}
-                </span>
-              )}
+            <div className="flex items-center gap-1 mt-1">
+              <KpiGrowthBadge growth={kpis?.premiumMembers.growth} isPositive={kpis?.premiumMembers.isPositive} />
             </div>
           </div>
         </div>
@@ -732,18 +751,8 @@ export default function AdminDashboard() {
             <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
               ₹ {kpis?.totalRevenue.value.toLocaleString("en-IN") || "0"}
             </span>
-            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
-              {kpis?.totalRevenue.isPositive ? (
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-0.5" />
-                  {kpis.totalRevenue.growth}
-                </span>
-              ) : (
-                <span className="text-rose-600 dark:text-rose-400 flex items-center">
-                  <TrendingDown className="h-3 w-3 mr-0.5" />
-                  {kpis?.totalRevenue.growth}
-                </span>
-              )}
+            <div className="flex items-center gap-1 mt-1">
+              <KpiGrowthBadge growth={kpis?.totalRevenue.growth} isPositive={kpis?.totalRevenue.isPositive} />
             </div>
           </div>
         </div>
@@ -883,7 +892,7 @@ export default function AdminDashboard() {
           <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
             <span>Unique Horoscope Users</span>
             <span className="font-bold text-[#0A1F44] dark:text-slate-300">
-              {data?.usersVsHoroscope.uniqueHoroscopeUsers.toLocaleString("en-IN") || 0} candidates
+              {data?.usersVsHoroscope.uniqueHoroscopeUsers.toLocaleString("en-IN") || 0} Users
             </span>
           </div>
         </div>

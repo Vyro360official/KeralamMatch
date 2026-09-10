@@ -43,6 +43,7 @@ import {
 interface SubItem {
   href: string;
   label: string;
+  icon: any;
   badge?: string;
   requiredPermission?: string;
 }
@@ -60,8 +61,8 @@ const NAVIGATION_SECTIONS: NavCategory[] = [
     title: "Overview",
     icon: LayoutDashboard,
     items: [
-      { href: "/admin", label: "Dashboard Overview" },
-      { href: "/admin/growth", label: "Live Business Activity" },
+      { href: "/admin", label: "Dashboard Overview", icon: LayoutDashboard },
+      { href: "/admin/growth", label: "Live Business Activity", icon: Activity },
     ],
   },
   {
@@ -69,10 +70,10 @@ const NAVIGATION_SECTIONS: NavCategory[] = [
     title: "User Management",
     icon: Users,
     items: [
-      { href: "/admin/users", label: "All Users" },
-      { href: "/admin/users/create", label: "Create Profile (Wizard)", badge: "NEW" },
-      { href: "/admin/verification", label: "Verification Queue" },
-      { href: "/admin/staff", label: "Staff & Roles", requiredPermission: "MANAGE_STAFF" },
+      { href: "/admin/users", label: "All Users", icon: Users },
+      { href: "/admin/users/create", label: "Create Profile (Wizard)", icon: UserPlus, badge: "NEW" },
+      { href: "/admin/verification", label: "Verification Queue", icon: ShieldCheck },
+      { href: "/admin/staff", label: "Staff & Roles", icon: Key, requiredPermission: "MANAGE_STAFF" },
     ],
   },
   {
@@ -80,11 +81,11 @@ const NAVIGATION_SECTIONS: NavCategory[] = [
     title: "Match & Engagement",
     icon: Sparkles,
     items: [
-      { href: "/admin/analytics/horoscope", label: "Horoscope Analytics" },
-      { href: "/admin/horoscope-leads", label: "Horoscope Leads CRM", badge: "LEADS" },
-      { href: "/admin/users", label: "Matches & Compatibility" },
-      { href: "/admin/reports", label: "Contact Requests" },
-      { href: "/admin/reports", label: "Chat & Moderation" },
+      { href: "/admin/analytics/horoscope", label: "Horoscope Analytics", icon: Sparkles },
+      { href: "/admin/horoscope-leads", label: "Horoscope Leads CRM", icon: TrendingUp, badge: "LEADS" },
+      { href: "/admin/horoscope-matches", label: "Matches & Compatibility", icon: Heart },
+      { href: "/admin/reports", label: "Contact Requests", icon: UserCheck },
+      { href: "/admin/reports", label: "Chat & Moderation", icon: MessageSquare },
     ],
   },
   {
@@ -92,8 +93,8 @@ const NAVIGATION_SECTIONS: NavCategory[] = [
     title: "Growth & Marketing",
     icon: TrendingUp,
     items: [
-      { href: "/admin/growth", label: "Attribution & Funnels" },
-      { href: "/admin/growth", label: "Campaign Performance" },
+      { href: "/admin/growth", label: "Attribution & Funnels", icon: TrendingUp },
+      { href: "/admin/growth", label: "Campaign Performance", icon: Megaphone },
     ],
   },
   {
@@ -101,9 +102,9 @@ const NAVIGATION_SECTIONS: NavCategory[] = [
     title: "Subscriptions & Payments",
     icon: CreditCard,
     items: [
-      { href: "/admin/payments", label: "Subscriptions" },
-      { href: "/admin/payments", label: "Payments & Revenue" },
-      { href: "/admin/payments", label: "Transactions" },
+      { href: "/admin/payments", label: "Subscriptions", icon: Crown },
+      { href: "/admin/payments", label: "Payments & Revenue", icon: CreditCard },
+      { href: "/admin/payments", label: "Transactions", icon: FileSpreadsheet },
     ],
   },
   {
@@ -111,8 +112,8 @@ const NAVIGATION_SECTIONS: NavCategory[] = [
     title: "Reports & Analytics",
     icon: ClipboardList,
     items: [
-      { href: "/admin/reports", label: "Reports" },
-      { href: "/admin/audit", label: "Audit Logs" },
+      { href: "/admin/reports", label: "Reports", icon: ClipboardList },
+      { href: "/admin/audit", label: "Audit Logs", icon: BookOpen },
     ],
   },
   {
@@ -120,8 +121,8 @@ const NAVIGATION_SECTIONS: NavCategory[] = [
     title: "Settings",
     icon: Settings,
     items: [
-      { href: "/admin/settings", label: "Settings" },
-      { href: "/admin/settings/health-checkup", label: "Health Checkup" },
+      { href: "/admin/settings", label: "Settings", icon: Settings },
+      { href: "/admin/settings/health-checkup", label: "Health Checkup", icon: Activity },
     ],
   },
 ];
@@ -304,168 +305,201 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const totalAlerts = pendingVerifCount + pendingReportsCount;
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-[#0A1F44] text-white select-none">
-      {/* Brand Header */}
-      <div className="h-16 flex items-center px-4 border-b border-white/10 flex-shrink-0 bg-[#07152E]">
-        {!collapsed ? (
-          <div className="flex items-center gap-3">
-            <Logo variant="admin" href="/admin" />
-            <span className="text-[10px] uppercase font-extrabold tracking-widest px-2 py-0.5 rounded-full bg-[#D4A853]/20 text-[#D4A853] border border-[#D4A853]/30">
-              Console
-            </span>
-          </div>
-        ) : (
-          <div className="mx-auto">
-            <Logo variant="compact" href="/admin" />
-          </div>
-        )}
-        <button
-          onClick={toggleCollapsed}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="hidden lg:flex ml-auto h-7 w-7 rounded-lg items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-        >
-          <ChevronRight className={`h-4 w-4 transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`} />
-        </button>
-      </div>
+  const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => {
+    const isCollapsed = isMobile ? false : collapsed;
 
-      {/* Accordion Categories Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-3 custom-scrollbar">
-        {NAVIGATION_SECTIONS.map((sec) => {
-          const allowedItems = sec.items.filter((item) => hasPermission(activeUser, item.requiredPermission));
-          if (allowedItems.length === 0) return null;
+    return (
+      <div className="flex flex-col h-full bg-[#0A1F44] text-white select-none">
+        {/* Brand Header */}
+        <div className="h-16 flex items-center px-4 border-b border-white/10 flex-shrink-0 bg-[#07152E]">
+          {!isCollapsed ? (
+            <div className="flex items-center gap-3">
+              <Logo variant="admin" href="/admin" />
+              <span className="text-[10px] uppercase font-extrabold tracking-widest px-2 py-0.5 rounded-full bg-[#D4A853]/20 text-[#D4A853] border border-[#D4A853]/30">
+                Console
+              </span>
+            </div>
+          ) : (
+            <div className="mx-auto">
+              <Logo variant="compact" href="/admin" />
+            </div>
+          )}
+          {!isMobile && (
+            <button
+              onClick={toggleCollapsed}
+              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className="hidden lg:flex ml-auto h-7 w-7 rounded-lg items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              <ChevronRight className={`h-4 w-4 transition-transform duration-300 ${isCollapsed ? "" : "rotate-180"}`} />
+            </button>
+          )}
+        </div>
 
-          const isSectionActive = allowedItems.some((item) =>
-            item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href)
-          );
-          const isOpen = openSections[sec.id] ?? true;
-          const Icon = sec.icon;
+        {/* Categories Navigation */}
+        <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-2.5 custom-scrollbar">
+          {NAVIGATION_SECTIONS.map((sec, secIdx) => {
+            const allowedItems = sec.items.filter((item) => hasPermission(activeUser, item.requiredPermission));
+            if (allowedItems.length === 0) return null;
 
-          return (
-            <div key={sec.id} className="space-y-1">
-              {/* Category Header (collapsible accordion) */}
-              {!collapsed ? (
+            const isSectionActive = allowedItems.some((item) =>
+              item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href)
+            );
+            const isOpen = openSections[sec.id] ?? true;
+            const CategoryIcon = sec.icon;
+
+            if (isCollapsed) {
+              return (
+                <div key={sec.id} className="space-y-1">
+                  {secIdx > 0 && <div className="my-2 border-t border-white/10 w-8 mx-auto" />}
+                  {allowedItems.map((item) => {
+                    const isActive =
+                      item.href === "/admin"
+                        ? pathname === "/admin"
+                        : pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
+                    const ItemIcon = item.icon;
+
+                    return (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        aria-label={item.label}
+                        title={item.label}
+                        className={`relative group flex items-center justify-center h-10 w-10 mx-auto rounded-xl transition-all ${
+                          isActive
+                            ? "bg-gradient-to-r from-[#FF1475] to-[#C81D45] text-white shadow-md font-bold"
+                            : "text-white/70 hover:text-white hover:bg-white/10"
+                        }`}
+                      >
+                        <ItemIcon className="h-4.5 w-4.5 transition-transform group-hover:scale-110 flex-shrink-0" />
+
+                        {/* Floating Tooltip */}
+                        <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-[#07152E] text-white text-xs font-bold rounded-lg shadow-xl border border-white/15 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 whitespace-nowrap z-50 flex items-center gap-2">
+                          <span>{item.label}</span>
+                          {item.badge && (
+                            <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-[#D4A853] text-[#0A1F44]">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              );
+            }
+
+            return (
+              <div key={sec.id} className="space-y-1">
+                {/* Category Header (collapsible accordion) */}
                 <button
                   type="button"
                   onClick={() => toggleSection(sec.id)}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase transition-colors cursor-pointer ${
                     isSectionActive ? "text-[#D4A853]" : "text-white/50 hover:text-white/80"
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Icon className="h-3.5 w-3.5 opacity-80" />
+                    <CategoryIcon className="h-3.5 w-3.5 opacity-80" />
                     <span>{sec.title}</span>
                   </span>
                   <ChevronDown
                     className={`h-3 w-3 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`}
                   />
                 </button>
-              ) : (
-                <div
-                  className="w-full flex items-center justify-center py-2 text-white/50 hover:text-white"
-                  title={sec.title}
-                >
-                  <Icon className="h-4 w-4" />
-                </div>
-              )}
 
-              {/* Sub-items list */}
-              {(!collapsed ? isOpen : true) && (
-                <div className="space-y-0.5">
-                  {allowedItems.map((item) => {
-                    const isActive =
-                      item.href === "/admin"
-                        ? pathname === "/admin"
-                        : pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
+                {/* Sub-items list */}
+                {isOpen && (
+                  <div className="space-y-0.5 pl-1">
+                    {allowedItems.map((item) => {
+                      const isActive =
+                        item.href === "/admin"
+                          ? pathname === "/admin"
+                          : pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
+                      const ItemIcon = item.icon;
 
-                    return (
-                      <Link
-                        key={item.label}
-                        href={item.href}
-                        title={collapsed ? item.label : undefined}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                          isActive
-                            ? "bg-gradient-to-r from-[#FF1475] to-[#C81D45] text-white shadow-md font-bold"
-                            : "text-white/70 hover:text-white hover:bg-white/5"
-                        } ${collapsed ? "justify-center px-0" : ""}`}
-                      >
-                        {!collapsed ? (
-                          <>
-                            <span className="truncate flex-1">{item.label}</span>
-                            {item.badge && (
-                              <span
-                                className={`text-[9px] font-black px-1.5 py-0.2 rounded-md ${
-                                  item.badge === "NEW"
-                                    ? "bg-[#D4A853] text-[#0A1F44]"
-                                    : item.badge === "PRO"
-                                    ? "bg-purple-500 text-white"
-                                    : "bg-emerald-500 text-white"
-                                }`}
-                              >
-                                {item.badge}
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          <span className="h-2 w-2 rounded-full bg-white/40" />
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </nav>
-
-      {/* Admin User Badge & Logout */}
-      <div className="p-3 border-t border-white/10 flex-shrink-0 bg-[#07152E]">
-        {!collapsed ? (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-8 w-8 rounded-full bg-[#D4A853] text-[#0A1F44] font-black flex items-center justify-center text-xs flex-shrink-0 shadow-xs">
-                {activeUser?.email?.[0]?.toUpperCase() || "A"}
+                      return (
+                        <Link
+                          key={item.label}
+                          href={item.href}
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                            isActive
+                              ? "bg-gradient-to-r from-[#FF1475] to-[#C81D45] text-white shadow-md font-bold"
+                              : "text-white/70 hover:text-white hover:bg-white/5"
+                          }`}
+                        >
+                          <ItemIcon className="h-4 w-4 opacity-90 flex-shrink-0" />
+                          <span className="truncate flex-1">{item.label}</span>
+                          {item.badge && (
+                            <span
+                              className={`text-[9px] font-black px-1.5 py-0.2 rounded-md ${
+                                item.badge === "NEW"
+                                  ? "bg-[#D4A853] text-[#0A1F44]"
+                                  : item.badge === "PRO"
+                                  ? "bg-purple-500 text-white"
+                                  : "bg-emerald-500 text-white"
+                              }`}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              <div className="min-w-0">
-                <span className="text-xs font-bold text-white block truncate">
-                  {activeUser?.designation || "Administrator"}
-                </span>
-                <span className="text-[10px] text-[#D4A853] font-semibold block uppercase tracking-wider">
-                  {activeUser?.role || "SUPER_ADMIN"}
-                </span>
+            );
+          })}
+        </nav>
+
+        {/* Admin User Badge & Logout */}
+        <div className="p-3 border-t border-white/10 flex-shrink-0 bg-[#07152E]">
+          {!isCollapsed ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="h-8 w-8 rounded-full bg-[#D4A853] text-[#0A1F44] font-black flex items-center justify-center text-xs flex-shrink-0 shadow-xs">
+                  {activeUser?.email?.[0]?.toUpperCase() || "A"}
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-white block truncate">
+                    {activeUser?.designation || "Administrator"}
+                  </span>
+                  <span className="text-[10px] text-[#D4A853] font-semibold block uppercase tracking-wider">
+                    {activeUser?.role || "SUPER_ADMIN"}
+                  </span>
+                </div>
               </div>
+              <button
+                onClick={handleLogout}
+                title="Sign Out"
+                className="p-1.5 rounded-lg text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
+          ) : (
             <button
               onClick={handleLogout}
               title="Sign Out"
-              className="p-1.5 rounded-lg text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              className="w-full flex items-center justify-center py-2 text-white/50 hover:text-red-400 transition-colors cursor-pointer"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4.5 w-4.5" />
             </button>
-          </div>
-        ) : (
-          <button
-            onClick={handleLogout}
-            title="Sign Out"
-            className="w-full flex items-center justify-center py-1 text-white/50 hover:text-red-400 transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="flex h-screen bg-[#F8FAFC] text-[#0A1F44] overflow-hidden font-sans">
       {/* Desktop Collapsible Sidebar */}
       <aside
         className={`hidden lg:flex flex-col flex-shrink-0 transition-all duration-300 shadow-xl z-30 ${
-          collapsed ? "w-18" : "w-64"
+          collapsed ? "w-20" : "w-64"
         }`}
       >
-        <SidebarContent />
+        <SidebarContent isMobile={false} />
       </aside>
 
       {/* Mobile Drawer Backdrop */}
@@ -478,12 +512,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Mobile Drawer Panel */}
       <div
-        className={`lg:hidden fixed top-0 bottom-0 left-0 z-50 w-72 bg-[#0A1F44] transform transition-transform duration-300 ${
+        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-[#0A1F44] shadow-2xl transition-transform duration-300 transform ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <SidebarContent />
+        <SidebarContent isMobile={true} />
       </div>
+
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

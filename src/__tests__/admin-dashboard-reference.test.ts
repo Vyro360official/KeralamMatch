@@ -4,18 +4,25 @@ import assert from "node:assert/strict";
 describe("Admin Dashboard Reference Architecture & Business Metrics", () => {
   // 1. Period-over-Period Growth Calculations
   describe("Period-over-Period Growth Calculations", () => {
-    function calculateGrowth(current: number, prior: number): { value: number; formatted: string; isPositive: boolean } {
+    interface GrowthResult {
+      value: number | null;
+      formatted: string;
+      isPositive: boolean;
+      hasComparison: boolean;
+    }
+
+    function calculateGrowth(current: number, prior: number): GrowthResult {
       if (prior <= 0) {
         if (current > 0) {
-          return { value: 100.0, formatted: "+100%", isPositive: true };
+          return { value: null, formatted: "New", isPositive: true, hasComparison: false };
         }
-        return { value: 0.0, formatted: "0.0%", isPositive: true };
+        return { value: null, formatted: "No previous data", isPositive: false, hasComparison: false };
       }
       const diff = ((current - prior) / prior) * 100;
       const rounded = Number(diff.toFixed(1));
       const isPositive = rounded >= 0;
       const formatted = `${isPositive ? "+" : ""}${rounded.toFixed(1)}%`;
-      return { value: rounded, formatted, isPositive };
+      return { value: rounded, formatted, isPositive, hasComparison: true };
     }
 
     test("should compute positive percentage when current exceeds prior", () => {
@@ -23,6 +30,7 @@ describe("Admin Dashboard Reference Architecture & Business Metrics", () => {
       assert.equal(growth.value, 20.0);
       assert.equal(growth.formatted, "+20.0%");
       assert.equal(growth.isPositive, true);
+      assert.equal(growth.hasComparison, true);
     });
 
     test("should compute negative percentage when current is below prior", () => {
@@ -30,20 +38,23 @@ describe("Admin Dashboard Reference Architecture & Business Metrics", () => {
       assert.equal(growth.value, -20.0);
       assert.equal(growth.formatted, "-20.0%");
       assert.equal(growth.isPositive, false);
+      assert.equal(growth.hasComparison, true);
     });
 
-    test("should return +100% when prior is zero and current is positive", () => {
+    test("should return 'New' when prior is zero and current is positive (avoiding misleading +100%)", () => {
       const growth = calculateGrowth(15, 0);
-      assert.equal(growth.value, 100.0);
-      assert.equal(growth.formatted, "+100%");
+      assert.equal(growth.value, null);
+      assert.equal(growth.formatted, "New");
       assert.equal(growth.isPositive, true);
+      assert.equal(growth.hasComparison, false);
     });
 
-    test("should return 0.0% when both prior and current are zero (zero-activity state)", () => {
+    test("should return 'No previous data' when both prior and current are zero", () => {
       const growth = calculateGrowth(0, 0);
-      assert.equal(growth.value, 0.0);
-      assert.equal(growth.formatted, "0.0%");
-      assert.equal(growth.isPositive, true);
+      assert.equal(growth.value, null);
+      assert.equal(growth.formatted, "No previous data");
+      assert.equal(growth.isPositive, false);
+      assert.equal(growth.hasComparison, false);
     });
   });
 

@@ -51,21 +51,29 @@ function getRangeDateWindows(range: string) {
   return { currentStart, priorStart, priorEnd, now };
 }
 
+interface GrowthResult {
+  value: number | null;
+  formatted: string;
+  isPositive: boolean;
+  hasComparison: boolean;
+}
+
 /**
- * Safe growth percentage calculation between current and prior windows.
+ * Safe, accurate growth percentage calculation between current and prior windows.
+ * Critical: Never displays a misleading +100% or +0.0% when prior is zero.
  */
-function calculateGrowth(current: number, prior: number): { value: number; formatted: string; isPositive: boolean } {
+function calculateGrowth(current: number, prior: number): GrowthResult {
   if (prior <= 0) {
     if (current > 0) {
-      return { value: 100.0, formatted: "+100%", isPositive: true };
+      return { value: null, formatted: "New", isPositive: true, hasComparison: false };
     }
-    return { value: 0.0, formatted: "0.0%", isPositive: true };
+    return { value: null, formatted: "No previous data", isPositive: false, hasComparison: false };
   }
   const diff = ((current - prior) / prior) * 100;
   const rounded = Number(diff.toFixed(1));
   const isPositive = rounded >= 0;
   const formatted = `${isPositive ? "+" : ""}${rounded.toFixed(1)}%`;
-  return { value: rounded, formatted, isPositive };
+  return { value: rounded, formatted, isPositive, hasComparison: true };
 }
 
 export async function GET(req: NextRequest) {
@@ -245,13 +253,12 @@ export async function GET(req: NextRequest) {
     // 3. Format Currency & Growth Metrics
     const periodRevenue = Math.round((periodRevenueAgg._sum?.amount || 0) / 100);
     const priorRevenue = Math.round((priorRevenueAgg._sum?.amount || 0) / 100);
-    const revenueGrowth = isAllTime ? { value: 0, formatted: "+0.0%", isPositive: true } : calculateGrowth(periodRevenue, priorRevenue);
-
-    const userGrowth = isAllTime ? { value: 0, formatted: "+0.0%", isPositive: true } : calculateGrowth(totalUsersLifetime, Math.max(1, totalUsersLifetime - newSignupsPeriod));
-    const verifiedGrowth = isAllTime ? { value: 0, formatted: "+0.0%", isPositive: true } : calculateGrowth(verifiedUsersPeriod, verifiedUsersPrior);
-    const activeUsersGrowth = isAllTime ? { value: 0, formatted: "+0.0%", isPositive: true } : calculateGrowth(activeUsersPeriod, activeUsersPrior);
-    const newSignupsGrowth = isAllTime ? { value: 0, formatted: "+0.0%", isPositive: true } : calculateGrowth(newSignupsPeriod, newSignupsPrior);
-    const premiumGrowth = { value: 0, formatted: "+0.0%", isPositive: true }; // Active subscriptions snapshot
+    const revenueGrowth = isAllTime ? { value: null, formatted: "All Time", isPositive: true, hasComparison: false } : calculateGrowth(periodRevenue, priorRevenue);
+    const userGrowth = isAllTime ? { value: null, formatted: "All Time", isPositive: true, hasComparison: false } : calculateGrowth(totalUsersLifetime, Math.max(0, totalUsersLifetime - newSignupsPeriod));
+    const verifiedGrowth = isAllTime ? { value: null, formatted: "All Time", isPositive: true, hasComparison: false } : calculateGrowth(verifiedUsersPeriod, verifiedUsersPrior);
+    const activeUsersGrowth = isAllTime ? { value: null, formatted: "All Time", isPositive: true, hasComparison: false } : calculateGrowth(activeUsersPeriod, activeUsersPrior);
+    const newSignupsGrowth = isAllTime ? { value: null, formatted: "All Time", isPositive: true, hasComparison: false } : calculateGrowth(newSignupsPeriod, newSignupsPrior);
+    const premiumGrowth = { value: null, formatted: "Active", isPositive: true, hasComparison: false }; // Active subscriptions snapshot
 
     // 4. Subscription Distribution Donut
     const planNameMap = new Map(plansList.map((p) => [p.id, p.name]));
