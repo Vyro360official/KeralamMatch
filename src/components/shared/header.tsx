@@ -12,7 +12,10 @@ import {
   Settings,
   HelpCircle,
   ChevronDown,
-  Menu
+  Menu,
+  Search,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { logoutAction } from "@/modules/auth/auth.controller";
 
@@ -21,6 +24,34 @@ export default function Header() {
   const [activeDropdown, setActiveDropdown] = useState<
     "upgrade" | "messages" | "notifications" | "profile" | null
   >(null);
+
+  // Theme state (Light / Dark / System)
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem("km_theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      setTheme(savedTheme as "light" | "dark");
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } catch {}
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem("km_theme", nextTheme);
+      if (nextTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } catch {}
+  };
 
   // Load stats dynamically from route handler
   const loadStats = async () => {
@@ -88,29 +119,43 @@ export default function Header() {
         {/* Desktop Navigation Links (Unauthenticated) */}
         {!stats && (
           <nav className="hidden lg:flex items-center space-x-8 text-xs font-semibold uppercase tracking-wider text-[#636366]">
-            <Link href="/" className="hover:text-[#C81D45] transition-colors">
+            <Link href="/" className="hover:text-[#FF1475] transition-colors">
               Home
             </Link>
             <Link
               href="/trust#how-it-works"
-              className="hover:text-[#C81D45] transition-colors"
+              className="hover:text-[#FF1475] transition-colors"
             >
               How It Works
             </Link>
-            <Link href="/pricing" className="hover:text-[#C81D45] transition-colors">
+            <Link href="/pricing" className="hover:text-[#FF1475] transition-colors">
               Pricing
             </Link>
-            <Link href="/trust" className="hover:text-[#C81D45] transition-colors">
+            <Link href="/trust" className="hover:text-[#FF1475] transition-colors">
               Trust & Safety
             </Link>
-            <Link href="/blog" className="hover:text-[#C81D45] transition-colors">
+            <Link href="/blog" className="hover:text-[#FF1475] transition-colors">
               Blog
             </Link>
           </nav>
         )}
 
+        {/* Center: Search Bar for Authenticated Member (matching MEMBER DASHBOARD.png) */}
+        {stats && (
+          <div className="hidden md:flex flex-1 max-w-md mx-6">
+            <div className="relative w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by name, location, profession, or community..."
+                className="w-full h-9 pl-9 pr-4 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-xs text-[#0A1F44] dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#FF1475] transition-all shadow-inner"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Authenticated Icons vs Guest Action Buttons */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 sm:space-x-3.5">
           {/* Mobile dropdown backdrop */}
           {activeDropdown && (
             <div
@@ -121,101 +166,53 @@ export default function Header() {
 
           {stats ? (
             <>
-              {/* Premium Plan Indicator / Upgrade Button */}
-              {isGold ? (
-                <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800 shadow-2xs">
-                  <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                  <span>{stats.subscription.plan.name}</span>
-                </div>
-              ) : (
-                <div className="relative">
-                  <button
-                    onClick={() => toggleDropdown("upgrade")}
-                    className="hidden sm:flex items-center space-x-1 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition-colors cursor-pointer focus:outline-hidden"
-                  >
-                    <span>Upgrade</span>
-                    <ChevronDown className="h-3 w-3 text-slate-400" />
-                  </button>
-
-                  {activeDropdown === "upgrade" && (
-                    <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-72 max-w-sm mx-auto sm:max-w-none rounded-2xl border border-slate-100 bg-white p-4 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#636366] mb-3">
-                        Premium Memberships
-                      </h3>
-                      <div className="space-y-3">
-                        <Link
-                          href="/pricing?plan=gold"
-                          onClick={() => setActiveDropdown(null)}
-                          className="block p-3 rounded-xl hover:bg-amber-50/50 border border-transparent hover:border-amber-200 transition-all text-left"
-                        >
-                          <div className="flex items-center space-x-2 text-amber-800 font-extrabold text-sm">
-                            <Crown className="h-4 w-4 text-amber-500 fill-amber-500" />
-                            <span>Gold Membership</span>
-                          </div>
-                          <p className="text-[10px] text-amber-700 font-medium mt-1 leading-relaxed">
-                            Unlock 50 contact reveals, direct messaging, and priority verification.
-                          </p>
-                        </Link>
-                        <Link
-                          href="/pricing?plan=platinum"
-                          onClick={() => setActiveDropdown(null)}
-                          className="block p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all text-left"
-                        >
-                          <div className="flex items-center space-x-2 text-[#0A1F44] font-extrabold text-sm">
-                            <Crown className="h-4 w-4 text-[#C81D45] fill-[#C81D45]" />
-                            <span>Platinum Membership</span>
-                          </div>
-                          <p className="text-[10px] text-[#636366] font-medium mt-1 leading-relaxed">
-                            Unlock 100 contact reveals, search filters, and profile highlighting.
-                          </p>
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Upgrade Button matching MEMBER DASHBOARD.png (amber pill with crown) */}
+              <Link
+                href="/pricing"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FEF9C3] hover:bg-[#FEF08A] border border-amber-300 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-800 text-xs font-bold transition-all shadow-2xs"
+              >
+                <Crown className="h-3.5 w-3.5 text-amber-600 fill-amber-500" />
+                <span>Upgrade</span>
+              </Link>
 
               {/* Message Icon with Badge */}
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown("messages")}
-                  className="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer focus:outline-hidden"
+                  className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer focus:outline-hidden"
+                  title="Messages"
                 >
                   <MessageSquare className="h-4.5 w-4.5" />
-                  {stats.unreadMessagesCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 h-4 w-4 bg-[#C81D45] text-white rounded-full flex items-center justify-center font-bold text-[8px] animate-pulse">
-                      {stats.unreadMessagesCount}
-                    </span>
-                  )}
+                  <span className="absolute top-1.5 right-1.5 h-4 min-w-[16px] px-1 bg-[#FF1475] text-white rounded-full flex items-center justify-center font-bold text-[8px]">
+                    {stats?.unreadMessagesCount ?? 1}
+                  </span>
                 </button>
 
                 {activeDropdown === "messages" && (
-                  <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 max-w-sm mx-auto sm:max-w-none rounded-2xl border border-slate-100 bg-white p-3 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 max-w-sm mx-auto sm:max-w-none rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#0D1E3D] p-3 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="flex items-center justify-between px-2 py-1 mb-2">
-                      <span className="text-xs font-extrabold uppercase tracking-wider text-[#636366]">
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-[#636366] dark:text-slate-400">
                         Recent Chats
                       </span>
-                      {stats.unreadMessagesCount > 0 && (
-                        <span className="text-[9px] font-bold text-[#C81D45] bg-[#FCE8EC] px-2 py-0.5 rounded-full">
-                          {stats.unreadMessagesCount} New
-                        </span>
-                      )}
+                      <span className="text-[9px] font-bold text-[#FF1475] bg-[#FCE8EC] dark:bg-pink-950/40 px-2 py-0.5 rounded-full">
+                        {stats?.unreadMessagesCount ?? 1} New
+                      </span>
                     </div>
                     <div className="space-y-1 max-h-64 overflow-y-auto">
                       <Link
                         href="/chat"
                         onClick={() => setActiveDropdown(null)}
-                        className="flex items-center space-x-3 p-2 rounded-xl hover:bg-slate-50 transition-colors text-left"
+                        className="flex items-center space-x-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-left"
                       >
-                        <div className="h-8 w-8 rounded-full bg-[#FCE8EC] text-[#C81D45] flex items-center justify-center font-bold text-xs flex-shrink-0">
+                        <div className="h-8 w-8 rounded-full bg-[#FCE8EC] text-[#FF1475] flex items-center justify-center font-bold text-xs flex-shrink-0">
                           A
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold text-[#0A1F44] flex items-center justify-between">
+                          <div className="text-xs font-bold text-[#0A1F44] dark:text-white flex items-center justify-between">
                             <span>Ananya Nair</span>
                             <span className="text-[9px] font-medium text-slate-400">10m ago</span>
                           </div>
-                          <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                             Let's connect and get to know each other...
                           </p>
                         </div>
@@ -223,27 +220,27 @@ export default function Header() {
                       <Link
                         href="/chat"
                         onClick={() => setActiveDropdown(null)}
-                        className="flex items-center space-x-3 p-2 rounded-xl hover:bg-slate-50 transition-colors text-left"
+                        className="flex items-center space-x-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-left"
                       >
                         <div className="h-8 w-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                           D
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold text-[#0A1F44] flex items-center justify-between">
+                          <div className="text-xs font-bold text-[#0A1F44] dark:text-white flex items-center justify-between">
                             <span>Dr. Divya Thomas</span>
                             <span className="text-[9px] font-medium text-slate-400">1h ago</span>
                           </div>
-                          <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                             Accepted your contact unlock request.
                           </p>
                         </div>
                       </Link>
                     </div>
-                    <div className="border-t border-slate-100 mt-2 pt-2 text-center">
+                    <div className="border-t border-slate-100 dark:border-slate-800 mt-2 pt-2 text-center">
                       <Link
                         href="/chat"
                         onClick={() => setActiveDropdown(null)}
-                        className="text-[10px] font-bold text-[#C81D45] hover:underline"
+                        className="text-[10px] font-bold text-[#FF1475] hover:underline"
                       >
                         Go to Messages Page
                       </Link>
@@ -256,26 +253,25 @@ export default function Header() {
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown("notifications")}
-                  className="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer focus:outline-hidden"
+                  className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer focus:outline-hidden"
+                  title="Notifications"
                 >
                   <Bell className="h-4.5 w-4.5" />
-                  {stats.unreadNotificationsCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 h-4 w-4 bg-[#C81D45] text-white rounded-full flex items-center justify-center font-bold text-[8px] animate-pulse">
-                      {stats.unreadNotificationsCount}
-                    </span>
-                  )}
+                  <span className="absolute top-1.5 right-1.5 h-4 min-w-[16px] px-1 bg-[#FF1475] text-white rounded-full flex items-center justify-center font-bold text-[8px]">
+                    {stats?.unreadNotificationsCount ?? 12}
+                  </span>
                 </button>
 
                 {activeDropdown === "notifications" && (
-                  <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 max-w-sm mx-auto sm:max-w-none rounded-2xl border border-slate-100 bg-white p-3 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 max-w-sm mx-auto sm:max-w-none rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#0D1E3D] p-3 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="flex items-center justify-between px-2 py-1 mb-2">
-                      <span className="text-xs font-extrabold uppercase tracking-wider text-[#636366]">
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-[#636366] dark:text-slate-400">
                         Notifications
                       </span>
                       <Link
                         href="/notifications"
                         onClick={() => setActiveDropdown(null)}
-                        className="text-[9px] font-bold text-[#C81D45] hover:underline"
+                        className="text-[9px] font-bold text-[#FF1475] hover:underline"
                       >
                         Mark all read
                       </Link>
@@ -284,14 +280,14 @@ export default function Header() {
                       <Link
                         href="/notifications"
                         onClick={() => setActiveDropdown(null)}
-                        className="flex items-start space-x-3 p-2 rounded-xl hover:bg-slate-50 transition-colors text-left"
+                        className="flex items-start space-x-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-left"
                       >
                         <div className="p-1.5 rounded-full bg-emerald-50 text-emerald-600 mt-0.5 flex-shrink-0">
                           <Crown className="h-3.5 w-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold text-[#0A1F44]">Profile Verified ✓</div>
-                          <p className="text-[10px] text-slate-500 leading-normal mt-0.5">
+                          <div className="text-xs font-bold text-[#0A1F44] dark:text-white">Profile Verified ✓</div>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal mt-0.5">
                             Your Aadhaar validation request has been approved.
                           </p>
                         </div>
@@ -299,24 +295,24 @@ export default function Header() {
                       <Link
                         href="/notifications"
                         onClick={() => setActiveDropdown(null)}
-                        className="flex items-start space-x-3 p-2 rounded-xl hover:bg-slate-50 transition-colors text-left"
+                        className="flex items-start space-x-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-left"
                       >
-                        <div className="p-1.5 rounded-full bg-[#FCE8EC] text-[#C81D45] mt-0.5 flex-shrink-0">
+                        <div className="p-1.5 rounded-full bg-[#FCE8EC] text-[#FF1475] mt-0.5 flex-shrink-0">
                           <Bell className="h-3.5 w-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold text-[#0A1F44]">New Connection Request</div>
-                          <p className="text-[10px] text-slate-500 leading-normal mt-0.5">
+                          <div className="text-xs font-bold text-[#0A1F44] dark:text-white">New Connection Request</div>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal mt-0.5">
                             Meera Krishnan sent you a contact request.
                           </p>
                         </div>
                       </Link>
                     </div>
-                    <div className="border-t border-slate-100 mt-2 pt-2 text-center">
+                    <div className="border-t border-slate-100 dark:border-slate-800 mt-2 pt-2 text-center">
                       <Link
                         href="/notifications"
                         onClick={() => setActiveDropdown(null)}
-                        className="text-[10px] font-bold text-[#C81D45] hover:underline"
+                        className="text-[10px] font-bold text-[#FF1475] hover:underline"
                       >
                         View All Notifications
                       </Link>
@@ -325,24 +321,36 @@ export default function Header() {
                 )}
               </div>
 
-              {/* User Avatar Circle Dropdown */}
+              {/* Theme Toggle (Moon / Sun) */}
+              <button
+                onClick={toggleTheme}
+                className="h-8 w-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-600" />}
+              </button>
+
+              {/* User Avatar Circle + Name Dropdown (MEMBER DASHBOARD.png) */}
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown("profile")}
-                  className="flex items-center space-x-1 border-l border-slate-200 pl-3 focus:outline-hidden cursor-pointer"
+                  className="flex items-center gap-2 pl-1.5 border-l border-slate-200 dark:border-slate-700 focus:outline-hidden cursor-pointer"
                 >
                   {profile?.avatarUrl ? (
                     <img
                       src={profile.avatarUrl}
                       alt=""
-                      className="h-8 w-8 rounded-full object-cover border border-[#C81D45]/30 shadow-xs"
+                      className="h-8 w-8 rounded-full object-cover border border-[#FF1475]/30 shadow-xs"
                     />
                   ) : (
-                    <div className="h-8 w-8 rounded-full bg-[#FCE8EC] text-[#C81D45] flex items-center justify-center font-bold text-xs border border-[#FAD2DA]">
+                    <div className="h-8 w-8 rounded-full bg-[#FCE8EC] text-[#FF1475] flex items-center justify-center font-bold text-xs border border-[#FAD2DA]">
                       {initial}
                     </div>
                   )}
-                  <ChevronDown className="h-3 w-3 text-slate-400 transition-transform duration-200" />
+                  <span className="hidden md:inline text-xs font-bold text-[#0A1F44] dark:text-white truncate max-w-[120px]">
+                    {profile?.firstName ? `${profile.firstName} ${profile.lastName || ""}`.trim() : "Member"}
+                  </span>
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-400 transition-transform duration-200" />
                 </button>
 
                 {activeDropdown === "profile" && (

@@ -1,7 +1,47 @@
 import Link from "next/link";
+import Logo from "@/components/shared/logo";
 
-export default function Footer() {
+interface FooterProps {
+  variant?: "default" | "dashboard";
+}
+
+export default function Footer({ variant = "default" }: FooterProps) {
   const currentYear = new Date().getFullYear();
+
+  if (variant === "dashboard") {
+    return (
+      <footer className="w-full border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0A1F44] py-4 px-4 sm:px-6 lg:px-8 mt-auto transition-colors">
+        <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 gap-3">
+          <div className="flex items-center gap-3">
+            <Logo className="scale-90 origin-left" />
+            <span className="hidden lg:inline text-slate-400 dark:text-slate-500">
+              Help people find their life partner safely, privately, and beautifully.
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 font-medium">
+            <Link href="/privacy" className="hover:text-[#FF1475] transition-colors">
+              Privacy Policy
+            </Link>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <Link href="/terms" className="hover:text-[#FF1475] transition-colors">
+              Terms of Service
+            </Link>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <Link href="/trust" className="hover:text-[#FF1475] transition-colors">
+              Safety Center
+            </Link>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <Link href="/faq" className="hover:text-[#FF1475] transition-colors">
+              Help FAQ
+            </Link>
+          </div>
+          <div>
+            <span>© {currentYear} KeralamMatch, All rights reserved.</span>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   const districts = ["Trivandrum", "Ernakulam", "Kozhikode", "Kottayam", "Thrissur", "Kollam", "Kannur"];
   const communities = ["Nair", "Ezhava", "Christian", "Muslim", "Latin Catholic", "Syrian Christian"];

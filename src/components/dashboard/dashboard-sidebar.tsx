@@ -142,20 +142,20 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
               key={item.label}
               href={item.href}
               prefetch={true}
-              className={`flex items-center justify-between px-3.5 py-3 rounded-xl transition-all ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
                 isActive
-                  ? "bg-[#C81D45] text-white shadow-xs font-bold"
-                  : "text-[#636366] hover:bg-[#FCFBF7] hover:text-[#0A1F44]"
+                  ? "bg-[#FDF2F4] dark:bg-[#FF1475]/10 text-[#FF1475] font-extrabold shadow-2xs"
+                  : "text-[#636366] dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-[#0A1F44] dark:hover:text-white"
               }`}
             >
               <div className="flex items-center space-x-3">
-                <Icon className={`h-4.5 w-4.5 ${isActive ? "text-white" : "text-[#8E8E93]"}`} />
+                <Icon className={`h-4.5 w-4.5 ${isActive ? "text-[#FF1475]" : "text-slate-400 dark:text-slate-500"}`} />
                 <span>{item.label}</span>
               </div>
               
               {/* Badges, checked ticks, balances, or indicators */}
               {item.badge > 0 && (
-                <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${isActive ? "bg-white text-[#C81D45]" : "bg-[#C81D45] text-white"}`}>
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#FF1475] text-white">
                   {item.badge}
                 </span>
               )}
@@ -163,12 +163,12 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
                 <CheckCircle className="h-4 w-4 text-emerald-500 fill-emerald-50" />
               )}
               {item.pill && (
-                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[9px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-[9px] font-bold">
                   {item.pill}
                 </span>
               )}
               {item.balance && (
-                <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
                   {item.balance}
                 </span>
               )}
@@ -179,28 +179,28 @@ export default function DashboardSidebar({ userProfile }: SidebarProps) {
         {/* Logout action */}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-left text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+          className="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-left text-[#FF1475] hover:bg-pink-50 dark:hover:bg-pink-950/20 transition-colors font-bold cursor-pointer"
         >
-          <LogOut className="h-4.5 w-4.5 text-slate-400" />
+          <LogOut className="h-4.5 w-4.5 text-[#FF1475]" />
           <span>Logout</span>
         </button>
       </nav>
 
-      {/* Become Premium Banner Card */}
+      {/* Become Premium Banner Card (MEMBER DASHBOARD.png) */}
       {!isPremium && (
-        <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 space-y-3">
-          <div className="flex items-center space-x-1.5 text-amber-800 font-bold text-xs">
-            <Crown className="h-4 w-4 text-amber-500 fill-amber-500" />
+        <div className="p-4 rounded-2xl bg-[#FFF5F7] dark:bg-[#FF1475]/5 border border-[#FFE4E9] dark:border-[#FF1475]/20 space-y-2.5">
+          <div className="flex items-center space-x-1.5 text-[#0A1F44] dark:text-white font-extrabold text-xs">
+            <Crown className="h-4 w-4 text-[#D4A853] fill-[#D4A853]" />
             <span>Become Premium</span>
           </div>
-          <p className="text-[10px] text-amber-700 leading-normal font-medium">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal font-medium">
             Unlock unlimited contacts, send direct messages, and find verified matches instantly.
           </p>
           <Link
             href="/pricing"
-            className="block text-center py-2 rounded-xl bg-[#C81D45] hover:bg-[#A51436] text-white text-xs font-bold transition-colors shadow-xs"
+            className="block text-center py-2 px-3 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-xs font-bold transition-all shadow-xs"
           >
-            Upgrade Now
+            Upgrade Now →
           </Link>
         </div>
       )}

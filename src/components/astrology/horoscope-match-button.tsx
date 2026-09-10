@@ -64,10 +64,10 @@ export default function HoroscopeMatchButton({
     return (
       <button
         onClick={handleClick}
-        className={`w-full py-2 px-3 rounded-xl border border-[rgba(28,28,30,0.1)] bg-white hover:bg-rose-50/60 text-[#0A1F44] hover:text-[#C81D45] hover:border-rose-200 text-[11px] font-bold flex items-center justify-center space-x-1.5 shadow-2xs hover:shadow-xs transition-all cursor-pointer ${className}`}
+        className={`w-full py-2 px-3 rounded-xl border border-[#E9D5FF] dark:border-[#9333EA]/30 bg-[#FAF5FF] dark:bg-[#9333EA]/10 hover:bg-[#F3E8FF] dark:hover:bg-[#9333EA]/20 text-[#7E22CE] dark:text-[#C084FC] text-[11px] font-bold flex items-center justify-center space-x-1.5 shadow-2xs hover:shadow-xs transition-all cursor-pointer ${className}`}
         title="Calculate Horoscope Compatibility"
       >
-        <span className="text-[#C81D45] font-extrabold text-xs">ॐ</span>
+        <span className="text-[#7E22CE] dark:text-[#C084FC] font-extrabold text-xs">ॐ</span>
         <span>View Horoscope Match</span>
       </button>
     );

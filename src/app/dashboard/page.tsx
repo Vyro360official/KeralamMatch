@@ -33,6 +33,7 @@ import {
   FileText,
   UserPlus,
   Compass,
+  Clock,
 } from "lucide-react";
 
 /**
@@ -319,7 +320,7 @@ export default async function DashboardPage() {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
-                      className="text-[#FF1475]"
+                      className="text-emerald-500"
                       strokeDasharray={`${profileCompletionPct}, 100`}
                       strokeWidth="3.5"
                       strokeLinecap="round"
@@ -328,7 +329,7 @@ export default async function DashboardPage() {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                   </svg>
-                  <span className="absolute text-sm font-extrabold text-[#0A1F44] dark:text-white">
+                  <span className="absolute text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
                     {profileCompletionPct}%
                   </span>
                 </div>
@@ -342,10 +343,10 @@ export default async function DashboardPage() {
                   </p>
                   <Link
                     href="/join"
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF1475] hover:text-[#E60067] mt-1 transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-[11px] font-bold shadow-xs transition-colors mt-1"
                   >
                     <span>Complete Profile</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
+                    <ChevronRight className="h-3 w-3" />
                   </Link>
                 </div>
               </div>
@@ -353,15 +354,17 @@ export default async function DashboardPage() {
               {/* Card 3: Build Trust & Verification (3 cols on md/lg) */}
               <div className="md:col-span-3 lg:col-span-3 bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                  <div className="flex items-center gap-1.5">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <div className="flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                      <ShieldCheck className="h-4 w-4" />
+                    </div>
                     <span className="text-xs font-bold text-[#0A1F44] dark:text-white">Build Trust</span>
                   </div>
                   <Link
                     href="/trust"
-                    className="text-[11px] font-bold text-[#FF1475] hover:underline flex items-center"
+                    className="text-[11px] font-bold text-[#2563EB] dark:text-blue-400 hover:underline flex items-center gap-0.5"
                   >
-                    <span>Verify</span>
+                    <span>View Verification</span>
                     <ChevronRight className="h-3 w-3" />
                   </Link>
                 </div>
@@ -476,121 +479,132 @@ export default async function DashboardPage() {
                   <p className="text-[11px] mt-0.5">Complete your partner preferences to load personalized suggestions.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4.5">
-                  {suggestions.map((item: any) => {
-                    const candidateAge = calculateAge(item.dateOfBirth);
-                    const ageDisplay = candidateAge !== null ? `${candidateAge} yrs` : null;
-                    const heightDisplay = item.height ? `${item.height} cm` : null;
-                    const ageHeightLine = [ageDisplay, heightDisplay].filter(Boolean).join(" • ") || "Details on profile";
+                <div className="relative">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4.5">
+                    {suggestions.map((item: any) => {
+                      const candidateAge = calculateAge(item.dateOfBirth);
+                      const ageDisplay = candidateAge !== null ? `${candidateAge} yrs` : null;
+                      const heightDisplay = item.height ? `${item.height} cm` : null;
+                      const ageHeightLine = [ageDisplay, heightDisplay].filter(Boolean).join(" • ") || "Details on profile";
 
-                    const photo =
-                      item.media && item.media[0]?.url
-                        ? item.media[0].url
-                        : item.avatarUrl
-                        ? item.avatarUrl
-                        : item.gender === "FEMALE"
-                        ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80"
-                        : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80";
+                      const photo =
+                        item.media && item.media[0]?.url
+                          ? item.media[0].url
+                          : item.avatarUrl
+                          ? item.avatarUrl
+                          : item.gender === "FEMALE"
+                          ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80"
+                          : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80";
 
-                    return (
-                      <div
-                        key={item.id}
-                        className="group bg-white dark:bg-[#0D1E3D] rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
-                      >
-                        {/* Portrait Image Header */}
-                        <div className="aspect-[4/5] relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                          <img
-                            src={photo}
-                            alt={`${item.firstName || "Profile"}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                          />
+                      return (
+                        <div
+                          key={item.id}
+                          className="group bg-white dark:bg-[#0D1E3D] rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                        >
+                          {/* Portrait Image Header */}
+                          <div className="aspect-[4/5] relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                            <img
+                              src={photo}
+                              alt={`${item.firstName || "Profile"}`}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                            />
 
-                          {/* Badges Over Image */}
-                          <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-bold shadow-xs">
-                              New
-                            </span>
-                            {item.verificationStatus === "VERIFIED" && (
-                              <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-bold shadow-xs">
-                                Verified
+                            {/* Badges Over Image */}
+                            <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-bold shadow-xs">
+                                New
                               </span>
-                            )}
-                          </div>
-
-                          <button
-                            className="absolute top-3 right-3 h-7 w-7 rounded-full bg-white/90 dark:bg-[#0A1F44]/90 backdrop-blur-xs flex items-center justify-center text-slate-400 hover:text-[#FF1475] shadow-xs transition-colors cursor-pointer"
-                            title="Add to Shortlist"
-                          >
-                            <Heart className="h-4 w-4" />
-                          </button>
-                        </div>
-
-                        {/* Candidate Details */}
-                        <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                          <div className="space-y-1">
-                            <h3 className="text-sm font-extrabold text-[#0A1F44] dark:text-white truncate">
-                              {item.firstName} {item.lastName}
-                            </h3>
-                            {/* Bulletproof Age & Height (Zero NaN Guaranteed) */}
-                            <p className="text-[11px] text-[#636366] dark:text-slate-400 font-medium truncate">
-                              {ageHeightLine}
-                            </p>
-                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold truncate">
-                              {item.caste || "Malayali"} • {item.district || "Kerala"}, Kerala
-                            </p>
-                            <p className="text-[11px] text-[#0A1F44] dark:text-slate-300 font-semibold truncate">
-                              {item.profession || "Software Professional"}
-                            </p>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                            <div className="grid grid-cols-2 gap-2">
-                              <button
-                                className="py-2 px-3 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-[11px] font-bold transition-colors flex items-center justify-center gap-1 shadow-xs cursor-pointer"
-                                title="Send Interest"
-                              >
-                                <Send className="h-3 w-3" />
-                                <span>Send Interest</span>
-                              </button>
-                              <Link
-                                href={`/profile/${item.id}`}
-                                className="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-white/5 text-[#0A1F44] dark:text-white text-[11px] font-bold text-center transition-colors truncate"
-                              >
-                                View Profile
-                              </Link>
+                              {item.verificationStatus === "VERIFIED" && (
+                                <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-bold shadow-xs">
+                                  Verified
+                                </span>
+                              )}
                             </div>
 
-                            {/* ॐ View Horoscope Match Button (Real SoftAstro Calculation) */}
-                            <HoroscopeMatchButton
-                              targetProfile={item}
-                              currentUserId={session.user?.id}
-                              variant="card"
-                            />
+                            <button
+                              className="absolute top-3 right-3 h-7 w-7 rounded-full bg-white/90 dark:bg-[#0A1F44]/90 backdrop-blur-xs flex items-center justify-center text-slate-400 hover:text-[#FF1475] shadow-xs transition-colors cursor-pointer"
+                              title="Add to Shortlist"
+                            >
+                              <Heart className="h-4 w-4" />
+                            </button>
+                          </div>
+
+                          {/* Candidate Details */}
+                          <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                            <div className="space-y-1">
+                              <h3 className="text-sm font-extrabold text-[#0A1F44] dark:text-white truncate">
+                                {item.firstName} {item.lastName}
+                              </h3>
+                              {/* Bulletproof Age & Height (Zero NaN Guaranteed) */}
+                              <p className="text-[11px] text-[#636366] dark:text-slate-400 font-medium truncate">
+                                {ageHeightLine}
+                              </p>
+                              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold truncate">
+                                {item.caste || "Malayali"} • {item.district || "Kerala"}, Kerala
+                              </p>
+                              <p className="text-[11px] text-[#0A1F44] dark:text-slate-300 font-semibold truncate">
+                                {item.profession || "Software Professional"}
+                              </p>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  className="py-2 px-3 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-[11px] font-bold transition-colors flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                                  title="Send Interest"
+                                >
+                                  <Heart className="h-3 w-3 fill-current" />
+                                  <span>Send Interest</span>
+                                </button>
+                                <Link
+                                  href={`/profile/${item.id}`}
+                                  className="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-white/5 text-[#0A1F44] dark:text-white text-[11px] font-bold text-center transition-colors truncate"
+                                >
+                                  View Profile
+                                </Link>
+                              </div>
+
+                              {/* ॐ View Horoscope Match Button (Real SoftAstro Calculation) */}
+                              <HoroscopeMatchButton
+                                targetProfile={item}
+                                currentUserId={session.user?.id}
+                                variant="card"
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
+
+                  {/* Floating Carousel Next Button */}
+                  <Link
+                    href="/find"
+                    className="hidden xl:flex absolute -right-3.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white dark:bg-[#0D1E3D] border border-slate-200 dark:border-slate-700 shadow-md items-center justify-center text-slate-700 dark:text-slate-200 hover:text-[#FF1475] hover:border-[#FF1475] z-10 transition-colors cursor-pointer"
+                    title="View more recommendations"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Link>
                 </div>
               )}
             </div>
 
-            {/* 4. COMPLETE PROFILE + QUICK ACTIONS + MEMBERSHIP + WALLET (Modular Grid) */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
-              {/* Left (md:col-span-5): Complete Your Profile Checklist */}
-              <div className="md:col-span-5 bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            {/* 4. COMPLETE PROFILE + QUICK ACTIONS + MEMBERSHIP & WALLET + RECENT ACTIVITY (4 Equal Columns) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4.5 items-stretch">
+              {/* Column 1: Complete Your Profile Checklist */}
+              <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-                    <div className="h-8 w-8 rounded-xl bg-pink-50 dark:bg-pink-950/40 text-[#FF1475] flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-xl bg-pink-50 dark:bg-pink-950/40 text-[#FF1475] flex items-center justify-center flex-shrink-0">
                       <FileText className="h-4 w-4" />
                     </div>
                     <div>
                       <h3 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
                         Complete Your Profile
                       </h3>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
                         A complete profile helps you get more relevant matches.
                       </p>
                     </div>
@@ -608,7 +622,7 @@ export default async function DashboardPage() {
                       ) : (
                         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                       )}
-                      <span className="truncate">Basic Information</span>
+                      <span className="truncate">Basic Info</span>
                     </div>
 
                     <div
@@ -673,116 +687,119 @@ export default async function DashboardPage() {
                       ) : (
                         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                       )}
-                      <span className="truncate">Horoscope Details</span>
+                      <span className="truncate">Horoscope</span>
                     </div>
                   </div>
                 </div>
 
                 <Link
                   href="/join"
-                  className="w-full py-2.5 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-xs font-bold text-center transition-all shadow-xs"
+                  className="w-full py-2.5 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-xs font-bold text-center transition-all shadow-xs mt-2"
                 >
                   View Progress →
                 </Link>
               </div>
 
-              {/* Center (md:col-span-4): Quick Actions 6-Tile Grid */}
-              <div className="md:col-span-4 bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
-                <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-                  <Sparkles className="h-4 w-4 text-[#FF1475]" />
-                  <h3 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
-                    Quick Actions
-                  </h3>
-                </div>
+              {/* Column 2: Quick Actions 6-Tile Grid */}
+              <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="h-8 w-8 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="h-4 w-4" />
+                    </div>
+                    <h3 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+                      Quick Actions
+                    </h3>
+                  </div>
 
-                <div className="grid grid-cols-3 gap-2.5 py-3 text-center">
-                  {/* Find Matches */}
-                  <Link
-                    href="/find"
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-pink-50 dark:hover:bg-pink-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
-                  >
-                    <Search className="h-4 w-4 text-slate-600 dark:text-slate-300 group-hover:text-[#FF1475]" />
-                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
-                      Find Matches
-                    </span>
-                  </Link>
-
-                  {/* Messages */}
-                  <Link
-                    href="/chat"
-                    className="relative p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
-                  >
-                    {unreadMessagesCount > 0 && (
-                      <span className="absolute top-1.5 right-1.5 h-4 min-w-[16px] px-1 rounded-full bg-[#FF1475] text-white text-[8px] font-extrabold flex items-center justify-center">
-                        {unreadMessagesCount}
+                  <div className="grid grid-cols-3 gap-2 py-3 text-center">
+                    {/* Find Matches */}
+                    <Link
+                      href="/find"
+                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-pink-50 dark:hover:bg-pink-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                    >
+                      <Search className="h-4 w-4 text-slate-600 dark:text-slate-300 group-hover:text-[#FF1475]" />
+                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                        Find Matches
                       </span>
-                    )}
-                    <MessageSquare className="h-4 w-4 text-blue-600 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
-                      Messages
-                    </span>
-                  </Link>
+                    </Link>
 
-                  {/* Requests */}
-                  <Link
-                    href="/requests"
-                    className="relative p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
-                  >
-                    {pendingRequestsCount > 0 && (
-                      <span className="absolute top-1.5 right-1.5 h-4 min-w-[16px] px-1 rounded-full bg-[#FF1475] text-white text-[8px] font-extrabold flex items-center justify-center">
-                        {pendingRequestsCount}
+                    {/* Messages */}
+                    <Link
+                      href="/chat"
+                      className="relative p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                    >
+                      {unreadMessagesCount > 0 && (
+                        <span className="absolute top-1 right-1 h-3.5 min-w-[14px] px-1 rounded-full bg-[#FF1475] text-white text-[8px] font-extrabold flex items-center justify-center">
+                          {unreadMessagesCount}
+                        </span>
+                      )}
+                      <MessageSquare className="h-4 w-4 text-blue-600 group-hover:scale-110 transition-transform" />
+                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                        Messages
                       </span>
-                    )}
-                    <UserCheck className="h-4 w-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
-                      Requests
-                    </span>
-                  </Link>
+                    </Link>
 
-                  {/* Horoscope Match */}
-                  <Link
-                    href="/horoscope-match"
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-purple-50 dark:hover:bg-purple-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
-                  >
-                    <span className="text-purple-600 font-extrabold text-sm leading-none group-hover:scale-110 transition-transform">
-                      ॐ
-                    </span>
-                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
-                      Horoscope
-                    </span>
-                  </Link>
+                    {/* Requests */}
+                    <Link
+                      href="/requests"
+                      className="relative p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                    >
+                      {pendingRequestsCount > 0 && (
+                        <span className="absolute top-1 right-1 h-3.5 min-w-[14px] px-1 rounded-full bg-[#FF1475] text-white text-[8px] font-extrabold flex items-center justify-center">
+                          {pendingRequestsCount}
+                        </span>
+                      )}
+                      <UserCheck className="h-4 w-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                        Requests
+                      </span>
+                    </Link>
 
-                  {/* Boost Profile */}
-                  <Link
-                    href="/pricing"
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
-                  >
-                    <Rocket className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
-                      Boost Profile
-                    </span>
-                  </Link>
+                    {/* Horoscope Match */}
+                    <Link
+                      href="/horoscope-match"
+                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-purple-50 dark:hover:bg-purple-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                    >
+                      <span className="text-purple-600 font-extrabold text-sm leading-none group-hover:scale-110 transition-transform">
+                        ॐ
+                      </span>
+                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                        Horoscope
+                      </span>
+                    </Link>
 
-                  {/* Membership */}
-                  <Link
-                    href="/pricing"
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
-                  >
-                    <Crown className="h-4 w-4 text-[#D4A853] group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
-                      Membership
-                    </span>
-                  </Link>
+                    {/* Boost Profile */}
+                    <Link
+                      href="/pricing"
+                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                    >
+                      <Rocket className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
+                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                        Boost Profile
+                      </span>
+                    </Link>
+
+                    {/* Membership */}
+                    <Link
+                      href="/pricing"
+                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                    >
+                      <Crown className="h-4 w-4 text-[#D4A853] group-hover:scale-110 transition-transform" />
+                      <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                        Membership
+                      </span>
+                    </Link>
+                  </div>
                 </div>
-                <div className="pt-2" />
               </div>
 
-              {/* Right (md:col-span-3): Membership & Wallet Cards */}
-              <div className="md:col-span-3 space-y-4">
-                {/* Membership Card */}
-                <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-4.5 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2.5">
+              {/* Column 3: Your Membership & Wallet Balance (Combined Card) */}
+              <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-3">
+                {/* Membership Section */}
+                <div className="space-y-2 pb-3.5 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <Crown className="h-4 w-4 text-[#D4A853]" />
                       <span className="text-xs font-bold text-[#0A1F44] dark:text-white">Your Membership</span>
                     </div>
@@ -801,8 +818,8 @@ export default async function DashboardPage() {
                   </Link>
                 </div>
 
-                {/* Wallet Balance Card */}
-                <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-4.5 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2">
+                {/* Wallet Balance Section */}
+                <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[#0A1F44] dark:text-white">Wallet Balance</span>
                     <Wallet className="h-4 w-4 text-slate-400" />
@@ -821,60 +838,67 @@ export default async function DashboardPage() {
                   </Link>
                 </div>
               </div>
-            </div>
 
-            {/* 5. RECENT ACTIVITY (Toward lower part of dashboard) */}
-            <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
-              <div className="flex justify-between items-center pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
-                  Recent Activity
-                </h2>
-                <Link
-                  href="/notifications"
-                  className="text-xs font-bold text-[#FF1475] hover:underline flex items-center gap-0.5"
-                >
-                  <span>View All</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-
-              {notifications.length === 0 ? (
-                <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
-                  <FileText className="h-7 w-7 text-slate-300 dark:text-slate-600 mx-auto mb-1.5 opacity-60" />
-                  <p className="font-semibold text-slate-600 dark:text-slate-300">No recent activities recorded.</p>
-                  <p className="text-[11px] mt-0.5">Your latest activity will appear here.</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {notifications.map((notif: any) => (
-                    <div key={notif.id} className="py-3 flex items-center justify-between text-xs">
-                      <div className="flex items-center space-x-3 min-w-0">
-                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 flex-shrink-0">
-                          <Eye className="h-4 w-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-[#0A1F44] dark:text-white truncate">{notif.title}</p>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                            {notif.message}
-                          </p>
-                        </div>
+              {/* Column 4: Recent Activity */}
+              <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-7 w-7 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+                        <Clock className="h-4 w-4" />
                       </div>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 flex-shrink-0 ml-3 whitespace-nowrap">
-                        {new Date(notif.createdAt).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                        })}
-                      </span>
+                      <h2 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+                        Recent Activity
+                      </h2>
                     </div>
-                  ))}
+                    <Link
+                      href="/notifications"
+                      className="text-xs font-bold text-[#FF1475] hover:underline flex items-center gap-0.5"
+                    >
+                      <span>View All</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+
+                  {notifications.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-slate-400 dark:text-slate-500">
+                      <FileText className="h-7 w-7 text-slate-300 dark:text-slate-600 mx-auto mb-2 opacity-60" />
+                      <p className="font-semibold text-slate-600 dark:text-slate-300">No recent activities recorded.</p>
+                      <p className="text-[11px] mt-0.5 text-slate-400">Your latest activity will appear here.</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {notifications.slice(0, 3).map((notif: any) => (
+                        <div key={notif.id} className="py-2.5 flex items-center justify-between text-xs">
+                          <div className="flex items-center space-x-2 min-w-0">
+                            <div className="h-7 w-7 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 flex-shrink-0">
+                              <Eye className="h-3.5 w-3.5" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#0A1F44] dark:text-white truncate text-[11px]">{notif.title}</p>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                                {notif.message}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[9px] text-slate-400 dark:text-slate-500 flex-shrink-0 ml-2 whitespace-nowrap">
+                            {new Date(notif.createdAt).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                            })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </main>
         </div>
       </div>
 
-      <Footer />
+      <Footer variant="dashboard" />
     </div>
   );
 }
