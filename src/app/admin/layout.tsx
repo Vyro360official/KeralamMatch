@@ -36,6 +36,8 @@ import {
   CheckCircle2,
   ExternalLink,
   X,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 interface SubItem {
@@ -173,6 +175,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Quick Action menu
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+
+  // Theme state (Light / Dark / System)
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem("km_theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      setTheme(savedTheme as "light" | "dark");
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } catch {}
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem("km_theme", nextTheme);
+      if (nextTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } catch {}
+  };
 
   // Load sidebar preference from localStorage
   useEffect(() => {
@@ -563,24 +593,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
           </div>
 
-          {/* Right: Quick Action Shortcuts, Notifications & Profile */}
+          {/* Right: Quick Actions, Notifications, Chat, Theme Toggle & Profile */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Quick Actions Button */}
             <div className="relative">
               <button
                 onClick={() => setQuickActionsOpen(!quickActionsOpen)}
-                className="h-9 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-[#0A1F44] flex items-center gap-1.5 transition-colors"
+                className="h-9 px-3 rounded-xl bg-slate-50 dark:bg-[#0F2248] hover:bg-slate-100 dark:hover:bg-[#172E5E] border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#0A1F44] dark:text-white flex items-center gap-1.5 transition-colors"
               >
                 <span className="text-[#FF1475] font-black text-sm">+</span>
                 <span className="hidden sm:inline">Actions</span>
               </button>
 
               {quickActionsOpen && (
-                <div className="absolute right-0 top-11 w-52 bg-white rounded-xl shadow-2xl border border-slate-200 py-1 z-50 animate-in fade-in">
+                <div className="absolute right-0 top-11 w-52 bg-white dark:bg-[#0A1832] rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-1 z-50 animate-in fade-in">
                   <Link
                     href="/admin/users/create"
                     onClick={() => setQuickActionsOpen(false)}
-                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#FF1475] transition-colors"
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-[#FF1475] transition-colors"
                   >
                     <UserPlus className="h-4 w-4 text-[#FF1475]" />
                     <span>+ Create Profile (Wizard)</span>
@@ -588,25 +618,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Link
                     href="/admin/verification"
                     onClick={() => setQuickActionsOpen(false)}
-                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-emerald-600 transition-colors"
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-emerald-500 transition-colors"
                   >
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    <ShieldCheck className="h-4 w-4 text-emerald-500" />
                     <span>Verification Queue</span>
                   </Link>
                   <Link
                     href="/admin/analytics/horoscope"
                     onClick={() => setQuickActionsOpen(false)}
-                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-purple-600 transition-colors"
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-purple-500 transition-colors"
                   >
-                    <Sparkles className="h-4 w-4 text-purple-600" />
+                    <Sparkles className="h-4 w-4 text-purple-500" />
                     <span>Horoscope Analytics</span>
                   </Link>
                   <Link
                     href="/admin/horoscope-leads"
                     onClick={() => setQuickActionsOpen(false)}
-                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-blue-500 transition-colors"
                   >
-                    <Users className="h-4 w-4 text-blue-600" />
+                    <Users className="h-4 w-4 text-blue-500" />
                     <span>Horoscope Leads CRM</span>
                   </Link>
                 </div>
@@ -617,20 +647,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="relative">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 hover:text-[#0A1F44] transition-colors"
+                className="relative h-9 w-9 rounded-xl bg-slate-50 dark:bg-[#0F2248] hover:bg-slate-100 dark:hover:bg-[#172E5E] border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#0A1F44] dark:hover:text-white transition-colors"
                 aria-label="Notifications"
               >
                 <Bell className="h-4 w-4" />
                 {totalAlerts > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#FF1475] text-white text-[9px] font-black flex items-center justify-center border-2 border-white">
+                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#FF1475] text-white text-[9px] font-black flex items-center justify-center border-2 border-white dark:border-[#0A1832]">
                     {totalAlerts}
                   </span>
                 )}
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 top-11 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-3 z-50 animate-in fade-in">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-xs font-bold text-[#0A1F44]">
+                <div className="absolute right-0 top-11 w-72 bg-white dark:bg-[#0A1832] rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 p-3 z-50 animate-in fade-in">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 text-xs font-bold text-[#0A1F44] dark:text-white">
                     <span>Operational Alerts</span>
                     <span className="text-[10px] text-slate-400 font-semibold">{totalAlerts} pending</span>
                   </div>
@@ -638,12 +668,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link
                       href="/admin/verification"
                       onClick={() => setNotificationsOpen(false)}
-                      className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors"
+                      className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                     >
                       <ShieldCheck className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
                       <div>
-                        <span className="font-bold text-[#0A1F44] block">Pending Verifications</span>
-                        <span className="text-[11px] text-slate-500">
+                        <span className="font-bold text-[#0A1F44] dark:text-white block">Pending Verifications</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
                           {pendingVerifCount > 0 ? `${pendingVerifCount} profiles awaiting Aadhaar/selfie check` : "No pending verifications"}
                         </span>
                       </div>
@@ -651,12 +681,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link
                       href="/admin/reports"
                       onClick={() => setNotificationsOpen(false)}
-                      className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors"
+                      className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                     >
                       <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
                       <div>
-                        <span className="font-bold text-[#0A1F44] block">Safety Reports</span>
-                        <span className="text-[11px] text-slate-500">
+                        <span className="font-bold text-[#0A1F44] dark:text-white block">Safety Reports</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
                           {pendingReportsCount > 0 ? `${pendingReportsCount} reported profiles require review` : "Zero unhandled reports"}
                         </span>
                       </div>
@@ -666,17 +696,39 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               )}
             </div>
 
+            {/* Chat Moderation Icon with Badge */}
+            <Link
+              href="/admin/reports"
+              className="relative h-9 w-9 rounded-xl bg-slate-50 dark:bg-[#0F2248] hover:bg-slate-100 dark:hover:bg-[#172E5E] border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#0A1F44] dark:hover:text-white transition-colors"
+              aria-label="Messages & Moderation"
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#FF1475] text-white text-[9px] font-black flex items-center justify-center border-2 border-white dark:border-[#0A1832]">
+                5
+              </span>
+            </Link>
+
+            {/* Dark / Light Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="h-9 w-9 rounded-xl bg-slate-50 dark:bg-[#0F2248] hover:bg-slate-100 dark:hover:bg-[#172E5E] border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#0A1F44] dark:hover:text-white transition-colors cursor-pointer"
+              aria-label="Toggle Theme"
+              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-600" />}
+            </button>
+
             {/* Admin Profile & Role Badge */}
-            <div className="flex items-center gap-2 border-l border-slate-200 pl-2 sm:pl-3">
-              <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-[#0A1F44] to-[#1E3A8A] text-[#D4A853] flex items-center justify-center font-extrabold text-xs shadow-xs">
+            <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-2 sm:pl-3">
+              <div className="h-8 w-8 rounded-full bg-[#0A1F44] dark:bg-[#D4A853] text-white dark:text-[#0A1F44] flex items-center justify-center font-extrabold text-xs shadow-xs">
                 {activeUser?.email?.[0]?.toUpperCase() || "A"}
               </div>
               <div className="hidden md:block text-left">
-                <span className="text-xs font-bold text-[#0A1F44] block leading-tight">
+                <span className="text-xs font-bold text-[#0A1F44] dark:text-white block leading-tight">
                   {activeUser?.designation || "Administrator"}
                 </span>
-                <span className="text-[9px] text-[#D4A853] block font-bold uppercase tracking-wider">
-                  {activeUser?.role || "SUPER_ADMIN"}
+                <span className="text-[9px] text-slate-500 dark:text-slate-400 block font-semibold">
+                  Admin
                 </span>
               </div>
             </div>
@@ -684,7 +736,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Dynamic Page Body */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8FAFC]">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8FAFC] dark:bg-[#071224] transition-colors">
           {children}
         </main>
       </div>

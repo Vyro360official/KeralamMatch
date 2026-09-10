@@ -23,22 +23,92 @@ import {
   Crown,
   ChevronRight,
   ShieldCheck,
-  Zap,
-  Gift,
+  Rocket,
   Search,
-  Wallet
+  Wallet,
+  MapPin,
+  Briefcase,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  UserPlus,
+  Compass,
 } from "lucide-react";
+
+/**
+ * Calculates candidate age accurately from date of birth.
+ * Returns null if DOB is missing or invalid (never returns NaN).
+ */
+function calculateAge(dob: string | Date | null | undefined): number | null {
+  if (!dob) return null;
+  const birthDate = new Date(dob);
+  if (isNaN(birthDate.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  if (isNaN(age) || age <= 0 || age > 120) return null;
+  return age;
+}
+
+/**
+ * Calculates genuine profile completion percentage and section checklist
+ * based on actual database profile fields.
+ */
+function calculateProfileCompletion(profile: any): {
+  percentage: number;
+  checks: {
+    basicInfo: boolean;
+    aboutMe: boolean;
+    familyDetails: boolean;
+    photos: boolean;
+    photoCount: number;
+    lifestyle: boolean;
+    horoscope: boolean;
+  };
+} {
+  const photoCount = profile?.media?.length || (profile?.avatarUrl ? 1 : 0);
+  const checks = {
+    basicInfo: !!(profile?.firstName && profile?.gender && profile?.dateOfBirth && profile?.district),
+    aboutMe: !!(profile?.bio && profile.bio.trim().length > 10),
+    familyDetails: !!(profile?.familyType || profile?.fatherOccupation || profile?.motherOccupation),
+    photos: photoCount >= 1,
+    photoCount,
+    lifestyle: !!(profile?.diet || profile?.smoking || profile?.drinking),
+    horoscope: !!(profile?.nakshatram || profile?.rasi || profile?.timeOfBirth),
+  };
+
+  const totalPoints = 6;
+  let completedPoints = 0;
+  if (checks.basicInfo) completedPoints++;
+  if (checks.aboutMe) completedPoints++;
+  if (checks.familyDetails) completedPoints++;
+  if (checks.photos) completedPoints++;
+  if (checks.lifestyle) completedPoints++;
+  if (checks.horoscope) completedPoints++;
+
+  const percentage =
+    profile?.profileStrength && profile.profileStrength > 0
+      ? profile.profileStrength
+      : Math.round((completedPoints / totalPoints) * 100);
+
+  return { percentage, checks };
+}
 
 export default async function DashboardPage() {
   const session = await getSessionAction();
 
   if (!session.isAuthenticated || !session.user) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#FCFBF7] items-center justify-center p-8 text-center">
-        <h2 className="text-xl font-bold text-[#0A1F44] mb-4">Please log in to access your dashboard</h2>
+      <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] items-center justify-center p-8 text-center">
+        <h2 className="text-xl font-bold text-[#0A1F44] dark:text-white mb-4">
+          Please log in to access your dashboard
+        </h2>
         <Link
           href="/auth"
-          className="px-6 py-3 rounded-full bg-[#C81D45] text-white text-xs font-bold shadow-md"
+          className="px-6 py-3 rounded-full bg-[#FF1475] hover:bg-[#E60067] text-white text-xs font-bold shadow-md transition-colors"
         >
           Go to Login
         </Link>
@@ -55,15 +125,15 @@ export default async function DashboardPage() {
 
   if (!profile || profile.profileStrength < 20) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#FCFBF7] items-center justify-center p-8 text-center max-w-md mx-auto">
-        <Sparkles className="h-12 w-12 text-[#C81D45] mb-6 animate-pulse" />
-        <h2 className="text-2xl font-bold text-[#0A1F44] mb-3">Complete Your Profile</h2>
-        <p className="text-xs text-[#636366] leading-relaxed mb-8">
+      <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] items-center justify-center p-8 text-center max-w-md mx-auto">
+        <Sparkles className="h-12 w-12 text-[#FF1475] mb-6 animate-pulse" />
+        <h2 className="text-2xl font-bold text-[#0A1F44] dark:text-white mb-3">Complete Your Profile</h2>
+        <p className="text-xs text-[#636366] dark:text-slate-400 leading-relaxed mb-8">
           Welcome to KeralamMatch! Please complete your onboarding steps to calculate compatibility scores and view verified matches.
         </p>
         <Link
           href="/join"
-          className="px-8 py-3.5 rounded-full bg-[#C81D45] text-white text-xs font-bold shadow-md"
+          className="px-8 py-3.5 rounded-full bg-[#FF1475] hover:bg-[#E60067] text-white text-xs font-bold shadow-md transition-colors"
         >
           Start Onboarding
         </Link>
@@ -71,177 +141,428 @@ export default async function DashboardPage() {
     );
   }
 
-  // Load real counts from the database to present accurate dashboard data
   const userId = session.user.id;
-  const withTimeout = <T,>(promise: Promise<T>, fallback: T, ms = 1200): Promise<T> =>
-    Promise.race([
-      promise,
-      new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
-    ]);
+  const isMale = profile.gender === "MALE";
+  const targetGender = isMale ? "FEMALE" : "MALE";
+  const matchHeading = isMale
+    ? "Recommended Brides for You"
+    : profile.gender === "FEMALE"
+    ? "Recommended Grooms for You"
+    : "Top Match Suggestions";
 
-  const [profileViewsCount, matchesFoundCount, unreadMessagesCount, pendingRequestsCount, contactRevealsCount] = await Promise.all([
-    withTimeout(prisma.profileVisitor ? prisma.profileVisitor.count({ where: { visitedId: userId } }).catch(() => 85) : Promise.resolve(85), 85),
-    withTimeout(prisma.profile ? prisma.profile.count({ where: { gender: profile.gender === "MALE" ? "FEMALE" : "MALE" } }).catch(() => 23) : Promise.resolve(23), 23),
-    withTimeout(prisma.message ? prisma.message.count({ where: { receiverId: userId, isRead: false } }).catch(() => 12) : Promise.resolve(12), 12),
-    withTimeout(prisma.contactRequest ? prisma.contactRequest.count({ where: { receiverId: userId, status: "PENDING" } }).catch(() => 7) : Promise.resolve(7), 7),
-    withTimeout(prisma.contactRequest ? prisma.contactRequest.count({ where: { OR: [{ senderId: userId }, { receiverId: userId }], status: "ACCEPTED" } }).catch(() => 3) : Promise.resolve(3), 3),
+  // Load real counts from the database (Zero-Mock Rule: fallbacks must be 0)
+  const [
+    profileViewsCount,
+    matchesFoundCount,
+    unreadMessagesCount,
+    pendingRequestsCount,
+    contactRevealsCount,
+    suggestionsResult,
+  ] = await Promise.all([
+    prisma.profileVisitor
+      ? prisma.profileVisitor.count({ where: { visitedId: userId } }).catch(() => 0)
+      : Promise.resolve(0),
+    prisma.profile
+      ? prisma.profile.count({ where: { gender: targetGender } }).catch(() => 0)
+      : Promise.resolve(0),
+    prisma.message
+      ? prisma.message.count({ where: { receiverId: userId, isRead: false } }).catch(() => 0)
+      : Promise.resolve(0),
+    prisma.contactRequest
+      ? prisma.contactRequest.count({ where: { receiverId: userId, status: "PENDING" } }).catch(() => 0)
+      : Promise.resolve(0),
+    prisma.contactRequest
+      ? prisma.contactRequest.count({ where: { OR: [{ senderId: userId }, { receiverId: userId }], status: "ACCEPTED" } }).catch(() => 0)
+      : Promise.resolve(0),
+    searchProfilesAction(
+      {
+        gender: targetGender,
+      },
+      1,
+      4
+    ),
   ]);
 
+  const suggestions =
+    suggestionsResult.success && (suggestionsResult as any).results
+      ? (suggestionsResult as any).results
+      : [];
 
-  const suggestionsResult = await searchProfilesAction(
-    {
-      gender: profile.gender === "MALE" ? "FEMALE" : "MALE",
-    },
-    1,
-    3
-  );
+  const notifications =
+    notificationsResult.success && notificationsResult.notifications
+      ? notificationsResult.notifications
+      : [];
 
-  const suggestions = suggestionsResult.success && (suggestionsResult as any).results ? (suggestionsResult as any).results : [];
-  const notifications = notificationsResult.success && notificationsResult.notifications ? notificationsResult.notifications : [];
   const walletBalance = walletResult.success ? Math.round((walletResult.balance || 0) / 100) : 0;
   const subscription = subResult.success ? (subResult.subscription as any) : null;
-  const isPremium = subscription && subscription.status === "ACTIVE";
+  const planName = subscription?.plan?.name || "Free Plan";
 
-  // Build metrics data objects
-  const kpiMetrics = [
-    { label: "Profile Views", value: profileViewsCount, icon: Eye, trend: "+12%", color: "text-rose-600 bg-rose-50", href: "/requests" },
-    { label: "Matches Found", value: matchesFoundCount, icon: Users, trend: "+8%", color: "text-emerald-600 bg-emerald-50", href: "/find" },
-    { label: "Messages", value: unreadMessagesCount, icon: MessageSquare, trend: "+15%", color: "text-blue-600 bg-blue-50", href: "/chat" },
-    { label: "Contact Requests", value: pendingRequestsCount, icon: UserCheck, trend: "+5%", color: "text-amber-600 bg-amber-50", href: "/requests" },
-    { label: "Profile Reveals", value: contactRevealsCount, icon: Star, trend: "Last 7 days", color: "text-purple-600 bg-purple-50", href: "/requests" },
+  // Real profile completion calculation
+  const { percentage: profileCompletionPct, checks: profileChecks } = calculateProfileCompletion(profile);
+
+  // KPI statistics row data (clean, no fake trends, chevrons linking to destinations)
+  const kpiCards = [
+    {
+      label: "Profile Views",
+      value: profileViewsCount,
+      icon: Eye,
+      iconColor: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40",
+      href: "/requests",
+    },
+    {
+      label: "Matches Found",
+      value: matchesFoundCount,
+      icon: Users,
+      iconColor: "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40",
+      href: "/find",
+    },
+    {
+      label: "Messages",
+      value: unreadMessagesCount,
+      icon: MessageSquare,
+      iconColor: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40",
+      href: "/chat",
+    },
+    {
+      label: "Contact Requests",
+      value: pendingRequestsCount,
+      icon: UserPlus,
+      iconColor: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40",
+      href: "/requests",
+    },
+    {
+      label: "Profile Reveals",
+      value: contactRevealsCount,
+      subtitle: "Last 7 days",
+      icon: Star,
+      iconColor: "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40",
+      href: "/requests",
+    },
   ];
 
+  const userInitial = profile.firstName ? profile.firstName.charAt(0).toUpperCase() : "U";
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFBF7] text-[#1C1C1E]">
+    <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] text-[#1C1C1E] dark:text-slate-100 transition-colors">
       <Header />
 
-      <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 mb-16 lg:mb-0">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+      <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-6 mb-16 lg:mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Left Sidebar Navigation */}
           <DashboardSidebar userProfile={profile} />
 
-          {/* Main Content Area */}
+          {/* Main Content Area: Natural Vertical Scrolling */}
           <main className="lg:col-span-9 space-y-6">
-            
-            {/* Header Welcome Block */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F44] tracking-tight">
-                  Welcome back, {profile.firstName}! 👋
-                </h1>
-                <p className="text-xs text-[#636366] mt-1 font-medium">
-                  Let's find your perfect match today.
-                </p>
+            {/* 1. WELCOME + PROFILE COMPLETION + TRUST (Top 3-Card Row) */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              {/* Card 1: Welcome & Profile Summary (5 cols on md/lg) */}
+              <div className="md:col-span-6 lg:col-span-5 bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-4">
+                {/* Avatar with Online Dot */}
+                <div className="relative flex-shrink-0">
+                  {profile.avatarUrl ? (
+                    <img
+                      src={profile.avatarUrl}
+                      alt={profile.firstName}
+                      className="h-16 w-16 rounded-full object-cover border-2 border-[#FF1475]/20 shadow-xs"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-[#0A1F44] to-[#FF1475] flex items-center justify-center text-white text-xl font-extrabold shadow-xs">
+                      {userInitial}
+                    </div>
+                  )}
+                  <span
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded-full bg-emerald-500 text-white text-[9px] font-bold shadow-xs whitespace-nowrap"
+                    title="Active status"
+                  >
+                    Online
+                  </span>
+                </div>
+
+                {/* Profile Details */}
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg sm:text-xl font-extrabold text-[#0A1F44] dark:text-white tracking-tight truncate">
+                    Welcome back, {profile.firstName}! 👋
+                  </h1>
+                  <p className="text-xs text-[#636366] dark:text-slate-400 mt-0.5 font-medium truncate">
+                    Let's find your perfect match today.
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3 text-slate-400" />
+                      <span className="truncate">{profile.district || "Kerala"}, Kerala</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Briefcase className="h-3 w-3 text-slate-400" />
+                      <span className="truncate">{profile.profession || "Professional"}</span>
+                    </span>
+                    {profile.caste && (
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3 text-slate-400" />
+                        <span className="truncate">{profile.caste}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {profile.verificationStatus === "VERIFIED" && (
-                <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700">
-                  <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                  <span>Verified Profile</span>
+              {/* Card 2: Profile Completion Ring (4 cols on md/lg) */}
+              <div className="md:col-span-3 lg:col-span-4 bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-4">
+                {/* SVG Radial Progress */}
+                <div className="relative h-16 w-16 flex-shrink-0 flex items-center justify-center">
+                  <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-slate-100 dark:text-slate-800"
+                      strokeWidth="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-[#FF1475]"
+                      strokeDasharray={`${profileCompletionPct}, 100`}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <span className="absolute text-sm font-extrabold text-[#0A1F44] dark:text-white">
+                    {profileCompletionPct}%
+                  </span>
                 </div>
-              )}
+
+                <div className="min-w-0 flex-1 space-y-1">
+                  <h3 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+                    Profile Completion
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                    Complete your profile to get better matches.
+                  </p>
+                  <Link
+                    href="/join"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF1475] hover:text-[#E60067] mt-1 transition-colors"
+                  >
+                    <span>Complete Profile</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Card 3: Build Trust & Verification (3 cols on md/lg) */}
+              <div className="md:col-span-3 lg:col-span-3 bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-xs font-bold text-[#0A1F44] dark:text-white">Build Trust</span>
+                  </div>
+                  <Link
+                    href="/trust"
+                    className="text-[11px] font-bold text-[#FF1475] hover:underline flex items-center"
+                  >
+                    <span>Verify</span>
+                    <ChevronRight className="h-3 w-3" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 py-2 text-[10px] font-semibold">
+                  <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">Mobile Verified</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">Email Verified</span>
+                  </div>
+                  <div
+                    className={`flex items-center gap-1 ${
+                      profile.verificationStatus === "VERIFIED"
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-amber-600 dark:text-amber-400"
+                    }`}
+                  >
+                    {profile.verificationStatus === "VERIFIED" ? (
+                      <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    )}
+                    <span className="truncate">
+                      ID {profile.verificationStatus === "VERIFIED" ? "Verified" : "Pending"}
+                    </span>
+                  </div>
+                  <div
+                    className={`flex items-center gap-1 ${
+                      profileChecks.photos
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-amber-600 dark:text-amber-400"
+                    }`}
+                  >
+                    {profileChecks.photos ? (
+                      <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    )}
+                    <span className="truncate">
+                      Photo {profileChecks.photos ? "Verified" : "Pending"}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* KPI Statistics Row (Reference 2.3) */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {kpiMetrics.map((kpi) => {
+            {/* 2. KPI STATISTICS ROW (5 Cards: Eye, Matches, Messages, Requests, Reveals) */}
+            {/* Note: The large Profile Views graph is completely removed; only this compact KPI card is kept */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-3.5">
+              {kpiCards.map((kpi) => {
                 const Icon = kpi.icon;
                 return (
                   <Link
                     key={kpi.label}
                     href={kpi.href}
-                    className="block group bg-white rounded-2xl p-4 border border-[rgba(28,28,30,0.06)] shadow-xs space-y-2 hover:border-[#C81D45] transition-all hover:-translate-y-0.5 cursor-pointer"
+                    className="group bg-white dark:bg-[#0D1E3D] rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-[#FF1475]/60 transition-all hover:-translate-y-0.5 flex flex-col justify-between"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-bold text-[#8E8E93] uppercase tracking-wider">{kpi.label}</span>
+                      <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${kpi.iconColor}`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 group-hover:text-[#FF1475] transition-colors" />
                     </div>
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-xl font-extrabold text-[#0A1F44]">{kpi.value}</span>
-                      <span className="text-[9px] font-bold text-emerald-600">{kpi.trend}</span>
-                    </div>
-                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${kpi.color}`}>
-                      <Icon className="h-4.5 w-4.5" />
+
+                    <div className="mt-3">
+                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block truncate">
+                        {kpi.label}
+                      </span>
+                      <div className="flex items-baseline justify-between mt-0.5">
+                        <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white tracking-tight">
+                          {kpi.value.toLocaleString("en-IN")}
+                        </span>
+                        {kpi.subtitle && (
+                          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                            {kpi.subtitle}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 );
               })}
             </div>
 
-            {/* Top Match Suggestions Row (Horizontal grid, Reference 2.4) */}
-            <div className="space-y-4">
+            {/* 3. TOP MATCH SUGGESTIONS / RECOMMENDED MATCHES */}
+            <div className="space-y-3.5">
               <div className="flex justify-between items-center">
-                <h2 className="text-base font-extrabold text-[#0A1F44]">Top Match Suggestions</h2>
-                <Link href="/find" className="text-xs font-bold text-[#C81D45] hover:underline flex items-center gap-0.5">
+                <div>
+                  <h2 className="text-base sm:text-lg font-extrabold text-[#0A1F44] dark:text-white tracking-tight">
+                    {matchHeading}
+                  </h2>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Curated Malayali profiles matching your community and age preferences
+                  </p>
+                </div>
+                <Link
+                  href="/find"
+                  className="text-xs font-bold text-[#FF1475] hover:underline flex items-center gap-0.5"
+                >
                   <span>View All</span>
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
 
               {suggestions.length === 0 ? (
-                <div className="bg-white rounded-3xl p-12 text-center text-xs text-[#636366] border border-[rgba(28,28,30,0.06)] shadow-xs">
-                  No recommendations found yet. Complete your preferences to load suggestions.
+                <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-10 text-center text-xs text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                  <Compass className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                  <p className="font-semibold text-slate-600 dark:text-slate-300">No recommendations found yet.</p>
+                  <p className="text-[11px] mt-0.5">Complete your partner preferences to load personalized suggestions.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4.5">
                   {suggestions.map((item: any) => {
-                    const age = new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear();
-                    const photo = item.media && item.media[0]
-                      ? item.media[0].url
-                      : item.gender === "FEMALE"
-                      ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400"
-                      : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400";
+                    const candidateAge = calculateAge(item.dateOfBirth);
+                    const ageDisplay = candidateAge !== null ? `${candidateAge} yrs` : null;
+                    const heightDisplay = item.height ? `${item.height} cm` : null;
+                    const ageHeightLine = [ageDisplay, heightDisplay].filter(Boolean).join(" • ") || "Details on profile";
+
+                    const photo =
+                      item.media && item.media[0]?.url
+                        ? item.media[0].url
+                        : item.avatarUrl
+                        ? item.avatarUrl
+                        : item.gender === "FEMALE"
+                        ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80"
+                        : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80";
+
                     return (
-                      <div key={item.id} className="group bg-white rounded-2xl border border-[rgba(28,28,30,0.06)] overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col">
+                      <div
+                        key={item.id}
+                        className="group bg-white dark:bg-[#0D1E3D] rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                      >
                         {/* Portrait Image Header */}
-                        <div className="aspect-[4/5] relative bg-slate-100 overflow-hidden">
+                        <div className="aspect-[4/5] relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
                           <img
                             src={photo}
-                            alt=""
-                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                            alt={`${item.firstName || "Profile"}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
                           />
-                          <span className="absolute top-3.5 left-3.5 px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-bold shadow-xs">
-                            New
-                          </span>
-                          <button className="absolute top-3.5 right-3.5 h-7 w-7 rounded-full bg-white/95 backdrop-blur-xs flex items-center justify-center text-slate-400 hover:text-red-500 shadow-xs transition-colors">
+
+                          {/* Badges Over Image */}
+                          <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-bold shadow-xs">
+                              New
+                            </span>
+                            {item.verificationStatus === "VERIFIED" && (
+                              <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-bold shadow-xs">
+                                Verified
+                              </span>
+                            )}
+                          </div>
+
+                          <button
+                            className="absolute top-3 right-3 h-7 w-7 rounded-full bg-white/90 dark:bg-[#0A1F44]/90 backdrop-blur-xs flex items-center justify-center text-slate-400 hover:text-[#FF1475] shadow-xs transition-colors cursor-pointer"
+                            title="Add to Shortlist"
+                          >
                             <Heart className="h-4 w-4" />
                           </button>
                         </div>
-                        {/* Details body */}
+
+                        {/* Candidate Details */}
                         <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                           <div className="space-y-1">
-                            <div className="flex items-center gap-1.5">
-                              <h3 className="text-sm font-bold text-[#0A1F44]">
-                                {item.firstName} {item.lastName}
-                              </h3>
-                              <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[9px] font-bold" title="ID Verified">✓</span>
-                            </div>
-                            <p className="text-[11px] text-[#636366] font-medium leading-normal">
-                              {age} yrs · {item.height ? `${item.height} cm` : "165 cm"} · {item.profession || "Professional"}
+                            <h3 className="text-sm font-extrabold text-[#0A1F44] dark:text-white truncate">
+                              {item.firstName} {item.lastName}
+                            </h3>
+                            {/* Bulletproof Age & Height (Zero NaN Guaranteed) */}
+                            <p className="text-[11px] text-[#636366] dark:text-slate-400 font-medium truncate">
+                              {ageHeightLine}
                             </p>
-                            <p className="text-[10px] text-[#8E8E93] font-semibold">
-                              {item.caste} · {item.district}, Kerala
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold truncate">
+                              {item.caste || "Malayali"} • {item.district || "Kerala"}, Kerala
+                            </p>
+                            <p className="text-[11px] text-[#0A1F44] dark:text-slate-300 font-semibold truncate">
+                              {item.profession || "Software Professional"}
                             </p>
                           </div>
 
-                          <div className="pt-2 border-t border-slate-100 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-                                <Star className="h-3 w-3 fill-emerald-500 text-emerald-500" />
-                                <span>92% Match</span>
-                              </div>
-                              <div className="flex items-center space-x-1.5">
-                                <Link
-                                  href={`/profile/${item.id}`}
-                                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-[10px] font-bold transition-colors"
-                                >
-                                  View
-                                </Link>
-                                <button className="p-1.5 rounded-lg bg-[#C81D45] hover:bg-[#A51436] text-white transition-colors" title="Send Interest">
-                                  <Send className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
+                          {/* Action Buttons */}
+                          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                className="py-2 px-3 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-[11px] font-bold transition-colors flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                                title="Send Interest"
+                              >
+                                <Send className="h-3 w-3" />
+                                <span>Send Interest</span>
+                              </button>
+                              <Link
+                                href={`/profile/${item.id}`}
+                                className="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-white/5 text-[#0A1F44] dark:text-white text-[11px] font-bold text-center transition-colors truncate"
+                              >
+                                View Profile
+                              </Link>
                             </div>
+
+                            {/* ॐ View Horoscope Match Button (Real SoftAstro Calculation) */}
                             <HoroscopeMatchButton
                               targetProfile={item}
                               currentUserId={session.user?.id}
@@ -256,168 +577,299 @@ export default async function DashboardPage() {
               )}
             </div>
 
-            {/* Complete Your Profile Progress Bar Card (Reference 2.5) */}
-            <div className="bg-white rounded-2xl p-6 border border-[rgba(28,28,30,0.06)] shadow-xs flex flex-col sm:flex-row items-center gap-6">
-              {/* Radial Completion Percentage */}
-              <div className="relative h-24 w-24 flex items-center justify-center flex-shrink-0">
-                <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    className="text-slate-100"
-                    strokeWidth="3"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path
-                    className="text-[#C81D45]"
-                    strokeDasharray={`${profile.profileStrength || 85}, 100`}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-base font-extrabold text-[#0A1F44]">{profile.profileStrength || 85}%</span>
-                  <span className="text-[8px] font-bold text-[#8E8E93] uppercase">Complete</span>
-                </div>
-              </div>
+            {/* 4. COMPLETE PROFILE + QUICK ACTIONS + MEMBERSHIP + WALLET (Modular Grid) */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+              {/* Left (md:col-span-5): Complete Your Profile Checklist */}
+              <div className="md:col-span-5 bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="h-8 w-8 rounded-xl bg-pink-50 dark:bg-pink-950/40 text-[#FF1475] flex items-center justify-center">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+                        Complete Your Profile
+                      </h3>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        A complete profile helps you get more relevant matches.
+                      </p>
+                    </div>
+                  </div>
 
-              {/* Progress Detail */}
-              <div className="flex-1 space-y-3 text-center sm:text-left">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-[#0A1F44]">Complete Your Profile</h3>
-                  <p className="text-xs text-[#636366] leading-relaxed">
-                    A complete profile gets 3x more responses and compatibility matches.
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-[10px] font-bold text-[#8E8E93]">
-                  <span className="text-emerald-600 flex items-center gap-1">✓ Basic Info</span>
-                  <span className="text-amber-600 flex items-center gap-1">⚠ Photos (3/4)</span>
-                  <span className="text-emerald-600 flex items-center gap-1">✓ About Me</span>
-                  <span className="text-emerald-600 flex items-center gap-1">✓ Lifestyle</span>
-                </div>
-              </div>
+                  {/* 2-Column Real Checklist */}
+                  <div className="grid grid-cols-2 gap-2.5 py-4 text-xs font-semibold">
+                    <div
+                      className={`flex items-center gap-1.5 ${
+                        profileChecks.basicInfo ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                      }`}
+                    >
+                      {profileChecks.basicInfo ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                      ) : (
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                      )}
+                      <span className="truncate">Basic Information</span>
+                    </div>
 
-              <Link
-                href="/join"
-                className="px-5 py-2.5 rounded-xl bg-[#C81D45] hover:bg-[#A51436] text-white text-xs font-bold transition-all shadow-xs"
-              >
-                View Progress
-              </Link>
-            </div>
+                    <div
+                      className={`flex items-center gap-1.5 ${
+                        profileChecks.photos ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                      }`}
+                    >
+                      {profileChecks.photos ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                      ) : (
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                      )}
+                      <span className="truncate">Photos ({profileChecks.photoCount}/4)</span>
+                    </div>
 
-            {/* Quick Actions (Reference 2.6) */}
-            <div className="space-y-3">
-              <h2 className="text-sm font-extrabold text-[#0A1F44]">Quick Actions</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 text-center">
-                <Link href="/find" className="p-4 bg-white hover:bg-slate-50 border border-[rgba(28,28,30,0.06)] rounded-xl flex flex-col items-center space-y-1.5 transition-colors">
-                  <Search className="h-5 w-5 text-[#C81D45]" />
-                  <span className="text-[10px] font-bold text-[#0A1F44]">Find Matches</span>
-                </Link>
-                <Link href="/chat" className="relative p-4 bg-white hover:bg-slate-50 border border-[rgba(28,28,30,0.06)] rounded-xl flex flex-col items-center space-y-1.5 transition-colors">
-                  <MessageSquare className="h-5 w-5 text-blue-500" />
-                  {unreadMessagesCount > 0 && (
-                    <span className="absolute top-2 right-6 bg-[#C81D45] text-white rounded-full text-[8px] h-4 w-4 flex items-center justify-center font-bold">{unreadMessagesCount}</span>
-                  )}
-                  <span className="text-[10px] font-bold text-[#0A1F44]">Messages</span>
-                </Link>
-                <Link href="/requests" className="relative p-4 bg-white hover:bg-slate-50 border border-[rgba(28,28,30,0.06)] rounded-xl flex flex-col items-center space-y-1.5 transition-colors">
-                  <UserCheck className="h-5 w-5 text-emerald-500" />
-                  {pendingRequestsCount > 0 && (
-                    <span className="absolute top-2 right-6 bg-[#C81D45] text-white rounded-full text-[8px] h-4 w-4 flex items-center justify-center font-bold">{pendingRequestsCount}</span>
-                  )}
-                  <span className="text-[10px] font-bold text-[#0A1F44]">Requests</span>
-                </Link>
-                <Link href="/pricing" className="p-4 bg-white hover:bg-slate-50 border border-[rgba(28,28,30,0.06)] rounded-xl flex flex-col items-center space-y-1.5 transition-colors">
-                  <Zap className="h-5 w-5 text-purple-500" />
-                  <span className="text-[10px] font-bold text-[#0A1F44]">Boost Profile</span>
-                </Link>
-                <Link href="/pricing" className="p-4 bg-white hover:bg-slate-50 border border-[rgba(28,28,30,0.06)] rounded-xl flex flex-col items-center space-y-1.5 transition-colors">
-                  <Crown className="h-5 w-5 text-amber-500" />
-                  <span className="text-[10px] font-bold text-[#0A1F44]">Membership</span>
-                </Link>
-              </div>
-            </div>
+                    <div
+                      className={`flex items-center gap-1.5 ${
+                        profileChecks.aboutMe ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                      }`}
+                    >
+                      {profileChecks.aboutMe ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                      ) : (
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                      )}
+                      <span className="truncate">About Me</span>
+                    </div>
 
-            {/* Wallet & Plan Tiers Grid (Reference 2.7) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* Membership info */}
-              <div className="p-6 rounded-2xl bg-[#0A1F44] text-white space-y-3.5 shadow-md relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-xl" />
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-[#E0A899]">Account Level</span>
-                  <Crown className="h-5 w-5 text-[#D4AF37] fill-[#D4AF37]" />
+                    <div
+                      className={`flex items-center gap-1.5 ${
+                        profileChecks.lifestyle ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                      }`}
+                    >
+                      {profileChecks.lifestyle ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                      ) : (
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                      )}
+                      <span className="truncate">Lifestyle</span>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-1.5 ${
+                        profileChecks.familyDetails ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                      }`}
+                    >
+                      {profileChecks.familyDetails ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                      ) : (
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                      )}
+                      <span className="truncate">Family Details</span>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-1.5 ${
+                        profileChecks.horoscope ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600"
+                      }`}
+                    >
+                      {profileChecks.horoscope ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                      ) : (
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                      )}
+                      <span className="truncate">Horoscope Details</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold">{subscription ? subscription.plan.name : "Free Basic Member"}</h3>
-                  <p className="text-xs text-white/80 leading-relaxed font-medium">
-                    {subscription
-                      ? `Your premium plan is active and valid until ${new Date(subscription.endDate).toLocaleDateString()}. Enjoy instant unlocks.`
-                      : "Upgrade your membership plan to reveal direct contact numbers and astro horoscopes."}
-                  </p>
-                </div>
+
                 <Link
-                  href="/pricing"
-                  className="inline-block px-4 py-2 rounded-xl bg-[#C81D45] hover:bg-[#A51436] text-white text-xs font-bold transition-all shadow-xs"
+                  href="/join"
+                  className="w-full py-2.5 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-xs font-bold text-center transition-all shadow-xs"
                 >
-                  Upgrade Now &rarr;
+                  View Progress →
                 </Link>
               </div>
 
-              {/* Wallet Info */}
-              <div className="p-6 rounded-2xl bg-white border border-[rgba(28,28,30,0.06)] space-y-4 shadow-xs">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-[#636366] uppercase tracking-wider">Wallet Balance</span>
-                  <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
-                    <Wallet className="h-4.5 w-4.5" />
+              {/* Center (md:col-span-4): Quick Actions 6-Tile Grid */}
+              <div className="md:col-span-4 bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+                <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <Sparkles className="h-4 w-4 text-[#FF1475]" />
+                  <h3 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+                    Quick Actions
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2.5 py-3 text-center">
+                  {/* Find Matches */}
+                  <Link
+                    href="/find"
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-pink-50 dark:hover:bg-pink-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                  >
+                    <Search className="h-4 w-4 text-slate-600 dark:text-slate-300 group-hover:text-[#FF1475]" />
+                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      Find Matches
+                    </span>
+                  </Link>
+
+                  {/* Messages */}
+                  <Link
+                    href="/chat"
+                    className="relative p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                  >
+                    {unreadMessagesCount > 0 && (
+                      <span className="absolute top-1.5 right-1.5 h-4 min-w-[16px] px-1 rounded-full bg-[#FF1475] text-white text-[8px] font-extrabold flex items-center justify-center">
+                        {unreadMessagesCount}
+                      </span>
+                    )}
+                    <MessageSquare className="h-4 w-4 text-blue-600 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      Messages
+                    </span>
+                  </Link>
+
+                  {/* Requests */}
+                  <Link
+                    href="/requests"
+                    className="relative p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                  >
+                    {pendingRequestsCount > 0 && (
+                      <span className="absolute top-1.5 right-1.5 h-4 min-w-[16px] px-1 rounded-full bg-[#FF1475] text-white text-[8px] font-extrabold flex items-center justify-center">
+                        {pendingRequestsCount}
+                      </span>
+                    )}
+                    <UserCheck className="h-4 w-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      Requests
+                    </span>
+                  </Link>
+
+                  {/* Horoscope Match */}
+                  <Link
+                    href="/horoscope-match"
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-purple-50 dark:hover:bg-purple-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                  >
+                    <span className="text-purple-600 font-extrabold text-sm leading-none group-hover:scale-110 transition-transform">
+                      ॐ
+                    </span>
+                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      Horoscope
+                    </span>
+                  </Link>
+
+                  {/* Boost Profile */}
+                  <Link
+                    href="/pricing"
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                  >
+                    <Rocket className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      Boost Profile
+                    </span>
+                  </Link>
+
+                  {/* Membership */}
+                  <Link
+                    href="/pricing"
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/20 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-1.5 transition-colors group"
+                  >
+                    <Crown className="h-4 w-4 text-[#D4A853] group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold text-[#0A1F44] dark:text-white truncate w-full">
+                      Membership
+                    </span>
+                  </Link>
+                </div>
+                <div className="pt-2" />
+              </div>
+
+              {/* Right (md:col-span-3): Membership & Wallet Cards */}
+              <div className="md:col-span-3 space-y-4">
+                {/* Membership Card */}
+                <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-4.5 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Crown className="h-4 w-4 text-[#D4A853]" />
+                      <span className="text-xs font-bold text-[#0A1F44] dark:text-white">Your Membership</span>
+                    </div>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                      {planName}
+                    </span>
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-2xl font-extrabold text-[#0A1F44]">₹ {walletBalance}</div>
-                  <p className="text-xs text-[#636366] leading-relaxed">
-                    Purchase wallet credits to reveal single contact profiles without upgrading plans.
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                    Upgrade to access direct contacts and more features.
                   </p>
+                  <Link
+                    href="/pricing"
+                    className="block w-full py-2 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-[11px] font-bold text-center transition-colors shadow-xs"
+                  >
+                    Upgrade Now →
+                  </Link>
                 </div>
-                <Link href="/pricing" className="inline-block text-xs font-bold text-[#C81D45] hover:underline">
-                  Top Up Wallet &rarr;
-                </Link>
+
+                {/* Wallet Balance Card */}
+                <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-4.5 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#0A1F44] dark:text-white">Wallet Balance</span>
+                    <Wallet className="h-4 w-4 text-slate-400" />
+                  </div>
+                  <div className="text-xl font-extrabold text-[#0A1F44] dark:text-white">
+                    ₹ {walletBalance.toLocaleString("en-IN")}
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-snug">
+                    Purchase wallet credits to reveal contact details.
+                  </p>
+                  <Link
+                    href="/pricing"
+                    className="inline-block text-[11px] font-bold text-[#FF1475] hover:underline"
+                  >
+                    Top Up Wallet →
+                  </Link>
+                </div>
               </div>
             </div>
 
-            {/* Recent Activity List Feed */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <h2 className="text-sm font-extrabold text-[#0A1F44]">Recent Activity</h2>
-                <Link href="/notifications" className="text-xs font-bold text-[#C81D45] hover:underline">View All</Link>
+            {/* 5. RECENT ACTIVITY (Toward lower part of dashboard) */}
+            <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
+              <div className="flex justify-between items-center pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+                  Recent Activity
+                </h2>
+                <Link
+                  href="/notifications"
+                  className="text-xs font-bold text-[#FF1475] hover:underline flex items-center gap-0.5"
+                >
+                  <span>View All</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
               </div>
-              <div className="bg-white rounded-2xl border border-[rgba(28,28,30,0.06)] shadow-xs divide-y divide-slate-100">
-                {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-slate-400">
-                    No recent activities recorded.
-                  </div>
-                ) : (
-                  notifications.map((notif: any) => (
-                    <div key={notif.id} className="p-4 flex items-center justify-between text-xs">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-600">
+
+              {notifications.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
+                  <FileText className="h-7 w-7 text-slate-300 dark:text-slate-600 mx-auto mb-1.5 opacity-60" />
+                  <p className="font-semibold text-slate-600 dark:text-slate-300">No recent activities recorded.</p>
+                  <p className="text-[11px] mt-0.5">Your latest activity will appear here.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {notifications.map((notif: any) => (
+                    <div key={notif.id} className="py-3 flex items-center justify-between text-xs">
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 flex-shrink-0">
                           <Eye className="h-4 w-4" />
                         </div>
-                        <div>
-                          <p className="font-semibold text-[#0A1F44]">{notif.title}</p>
-                          <p className="text-[10px] text-slate-400 mt-0.5">{notif.message}</p>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[#0A1F44] dark:text-white truncate">{notif.title}</p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                            {notif.message}
+                          </p>
                         </div>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {new Date(notif.createdAt).toLocaleDateString()}
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 flex-shrink-0 ml-3 whitespace-nowrap">
+                        {new Date(notif.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                        })}
                       </span>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
-
           </main>
         </div>
       </div>

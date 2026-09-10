@@ -5,76 +5,67 @@ import Link from "next/link";
 import {
   Users,
   ShieldCheck,
+  User,
+  UserPlus,
   Crown,
   IndianRupee,
-  UserPlus,
-  Heart,
-  MessageSquare,
-  Sparkles,
-  AlertTriangle,
-  TrendingUp,
-  Download,
   Calendar,
-  CheckCircle,
   RefreshCw,
-  Clock,
+  TrendingUp,
+  TrendingDown,
+  ArrowUpRight,
+  ArrowDownRight,
+  ChevronDown,
+  Sparkles,
   ArrowRight,
-  ShieldAlert,
-  Search,
-  ExternalLink,
+  AlertCircle,
 } from "lucide-react";
 import MatrimonialLogoLoader from "@/components/ui/matrimonial-logo-loader";
 
 interface DashboardData {
   range: string;
   kpis: {
+    totalUsers: { value: number; growth: string; isPositive: boolean };
+    verifiedUsers: { value: number; growth: string; isPositive: boolean };
+    activeUsers: { value: number; growth: string; isPositive: boolean };
+    newSignups: { value: number; growth: string; isPositive: boolean };
+    premiumMembers: { value: number; growth: string; isPositive: boolean };
+    totalRevenue: { value: number; growth: string; isPositive: boolean; allTimeValue: number };
+  };
+  subscriptionDonut: {
+    totalMembers: number;
+    segments: Array<{ name: string; count: number; percentage: number; color: string }>;
+  };
+  horoscopeDonut: {
+    totalChecks: number;
+    segments: Array<{ name: string; shortName: string; count: number; percentage: number; color: string }>;
+  };
+  usersVsHoroscope: {
+    months: Array<{
+      month: string;
+      monthKey: string;
+      totalUsers: number;
+      usedHoroscope: number;
+      totalChecks: number;
+      combinedTotal: number;
+    }>;
+    adoptionRate: number;
+    uniqueHoroscopeUsers: number;
+    totalRegisteredUsers: number;
+  };
+  userGrowthChart: Array<{
+    date: string;
+    label: string;
     totalUsers: number;
     verifiedUsers: number;
-    activeUsers: number;
-    newUsers: number;
-    newUsersToday: number;
-    premiumMembers: number;
-    allTimeRevenue: number;
-    periodRevenue: number;
-    todayRevenue: number;
-    contactRequests: number;
-    contactRequestsToday: number;
-    horoscopeChecks: number;
-    nonRegChecks: number;
-    messagesCount: number;
-    messagesToday: number;
-    pendingVerifications: number;
-  };
-  smartAlerts: {
-    staleVerificationsCount: number;
-    unresolvedReportsCount: number;
-    failedPayments24hCount: number;
-  };
-  trajectoryChart: Array<{ total: number; label: string }>;
-  planDistribution: Array<{ planId: string; name: string; count: number }>;
-  recentUsers: Array<{
+  }>;
+  recentSignups: Array<{
+    index: number;
     id: string;
     name: string;
-    phone: string;
     email: string;
-    gender: string;
-    district: string;
-    plan: string;
-    verificationStatus: string;
-    profileSource: string;
-    createdAt: string;
-  }>;
-  pendingVerificationsList: Array<{
-    profileId: string;
-    userId: string;
-    name: string;
-    gender: string;
-    district: string;
-    phone: string;
-    email: string;
-    hasSelfie: boolean;
-    hasAadhaar: boolean;
-    createdAt: string;
+    registeredOn: string;
+    status: string;
   }>;
 }
 
@@ -86,11 +77,404 @@ const RANGES = [
   { id: "all", label: "All Time" },
 ];
 
+/**
+ * Helper to format compact numbers (e.g. 18452 -> 18.5K)
+ */
+function formatCompactNumber(num: number): string {
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
+  if (num >= 10_000) return (num / 1_000).toFixed(1) + "K";
+  if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
+  return num.toLocaleString("en-IN");
+}
+
+/**
+ * Donut SVG Component with center total and clean strokeDasharray segments
+ */
+function SvgDonutChart({
+  total,
+  totalLabel,
+  segments,
+  size = 180,
+  strokeWidth = 26,
+}: {
+  total: number;
+  totalLabel: string;
+  segments: Array<{ name: string; count: number; percentage: number; color: string }>;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+
+  if (total === 0 || segments.length === 0) {
+    return (
+      <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke="currentColor"
+            className="text-slate-100 dark:text-slate-800"
+            strokeWidth={strokeWidth}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-2">
+          <span className="text-xl font-extrabold text-[#0A1F44] dark:text-white">0</span>
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{totalLabel}</span>
+        </div>
+      </div>
+    );
+  }
+
+  let accumulatedPercent = 0;
+
+  return (
+    <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90 transform">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          className="text-slate-100 dark:text-slate-800"
+          strokeWidth={strokeWidth}
+        />
+        {segments.map((seg, i) => {
+          if (seg.count <= 0) return null;
+          const strokeDasharray = `${(seg.percentage / 100) * circumference} ${circumference}`;
+          const strokeDashoffset = -((accumulatedPercent / 100) * circumference);
+          accumulatedPercent += seg.percentage;
+
+          return (
+            <circle
+              key={seg.name + i}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke={seg.color}
+              strokeWidth={strokeWidth}
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="butt"
+              className="transition-all duration-500 hover:opacity-85"
+            />
+          );
+        })}
+      </svg>
+      {/* Center Label */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-2">
+        <span className="text-lg sm:text-xl font-extrabold text-[#0A1F44] dark:text-white leading-tight">
+          {total.toLocaleString("en-IN")}
+        </span>
+        <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mt-0.5">
+          {totalLabel}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Stacked Bar Chart Component for Users vs Unique Horoscope Users
+ */
+function StackedBarChart({
+  months,
+}: {
+  months: Array<{
+    month: string;
+    totalUsers: number;
+    usedHoroscope: number;
+    combinedTotal: number;
+  }>;
+}) {
+  const chartHeight = 150;
+  const maxVal = Math.max(...months.map((m) => m.totalUsers + m.usedHoroscope), 10);
+  // Nice round max ceiling
+  const yMax = Math.ceil(maxVal / 5000) * 5000 || 20000;
+  const yTicks = [yMax, Math.round(yMax * 0.75), Math.round(yMax * 0.5), Math.round(yMax * 0.25), 0];
+
+  return (
+    <div className="w-full flex flex-col justify-end pt-2">
+      <div className="flex items-end h-[160px] gap-2 sm:gap-3 w-full pl-8 sm:pl-10 pr-2 relative">
+        {/* Y-axis gridlines & labels */}
+        <div className="absolute left-0 top-0 bottom-6 w-8 sm:w-9 flex flex-col justify-between text-[9px] font-semibold text-slate-400 select-none">
+          {yTicks.map((val) => (
+            <span key={val} className="truncate text-right pr-1">
+              {val === 0 ? "0" : formatCompactNumber(val)}
+            </span>
+          ))}
+        </div>
+
+        {/* Horizontal grid lines */}
+        <div className="absolute left-8 sm:left-10 right-2 top-0 bottom-6 flex flex-col justify-between pointer-events-none">
+          {yTicks.map((val) => (
+            <div key={val} className="border-b border-slate-100 dark:border-slate-800/80 w-full" />
+          ))}
+        </div>
+
+        {/* Bars */}
+        {months.map((m, idx) => {
+          const totalUsersHeight = (m.totalUsers / yMax) * chartHeight;
+          const usedHoroHeight = (m.usedHoroscope / yMax) * chartHeight;
+          const combined = m.totalUsers + m.usedHoroscope;
+
+          return (
+            <div key={m.month + idx} className="flex-1 flex flex-col items-center h-full justify-end group z-10">
+              {/* Value label on top of bar */}
+              <span className="text-[10px] font-extrabold text-[#0A1F44] dark:text-white mb-1 transition-transform group-hover:-translate-y-0.5">
+                {combined > 0 ? formatCompactNumber(combined) : "0"}
+              </span>
+
+              {/* Stacked Pillar */}
+              <div className="w-full max-w-[32px] sm:max-w-[40px] flex flex-col justify-end rounded-t-md overflow-hidden shadow-xs">
+                {/* Upper stack: Unique Horoscope Users (Pink #FF1475) */}
+                <div
+                  style={{ height: `${Math.max(usedHoroHeight, m.usedHoroscope > 0 ? 3 : 0)}px` }}
+                  className="w-full bg-[#FF1475] transition-all duration-500 rounded-t-md hover:brightness-110"
+                  title={`Used Horoscope: ${m.usedHoroscope.toLocaleString()} users`}
+                />
+                {/* Lower stack: Total Users (Blue #3A7DFF) */}
+                <div
+                  style={{ height: `${Math.max(totalUsersHeight, m.totalUsers > 0 ? 3 : 0)}px` }}
+                  className="w-full bg-[#3A7DFF] transition-all duration-500 hover:brightness-110"
+                  title={`Total Users: ${m.totalUsers.toLocaleString()}`}
+                />
+              </div>
+
+              {/* X-axis Month Label */}
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-2">
+                {m.month}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * User Growth Overview Area Chart Component
+ */
+function UserGrowthAreaChart({
+  data,
+}: {
+  data: Array<{
+    date: string;
+    label: string;
+    totalUsers: number;
+    verifiedUsers: number;
+  }>;
+}) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-[200px] flex items-center justify-center text-xs text-slate-400 font-semibold">
+        No growth data recorded for this period yet.
+      </div>
+    );
+  }
+
+  const maxVal = Math.max(...data.map((d) => d.totalUsers), 10);
+  const yMax = Math.ceil(maxVal / 5000) * 5000 || 20000;
+  const yTicks = [yMax, Math.round(yMax * 0.75), Math.round(yMax * 0.5), Math.round(yMax * 0.25), 0];
+
+  const svgWidth = 650;
+  const svgHeight = 170;
+  const paddingLeft = 45;
+  const paddingRight = 20;
+  const paddingTop = 15;
+  const paddingBottom = 30;
+
+  const innerWidth = svgWidth - paddingLeft - paddingRight;
+  const innerHeight = svgHeight - paddingTop - paddingBottom;
+
+  const pointsCount = data.length;
+  const getX = (i: number) => paddingLeft + (i / Math.max(pointsCount - 1, 1)) * innerWidth;
+  const getY = (val: number) => paddingTop + innerHeight - (val / yMax) * innerHeight;
+
+  // Build SVG Path strings
+  let totalPath = "";
+  let verifiedPath = "";
+
+  data.forEach((d, i) => {
+    const x = getX(i);
+    const yTotal = getY(d.totalUsers);
+    const yVerif = getY(d.verifiedUsers);
+
+    if (i === 0) {
+      totalPath += `M ${x} ${yTotal}`;
+      verifiedPath += `M ${x} ${yVerif}`;
+    } else {
+      totalPath += ` L ${x} ${yTotal}`;
+      verifiedPath += ` L ${x} ${yVerif}`;
+    }
+  });
+
+  const totalAreaPath = `${totalPath} L ${getX(pointsCount - 1)} ${paddingTop + innerHeight} L ${getX(0)} ${paddingTop + innerHeight} Z`;
+  const verifiedAreaPath = `${verifiedPath} L ${getX(pointsCount - 1)} ${paddingTop + innerHeight} L ${getX(0)} ${paddingTop + innerHeight} Z`;
+
+  return (
+    <div className="relative w-full overflow-hidden">
+      <svg
+        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+        className="w-full h-auto overflow-visible select-none"
+      >
+        <defs>
+          {/* Pink Gradient for Total Users */}
+          <linearGradient id="pinkAreaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FF1475" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#FF1475" stopOpacity="0.0" />
+          </linearGradient>
+
+          {/* Blue Gradient for Verified Users */}
+          <linearGradient id="blueAreaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3A7DFF" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#3A7DFF" stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+
+        {/* Y Grid lines and labels */}
+        {yTicks.map((val) => {
+          const y = getY(val);
+          return (
+            <g key={val}>
+              <line
+                x1={paddingLeft}
+                y1={y}
+                x2={svgWidth - paddingRight}
+                y2={y}
+                stroke="currentColor"
+                className="text-slate-100 dark:text-slate-800"
+                strokeWidth="1"
+              />
+              <text
+                x={paddingLeft - 8}
+                y={y + 3}
+                textAnchor="end"
+                className="text-[9px] fill-slate-400 font-semibold"
+              >
+                {val === 0 ? "0" : formatCompactNumber(val)}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* X-axis Dates */}
+        {data.map((d, i) => {
+          const x = getX(i);
+          return (
+            <text
+              key={d.label + i}
+              x={x}
+              y={svgHeight - 10}
+              textAnchor="middle"
+              className="text-[9px] fill-slate-400 font-semibold"
+            >
+              {d.label}
+            </text>
+          );
+        })}
+
+        {/* Shaded Areas */}
+        <path d={totalAreaPath} fill="url(#pinkAreaGrad)" />
+        <path d={verifiedAreaPath} fill="url(#blueAreaGrad)" />
+
+        {/* Lines */}
+        <path
+          d={totalPath}
+          fill="none"
+          stroke="#FF1475"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d={verifiedPath}
+          fill="none"
+          stroke="#3A7DFF"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Interactive Data Points */}
+        {data.map((d, i) => {
+          const x = getX(i);
+          const yTotal = getY(d.totalUsers);
+          const yVerif = getY(d.verifiedUsers);
+
+          return (
+            <g key={"point-" + i} onMouseEnter={() => setHoveredIdx(i)} onMouseLeave={() => setHoveredIdx(null)}>
+              {/* Invisible touch/hover target */}
+              <rect
+                x={x - 12}
+                y={paddingTop}
+                width={24}
+                height={innerHeight}
+                fill="transparent"
+                className="cursor-pointer"
+              />
+              {/* Total Users Point */}
+              <circle
+                cx={x}
+                cy={yTotal}
+                r={hoveredIdx === i ? 5 : 3.5}
+                fill="#FFFFFF"
+                stroke="#FF1475"
+                strokeWidth="2"
+                className="transition-all"
+              />
+              {/* Verified Users Point */}
+              <circle
+                cx={x}
+                cy={yVerif}
+                r={hoveredIdx === i ? 5 : 3.5}
+                fill="#FFFFFF"
+                stroke="#3A7DFF"
+                strokeWidth="2"
+                className="transition-all"
+              />
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* Hover Tooltip */}
+      {hoveredIdx !== null && data[hoveredIdx] && (
+        <div
+          className="absolute bg-white dark:bg-[#0F2248] p-2.5 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 text-xs z-30 pointer-events-none animate-in fade-in duration-100"
+          style={{
+            left: `${Math.min(Math.max((hoveredIdx / (pointsCount - 1)) * 85, 10), 75)}%`,
+            top: "20px",
+          }}
+        >
+          <div className="font-bold text-[#0A1F44] dark:text-white mb-1">{data[hoveredIdx].label}</div>
+          <div className="flex items-center gap-2 text-[#FF1475] font-semibold text-[11px]">
+            <span className="h-2 w-2 rounded-full bg-[#FF1475]" />
+            <span>Total: {data[hoveredIdx].totalUsers.toLocaleString()}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[#3A7DFF] font-semibold text-[11px] mt-0.5">
+            <span className="h-2 w-2 rounded-full bg-[#3A7DFF]" />
+            <span>Verified: {data[hoveredIdx].verifiedUsers.toLocaleString()}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [range, setRange] = useState("30d");
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [rangeDropdownOpen, setRangeDropdownOpen] = useState(false);
 
   const loadData = (selectedRange: string) => {
     setLoading(true);
@@ -121,489 +505,504 @@ export default function AdminDashboard() {
 
   if (loading && !data) {
     return (
-      <div className="flex h-[70vh] flex-col items-center justify-center">
+      <div className="flex h-[75vh] flex-col items-center justify-center">
         <MatrimonialLogoLoader size="md" text="Loading Real Business Metrics..." />
       </div>
     );
   }
 
   const kpis = data?.kpis;
-  const alerts = data?.smartAlerts;
-  const totalAlerts = (alerts?.staleVerificationsCount || 0) + (alerts?.unresolvedReportsCount || 0) + (alerts?.failedPayments24hCount || 0);
-
-  // Trajectory calculation for SVG path
-  const trajectory = data?.trajectoryChart || [];
-  const maxVal = Math.max(...trajectory.map((t) => t.total), 5);
+  const currentRangeLabel = RANGES.find((r) => r.id === range)?.label || "Last 30 Days";
 
   return (
-    <div className="space-y-6 text-[#0A1F44]">
-      {/* Top Console Header & Dynamic Date Selector */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+    <div className="space-y-6 text-[#0A1F44] dark:text-white pb-8">
+      {/* 1. Header Section: Title, Subtitle, Date Range Dropdown & Refresh Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold text-[#0A1F44] tracking-tight">Business Management Console</h1>
-            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live DB
-            </span>
+          <div className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1">
+            Admin / Dashboard
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">
-            Real-time operations, memberships, horoscope checks, and revenue metrics.
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F44] dark:text-white tracking-tight">
+            Dashboard
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Welcome back, Admin! Here's what's happening with KeralamMatch today.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Dynamic Range Buttons */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-            {RANGES.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => setRange(r.id)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                  range === r.id
-                    ? "bg-[#0A1F44] text-white shadow-xs"
-                    : "text-slate-600 hover:text-[#0A1F44]"
-                }`}
-              >
-                {r.label}
-              </button>
-            ))}
+        {/* Date Range Selector & Refresh Action */}
+        <div className="flex items-center gap-2.5 flex-shrink-0">
+          {/* Dynamic Range Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setRangeDropdownOpen(!rangeDropdownOpen)}
+              className="h-10 px-3.5 rounded-xl bg-white dark:bg-[#0D1E3D] hover:bg-slate-50 dark:hover:bg-[#132B57] border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#0A1F44] dark:text-white flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+            >
+              <Calendar className="h-4 w-4 text-slate-400" />
+              <span>{currentRangeLabel}</span>
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            </button>
+
+            {rangeDropdownOpen && (
+              <div className="absolute right-0 top-12 w-44 bg-white dark:bg-[#0D1E3D] rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 z-40 animate-in fade-in duration-150">
+                {RANGES.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => {
+                      setRange(r.id);
+                      setRangeDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3.5 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${
+                      range === r.id
+                        ? "text-[#FF1475] bg-pink-50/60 dark:bg-pink-950/30 font-bold"
+                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
+                    }`}
+                  >
+                    <span>{r.label}</span>
+                    {range === r.id && <span className="h-1.5 w-1.5 rounded-full bg-[#FF1475]" />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
+          {/* Refresh Button */}
           <button
             onClick={handleRefresh}
-            title="Refresh metrics from live database"
-            className="h-9 px-3 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-[#0A1F44] text-xs font-bold flex items-center gap-1.5 transition-colors"
+            disabled={refreshing}
+            className="h-10 px-4 rounded-xl bg-[#FF1475] hover:bg-[#E60067] text-white text-xs font-extrabold flex items-center gap-2 shadow-sm transition-all hover:shadow-md cursor-pointer disabled:opacity-75"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin text-[#FF1475]" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
           </button>
         </div>
       </div>
 
-      {/* Quick Action Shortcuts Bar (Ambience ERP UX Style) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        <Link
-          href="/admin/users/create"
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-[#0A1F44] hover:bg-[#132A57] text-white text-xs font-bold transition-all shadow-xs group"
-        >
-          <div className="h-7 w-7 rounded-lg bg-[#FF1475] flex items-center justify-center flex-shrink-0">
-            <UserPlus className="h-4 w-4 text-white" />
-          </div>
-          <span className="truncate">+ Create Profile (Wizard)</span>
-        </Link>
-
-        <Link
-          href="/admin/verification"
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-[#0A1F44] transition-all shadow-xs"
-        >
-          <div className="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
-            <ShieldCheck className="h-4 w-4" />
-          </div>
-          <span className="truncate">Verification Queue</span>
-          {kpis?.pendingVerifications ? (
-            <span className="ml-auto text-[10px] font-black px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-700">
-              {kpis.pendingVerifications}
-            </span>
-          ) : null}
-        </Link>
-
-        <Link
-          href="/admin/analytics/horoscope"
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-[#0A1F44] transition-all shadow-xs"
-        >
-          <div className="h-7 w-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <span className="truncate">Horoscope Analytics</span>
-        </Link>
-
-        <Link
-          href="/admin/horoscope-leads"
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-[#0A1F44] transition-all shadow-xs"
-        >
-          <div className="h-7 w-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-            <Users className="h-4 w-4" />
-          </div>
-          <span className="truncate">Horoscope Leads CRM</span>
-        </Link>
-
-        <Link
-          href="/admin/payments"
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-[#0A1F44] transition-all shadow-xs"
-        >
-          <div className="h-7 w-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
-            <IndianRupee className="h-4 w-4" />
-          </div>
-          <span className="truncate">Payments & Revenue</span>
-        </Link>
-      </div>
-
-      {/* Smart Alerts Banner (High-contrast operational status) */}
-      {totalAlerts > 0 && (
-        <div className="bg-gradient-to-r from-amber-500/10 via-amber-50 to-white p-4 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="h-4 w-4" />
-            </div>
-            <div>
-              <span className="text-xs font-bold text-amber-900 block">
-                Attention Required: {totalAlerts} Operational Items Pending
-              </span>
-              <span className="text-[11px] text-amber-700 font-medium">
-                {alerts?.staleVerificationsCount ? `${alerts.staleVerificationsCount} verifications waiting > 24h. ` : ""}
-                {alerts?.unresolvedReportsCount ? `${alerts.unresolvedReportsCount} safety reports unresolved. ` : ""}
-                {alerts?.failedPayments24hCount ? `${alerts.failedPayments24hCount} failed transactions in last 24h.` : ""}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/admin/verification"
-              className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors"
-            >
-              Review Verifications
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* ZONE 1: REVENUE & MEMBERSHIP HEALTH (4 Dense Cards) */}
-      <div className="space-y-2">
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-          Revenue & Subscriptions ({RANGES.find((r) => r.id === range)?.label})
-        </span>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: Today's Revenue */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">Today's Revenue</span>
-              <span className="text-2xl font-black text-[#0A1F44] block">
-                ₹ {kpis?.todayRevenue ? kpis.todayRevenue.toLocaleString() : "0"}
-              </span>
-              <span className="text-[10px] font-semibold text-slate-400 block">From successful payments</span>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <IndianRupee className="h-6 w-6" />
-            </div>
-          </div>
-
-          {/* Card 2: Period Revenue */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">Revenue in Period</span>
-              <span className="text-2xl font-black text-[#0A1F44] block">
-                ₹ {kpis?.periodRevenue ? kpis.periodRevenue.toLocaleString() : "0"}
-              </span>
-              <span className="text-[10px] font-semibold text-slate-400 block">
-                All-time: ₹ {kpis?.allTimeRevenue ? kpis.allTimeRevenue.toLocaleString() : "0"}
-              </span>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <TrendingUp className="h-6 w-6" />
-            </div>
-          </div>
-
-          {/* Card 3: Active Premium Subscriptions */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">Active Premium Members</span>
-              <span className="text-2xl font-black text-[#0A1F44] block">
-                {kpis?.premiumMembers ? kpis.premiumMembers.toLocaleString() : "0"}
-              </span>
-              <span className="text-[10px] font-semibold text-slate-400 block">Paying active subscribers</span>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Crown className="h-6 w-6" />
-            </div>
-          </div>
-
-          {/* Card 4: Pending Verifications */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">Pending Verifications</span>
-              <span className="text-2xl font-black text-[#0A1F44] block">
-                {kpis?.pendingVerifications ? kpis.pendingVerifications.toLocaleString() : "0"}
-              </span>
-              <span className="text-[10px] font-semibold text-amber-600 block">
-                {alerts?.staleVerificationsCount ? `${alerts.staleVerificationsCount} overdue > 24h` : "Queue is fresh"}
-              </span>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-              <ShieldCheck className="h-6 w-6" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ZONE 2: MATCH & USER OPERATIONS (4 Dense Cards) */}
-      <div className="space-y-2">
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-          User Operations & Astrological Engagement
-        </span>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 5: Total Users */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">Total Registered Users</span>
-              <span className="text-2xl font-black text-[#0A1F44] block">
-                {kpis?.totalUsers ? kpis.totalUsers.toLocaleString() : "0"}
-              </span>
-              <span className="text-[10px] font-semibold text-emerald-600 block">
-                +{kpis?.newUsers || 0} in {RANGES.find((r) => r.id === range)?.label.toLowerCase()}
-              </span>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <Users className="h-6 w-6" />
-            </div>
-          </div>
-
-          {/* Card 6: Active Users */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">Active Users</span>
-              <span className="text-2xl font-black text-[#0A1F44] block">
-                {kpis?.activeUsers ? kpis.activeUsers.toLocaleString() : "0"}
-              </span>
-              <span className="text-[10px] font-semibold text-slate-400 block">Active in selected period</span>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-              <Users className="h-6 w-6" />
-            </div>
-          </div>
-
-          {/* Card 7: Horoscope Compatibility Checks */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">Horoscope Checks</span>
-              <span className="text-2xl font-black text-[#0A1F44] block">
-                {kpis?.horoscopeChecks ? kpis.horoscopeChecks.toLocaleString() : "0"}
-              </span>
-              <span className="text-[10px] font-semibold text-purple-600 block">
-                {kpis?.nonRegChecks || 0} new candidate checks
-              </span>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-              <Sparkles className="h-6 w-6" />
-            </div>
-          </div>
-
-          {/* Card 8: Contact Reveal Requests */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-500">Contact Requests</span>
-              <span className="text-2xl font-black text-[#0A1F44] block">
-                {kpis?.contactRequests ? kpis.contactRequests.toLocaleString() : "0"}
-              </span>
-              <span className="text-[10px] font-semibold text-slate-400 block">
-                +{kpis?.contactRequestsToday || 0} today
-              </span>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-pink-50 text-[#FF1475] flex items-center justify-center">
-              <Heart className="h-6 w-6" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* REAL CHARTS ROW: Trajectory & Subscription Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Real User Growth Trajectory Chart */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+      {/* 2. Top 6 KPI Cards Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
+        {/* KPI 1: Total Users */}
+        <div className="bg-white dark:bg-[#0D1E3D] p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:border-slate-300 dark:hover:border-slate-700">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xs font-bold text-[#0A1F44] uppercase tracking-wider">
-                User Registration Trajectory
-              </h3>
-              <p className="text-[11px] text-slate-500">Live database counts plotted by dynamic date interval</p>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Users</span>
+            <div className="h-8 w-8 rounded-xl bg-pink-50 dark:bg-pink-950/40 text-[#FF1475] flex items-center justify-center flex-shrink-0">
+              <Users className="h-4 w-4" />
             </div>
-            <span className="text-xs font-extrabold text-[#FF1475]">
-              +{kpis?.newUsers || 0} Registrations
-            </span>
           </div>
-
-          {/* SVG Trajectory Chart */}
-          <div className="h-48 w-full pt-4">
-            {trajectory.length === 0 || trajectory.every((t) => t.total === 0) ? (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs">
-                <span>No signups recorded in this date range yet.</span>
-                <span className="text-[10px] text-slate-300 mt-1">Showing 0 live data point</span>
-              </div>
-            ) : (
-              <div className="h-full flex items-end justify-between gap-1.5 px-2">
-                {trajectory.map((item, idx) => {
-                  const heightPct = Math.max(Math.round((item.total / maxVal) * 100), 4);
-                  return (
-                    <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 group h-full justify-end">
-                      <div className="text-[10px] font-bold text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {item.total}
-                      </div>
-                      <div
-                        style={{ height: `${heightPct}%` }}
-                        className="w-full max-w-[20px] rounded-t-md bg-gradient-to-t from-[#0A1F44] to-[#FF1475] group-hover:from-[#0A1F44] group-hover:to-[#D4A853] transition-all"
-                      />
-                      <span className="text-[9px] font-semibold text-slate-400 truncate w-full text-center">
-                        {item.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+          <div className="mt-3">
+            <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
+              {kpis?.totalUsers.value.toLocaleString("en-IN") || "0"}
+            </span>
+            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
+              {kpis?.totalUsers.isPositive ? (
+                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-0.5" />
+                  {kpis.totalUsers.growth}
+                </span>
+              ) : (
+                <span className="text-rose-600 dark:text-rose-400 flex items-center">
+                  <TrendingDown className="h-3 w-3 mr-0.5" />
+                  {kpis?.totalUsers.growth}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Real Subscription Plan Distribution */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
-          <div>
-            <h3 className="text-xs font-bold text-[#0A1F44] uppercase tracking-wider">Plan Distribution</h3>
-            <p className="text-[11px] text-slate-500">Breakdown of member subscriptions from Neon DB</p>
+        {/* KPI 2: Verified Users */}
+        <div className="bg-white dark:bg-[#0D1E3D] p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:border-slate-300 dark:hover:border-slate-700">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Verified Users</span>
+            <div className="h-8 w-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#3A7DFF] flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
+              {kpis?.verifiedUsers.value.toLocaleString("en-IN") || "0"}
+            </span>
+            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
+              {kpis?.verifiedUsers.isPositive ? (
+                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-0.5" />
+                  {kpis.verifiedUsers.growth}
+                </span>
+              ) : (
+                <span className="text-rose-600 dark:text-rose-400 flex items-center">
+                  <TrendingDown className="h-3 w-3 mr-0.5" />
+                  {kpis?.verifiedUsers.growth}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* KPI 3: Active Users */}
+        <div className="bg-white dark:bg-[#0D1E3D] p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:border-slate-300 dark:hover:border-slate-700">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Active Users</span>
+            <div className="h-8 w-8 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
+              <User className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
+              {kpis?.activeUsers.value.toLocaleString("en-IN") || "0"}
+            </span>
+            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
+              {kpis?.activeUsers.isPositive ? (
+                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-0.5" />
+                  {kpis.activeUsers.growth}
+                </span>
+              ) : (
+                <span className="text-rose-600 dark:text-rose-400 flex items-center">
+                  <TrendingDown className="h-3 w-3 mr-0.5" />
+                  {kpis?.activeUsers.growth}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* KPI 4: New Signups */}
+        <div className="bg-white dark:bg-[#0D1E3D] p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:border-slate-300 dark:hover:border-slate-700">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">New Signups</span>
+            <div className="h-8 w-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+              <UserPlus className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
+              {kpis?.newSignups.value.toLocaleString("en-IN") || "0"}
+            </span>
+            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
+              {kpis?.newSignups.isPositive ? (
+                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-0.5" />
+                  {kpis.newSignups.growth}
+                </span>
+              ) : (
+                <span className="text-rose-600 dark:text-rose-400 flex items-center">
+                  <TrendingDown className="h-3 w-3 mr-0.5" />
+                  {kpis?.newSignups.growth}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* KPI 5: Premium Members */}
+        <div className="bg-white dark:bg-[#0D1E3D] p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:border-slate-300 dark:hover:border-slate-700">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Premium Members</span>
+            <div className="h-8 w-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-[#D4A853] flex items-center justify-center flex-shrink-0">
+              <Crown className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
+              {kpis?.premiumMembers.value.toLocaleString("en-IN") || "0"}
+            </span>
+            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
+              {kpis?.premiumMembers.isPositive ? (
+                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-0.5" />
+                  {kpis.premiumMembers.growth}
+                </span>
+              ) : (
+                <span className="text-rose-600 dark:text-rose-400 flex items-center">
+                  <TrendingDown className="h-3 w-3 mr-0.5" />
+                  {kpis?.premiumMembers.growth}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* KPI 6: Total Revenue */}
+        <div className="bg-white dark:bg-[#0D1E3D] p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:border-slate-300 dark:hover:border-slate-700">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Revenue</span>
+            <div className="h-8 w-8 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0">
+              <IndianRupee className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl sm:text-2xl font-extrabold text-[#0A1F44] dark:text-white block tracking-tight">
+              ₹ {kpis?.totalRevenue.value.toLocaleString("en-IN") || "0"}
+            </span>
+            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
+              {kpis?.totalRevenue.isPositive ? (
+                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-0.5" />
+                  {kpis.totalRevenue.growth}
+                </span>
+              ) : (
+                <span className="text-rose-600 dark:text-rose-400 flex items-center">
+                  <TrendingDown className="h-3 w-3 mr-0.5" />
+                  {kpis?.totalRevenue.growth}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Middle Row (3 Analytics Cards) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Card 1: Subscription Distribution Donut */}
+        <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
+            <h2 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+              Subscription Distribution
+            </h2>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+              Live membership breakdown across registered profiles
+            </p>
           </div>
 
-          <div className="space-y-3 py-2">
-            {(data?.planDistribution || []).length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400">
-                No active plan subscriptions yet.
-              </div>
-            ) : (
-              data?.planDistribution.map((plan) => {
-                const total = kpis?.totalUsers || 1;
-                const pct = Math.round((plan.count / total) * 100);
-                return (
-                  <div key={plan.planId} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-[#0A1F44]">{plan.name}</span>
-                      <span className="text-slate-500">
-                        {plan.count} ({pct}%)
-                      </span>
-                    </div>
-                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        style={{ width: `${Math.max(pct, 2)}%` }}
-                        className="h-full bg-gradient-to-r from-[#D4A853] to-[#FF1475] rounded-full"
-                      />
-                    </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-5 py-4">
+            <SvgDonutChart
+              total={data?.subscriptionDonut.totalMembers || 0}
+              totalLabel="TOTAL MEMBERS"
+              segments={data?.subscriptionDonut.segments || []}
+              size={175}
+              strokeWidth={24}
+            />
+
+            {/* Legend List */}
+            <div className="w-full sm:flex-1 space-y-2.5">
+              {(data?.subscriptionDonut.segments || []).map((seg) => (
+                <div key={seg.name} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: seg.color }} />
+                    <span className="font-semibold text-[#0A1F44] dark:text-slate-200 truncate">{seg.name}</span>
                   </div>
-                );
-              })
-            )}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="font-bold text-slate-600 dark:text-slate-300">
+                      {seg.count.toLocaleString("en-IN")}
+                    </span>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 min-w-[38px] text-right">
+                      {seg.percentage.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-600">
-            <span>Total Memberships</span>
-            <span className="text-[#0A1F44] font-black">{kpis?.totalUsers || 0}</span>
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Free vs Paid Tier Ratio</span>
+            <span className="font-bold text-[#0A1F44] dark:text-slate-300">
+              {data?.kpis.premiumMembers.value || 0} Paid Active
+            </span>
+          </div>
+        </div>
+
+        {/* Card 2: Horoscope Compatibility Checks Donut */}
+        <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
+            <h2 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+              Horoscope Compatibility Checks
+            </h2>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+              Breakdown by Gun Milan score tiers (36 Gunas)
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-5 py-4">
+            <SvgDonutChart
+              total={data?.horoscopeDonut.totalChecks || 0}
+              totalLabel="TOTAL CHECKS"
+              segments={data?.horoscopeDonut.segments || []}
+              size={175}
+              strokeWidth={24}
+            />
+
+            {/* Legend List */}
+            <div className="w-full sm:flex-1 space-y-2.5">
+              {(data?.horoscopeDonut.segments || []).map((seg) => (
+                <div key={seg.name} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: seg.color }} />
+                    <span className="font-semibold text-[#0A1F44] dark:text-slate-200 truncate">{seg.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="font-bold text-slate-600 dark:text-slate-300">
+                      {seg.count.toLocaleString("en-IN")}
+                    </span>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 min-w-[38px] text-right">
+                      {seg.percentage.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>High Compatibility (18+)</span>
+            <span className="font-bold text-emerald-600 dark:text-emerald-400">
+              {((data?.horoscopeDonut.segments[0]?.percentage || 0) + (data?.horoscopeDonut.segments[1]?.percentage || 0)).toFixed(1)}%
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: Users vs Horoscope Checks (Stacked Bar Chart) */}
+        <div className="bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div className="pb-3 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+            <div>
+              <h2 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+                Users vs Horoscope Checks
+              </h2>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                Monthly user cohort vs horoscope engagement
+              </p>
+            </div>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 flex-shrink-0">
+              Adoption: {data?.usersVsHoroscope.adoptionRate || 0}%
+            </span>
+          </div>
+
+          {/* Legend row */}
+          <div className="flex items-center gap-4 text-xs font-semibold pt-2">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded bg-[#3A7DFF]" />
+              <span className="text-slate-600 dark:text-slate-300">Total Users</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded bg-[#FF1475]" />
+              <span className="text-slate-600 dark:text-slate-300">Used Horoscope</span>
+            </div>
+          </div>
+
+          {/* Stacked Bar Chart */}
+          <StackedBarChart months={data?.usersVsHoroscope.months || []} />
+
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Unique Horoscope Users</span>
+            <span className="font-bold text-[#0A1F44] dark:text-slate-300">
+              {data?.usersVsHoroscope.uniqueHoroscopeUsers.toLocaleString("en-IN") || 0} candidates
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ACTIONABLE QUEUES ROW: Pending Verifications & Recent Registrations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Verification Requests Queue */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              <h3 className="text-xs font-bold text-[#0A1F44] uppercase tracking-wider">
-                Pending Verification Queue
-              </h3>
+      {/* 4. Bottom Row: User Growth Overview (7 cols) + Recent Signups (5 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Left (7 cols): User Growth Overview Area Chart */}
+        <div className="lg:col-span-7 bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80 gap-2">
+            <div>
+              <h2 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+                User Growth Overview
+              </h2>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                Cumulative registrations & verified profiles
+              </p>
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-3 text-xs font-semibold">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#FF1475]" />
+                <span className="text-slate-600 dark:text-slate-300">Total Users</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#3A7DFF]" />
+                <span className="text-slate-600 dark:text-slate-300">Verified Users</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="py-2">
+            <UserGrowthAreaChart data={data?.userGrowthChart || []} />
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Verification Conversion Rate</span>
+            <span className="font-bold text-[#3A7DFF]">
+              {data?.kpis.totalUsers.value
+                ? ((data.kpis.verifiedUsers.value / data.kpis.totalUsers.value) * 100).toFixed(1)
+                : "0"}
+              %
+            </span>
+          </div>
+        </div>
+
+        {/* Right (5 cols): Recent Signups Table */}
+        <div className="lg:col-span-5 bg-white dark:bg-[#0D1E3D] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
+            <div>
+              <h2 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">
+                Recent Signups
+              </h2>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                Latest member accounts created in platform
+              </p>
             </div>
             <Link
-              href="/admin/verification"
-              className="text-xs font-bold text-[#FF1475] hover:underline flex items-center gap-1"
+              href="/admin/users"
+              className="text-xs font-bold text-[#FF1475] hover:text-[#E60067] flex items-center gap-1 transition-colors"
             >
               <span>View All</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
-          <div className="divide-y divide-slate-100">
-            {(data?.pendingVerificationsList || []).length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400">
-                <CheckCircle className="h-6 w-6 text-emerald-500 mx-auto mb-1.5 opacity-60" />
-                <span>Verification queue is empty. All submitted profiles are reviewed!</span>
+          <div className="overflow-x-auto py-2 flex-1">
+            {(data?.recentSignups || []).length === 0 ? (
+              <div className="py-12 text-center text-xs text-slate-400">
+                No user registrations recorded yet.
               </div>
             ) : (
-              data?.pendingVerificationsList.map((item) => (
-                <div key={item.profileId} className="py-3 flex items-center justify-between">
-                  <div className="min-w-0">
-                    <span className="text-xs font-bold text-[#0A1F44] block truncate">{item.name}</span>
-                    <span className="text-[11px] text-slate-500 block truncate">
-                      {item.gender} • {item.district} • {item.phone}
-                    </span>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      {item.hasAadhaar && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-blue-50 text-blue-700">
-                          Aadhaar
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800/80 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <th className="pb-2.5 font-bold">#</th>
+                    <th className="pb-2.5 font-bold">Name</th>
+                    <th className="pb-2.5 font-bold">Email</th>
+                    <th className="pb-2.5 font-bold">Registered On</th>
+                    <th className="pb-2.5 font-bold text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+                  {data?.recentSignups.map((user) => (
+                    <tr key={user.id} className="hover:bg-slate-50/60 dark:hover:bg-white/5 transition-colors">
+                      <td className="py-2.5 font-bold text-slate-400 text-[11px]">{user.index}</td>
+                      <td className="py-2.5 font-bold text-[#0A1F44] dark:text-white truncate max-w-[120px]">
+                        {user.name}
+                      </td>
+                      <td className="py-2.5 text-slate-500 dark:text-slate-400 font-mono text-[11px] truncate max-w-[130px]">
+                        {user.email}
+                      </td>
+                      <td className="py-2.5 text-slate-400 text-[11px] whitespace-nowrap">
+                        {user.registeredOn}
+                      </td>
+                      <td className="py-2.5 text-right">
+                        <span
+                          className={`inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                            user.status === "Verified"
+                              ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60"
+                              : "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60"
+                          }`}
+                        >
+                          {user.status}
                         </span>
-                      )}
-                      {item.hasSelfie && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-purple-50 text-purple-700">
-                          Selfie
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <Link
-                    href="/admin/verification"
-                    className="px-3 py-1.5 rounded-lg bg-[#0A1F44] hover:bg-[#132A57] text-white text-xs font-bold transition-colors flex-shrink-0"
-                  >
-                    Review
-                  </Link>
-                </div>
-              ))
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
-        </div>
 
-        {/* Recent Registrations Table */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-blue-600" />
-              <h3 className="text-xs font-bold text-[#0A1F44] uppercase tracking-wider">Recent Registrations</h3>
-            </div>
-            <Link
-              href="/admin/users"
-              className="text-xs font-bold text-[#FF1475] hover:underline flex items-center gap-1"
-            >
-              <span>View All Users</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Showing top 5 recent signups</span>
+            <Link href="/admin/users" className="font-bold text-[#0A1F44] dark:text-slate-300 hover:underline">
+              Manage Users →
             </Link>
-          </div>
-
-          <div className="divide-y divide-slate-100">
-            {(data?.recentUsers || []).length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400">
-                <span>No registrations recorded yet.</span>
-              </div>
-            ) : (
-              data?.recentUsers.map((user) => (
-                <div key={user.id} className="py-3 flex items-center justify-between">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#0A1F44] truncate">{user.name}</span>
-                      {user.profileSource === "ADMIN_CREATED" && (
-                        <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-[#D4A853]/20 text-[#0A1F44] border border-[#D4A853]/40">
-                          Admin Created
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[11px] text-slate-500 block truncate">
-                      {user.gender} • {user.district} • Plan: {user.plan}
-                    </span>
-                  </div>
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                      user.verificationStatus === "VERIFIED"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {user.verificationStatus}
-                  </span>
-                </div>
-              ))
-            )}
           </div>
         </div>
       </div>
