@@ -2,6 +2,7 @@
  * KeralamMatch — Unit Tests
  * Tests core utility functions, schema validation, and business logic helpers.
  */
+export {};
 
 // ─── Profile Completion Score ────────────────────────────────────────────────
 

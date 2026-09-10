@@ -10,7 +10,7 @@ export default function Footer({ variant = "default" }: FooterProps) {
 
   if (variant === "dashboard") {
     return (
-      <footer className="w-full border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0A1F44] py-4 px-4 sm:px-6 lg:px-8 mt-auto transition-colors">
+      <footer className="w-full border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#07132B] py-4 px-4 sm:px-6 lg:px-8 mt-auto transition-colors">
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 gap-3">
           <div className="flex items-center gap-3">
             <Logo className="scale-90 origin-left" />

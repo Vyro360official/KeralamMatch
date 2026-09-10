@@ -10,6 +10,7 @@ import {
   checkoutWalletTopUpAction 
 } from "@/modules/payments/payments.controller";
 import { getMembershipPlansAction } from "@/modules/subscription/subscription.controller";
+import { getProfileDetailsAction } from "@/modules/profile/profile.controller";
 import { Check, Crown, Shield, Star, Coins, AlertCircle, ShieldCheck } from "lucide-react";
 
 export default function PricingPage() {
@@ -18,6 +19,7 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(false);
   const [payingPlanId, setPayingPlanId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any | null>(null);
 
   useEffect(() => {
     async function loadPlans() {
@@ -27,6 +29,9 @@ export default function PricingPage() {
       }
     }
     loadPlans();
+    getProfileDetailsAction().then(res => {
+      if (res.success && res.profile) setCurrentUserProfile(res.profile);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -127,14 +132,14 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFBF7] text-[#1C1C1E]">
+    <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] text-[#1C1C1E] dark:text-white transition-colors">
       <Header />
 
       <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 mb-16 lg:mb-0">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Sidebar Navigation */}
-          <DashboardSidebar />
+          <DashboardSidebar userProfile={currentUserProfile} />
 
           {/* Main Content Area */}
           <main className="lg:col-span-9 space-y-12">
@@ -142,8 +147,8 @@ export default function PricingPage() {
             {/* Page Header (Matching Reference 1.10) */}
             <div className="text-center max-w-2xl mx-auto space-y-3">
               <span className="text-xs font-bold uppercase tracking-widest text-[#C81D45]">Membership Upgrade</span>
-              <h1 className="text-3xl sm:text-4xl font-bold text-[#0A1F44]">Choose Your Plan</h1>
-              <p className="text-xs text-[#636366]">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0A1F44] dark:text-white tracking-tight">Choose Your Plan</h1>
+              <p className="text-xs text-[#636366] dark:text-slate-400">
                 Upgrade to unlock unlimited contact reveals, direct encrypted chat, and priority verifications.
               </p>
             </div>
@@ -165,10 +170,10 @@ export default function PricingPage() {
                 return (
                   <div
                     key={p.id}
-                    className={`bg-white rounded-3xl p-6 border flex flex-col justify-between relative shadow-sm transition-all ${
+                    className={`bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 border flex flex-col justify-between relative shadow-sm transition-all ${
                       isGold
                         ? "border-[#D4AF37] shadow-xl scale-[1.02] ring-2 ring-[#D4AF37]/20"
-                        : "border-[rgba(28,28,30,0.08)]"
+                        : "border-slate-200/80 dark:border-slate-800"
                     }`}
                   >
                     <div>
@@ -180,8 +185,8 @@ export default function PricingPage() {
 
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-sm font-bold text-[#0A1F44]">{p.name}</h3>
-                          <span className="text-[10px] text-[#8E8E93] font-semibold">{p.durationDays} Days Duration</span>
+                          <h3 className="text-sm font-bold text-[#0A1F44] dark:text-white">{p.name}</h3>
+                          <span className="text-[10px] text-[#8E8E93] dark:text-slate-400 font-semibold">{p.durationDays} Days Duration</span>
                         </div>
                         <div className="h-9 w-9 rounded-xl bg-[#C81D45]/10 flex items-center justify-center text-[#C81D45]">
                           <Crown className="h-5 w-5 fill-current" />
@@ -240,15 +245,15 @@ export default function PricingPage() {
               <div className="flex items-center space-x-4">
                 <ShieldCheck className="h-8 w-8 text-[#C81D45] flex-shrink-0" />
                 <div>
-                  <h4 className="text-sm font-bold text-[#0A1F44]">100% Secure Payment Guarantee</h4>
-                  <p className="text-xs text-[#636366]">Encrypted via Razorpay SSL. Cancel anytime from profile settings.</p>
+                  <h4 className="text-sm font-bold text-[#0A1F44] dark:text-white">100% Secure Payment Guarantee</h4>
+                  <p className="text-xs text-[#636366] dark:text-slate-400">Encrypted via Razorpay SSL. Cancel anytime from profile settings.</p>
                 </div>
               </div>
 
               <div className="flex gap-4">
                 <button
                   onClick={() => handleBuyCredits(9900)}
-                  className="px-5 py-2.5 rounded-full border border-[rgba(28,28,30,0.12)] text-xs font-bold text-[#0A1F44] hover:bg-gray-50"
+                  className="px-5 py-2.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#0A1F44] dark:text-white hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors"
                 >
                   Buy 1 Reveal (₹99)
                 </button>
@@ -265,7 +270,7 @@ export default function PricingPage() {
         </div>
       </div>
 
-      <Footer />
+      <Footer variant="dashboard" />
     </div>
   );
 }

@@ -147,7 +147,7 @@ export default function ProfileClientView({
           </div>
           <Link
             href="/join"
-            className="px-5 py-2.5 rounded-full bg-white text-[#0A1F44] hover:bg-gray-100 text-xs font-bold transition-all shadow-sm whitespace-nowrap"
+            className="px-5 py-2.5 rounded-full bg-white text-[#0A1F44] dark:text-white hover:bg-gray-100 text-xs font-bold transition-all shadow-sm whitespace-nowrap"
           >
             Edit Profile Details
           </Link>
@@ -155,7 +155,7 @@ export default function ProfileClientView({
       )}
 
       {/* ── Profile Top Hero Card (Matching Reference 1.6) ────────────────── */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[rgba(28,28,30,0.08)] shadow-sm">
+      <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
         <div className="flex flex-col md:flex-row gap-8 items-start">
           
           {/* Main Portrait Photo */}
@@ -171,16 +171,16 @@ export default function ProfileClientView({
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-[#0A1F44]">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-[#0A1F44] dark:text-white">
                     {targetProfile.firstName} {targetProfile.lastName.charAt(0)}.
                   </h1>
                   
                   {/* Career & Profession Header Highlight */}
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-[#0A1F44] mt-1.5">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-[#0A1F44] dark:text-white mt-1.5">
                     <span className="flex items-center gap-1.5 bg-rose-50 text-[#C81D45] px-2.5 py-0.5 rounded-full border border-rose-200">
                       <Briefcase className="h-3 w-3 text-[#C81D45]" />
                       <span>{targetProfile.profession || "Senior Software Engineer"}</span>
-                      {targetProfile.company && <span className="text-[#636366]"> at {targetProfile.company}</span>}
+                      {targetProfile.company && <span className="text-[#636366] dark:text-slate-400"> at {targetProfile.company}</span>}
                     </span>
                     <span className="flex items-center gap-1.5 bg-blue-50 text-[#0A369D] px-2.5 py-0.5 rounded-full border border-blue-200">
                       <BookOpen className="h-3 w-3 text-[#0A369D]" />
@@ -188,7 +188,7 @@ export default function ProfileClientView({
                     </span>
                   </div>
 
-                  <p className="text-xs font-semibold text-[#636366] mt-1.5">
+                  <p className="text-xs font-semibold text-[#636366] dark:text-slate-400 mt-1.5">
                     {age} yrs, {targetProfile.height} cm · {targetProfile.religion}, {targetProfile.caste || "Nair"} {targetProfile.subCaste ? `(${targetProfile.subCaste})` : ""}
                   </p>
                   <p className="text-xs text-[#8E8E93] mt-0.5 flex items-center gap-1">
@@ -219,7 +219,7 @@ export default function ProfileClientView({
                 className={`px-5 py-2.5 rounded-full border text-xs font-bold flex items-center space-x-1.5 transition-all ${
                   isShortlisted
                     ? "bg-[#C81D45] text-white border-[#C81D45] shadow-sm"
-                    : "border-[rgba(28,28,30,0.12)] text-[#0A1F44] hover:bg-gray-50"
+                    : "border-[rgba(28,28,30,0.12)] text-[#0A1F44] dark:text-white hover:bg-gray-50"
                 }`}
               >
                 <Heart className={`h-4 w-4 ${isShortlisted ? "fill-white text-white" : "text-[#C81D45]"}`} />
@@ -265,7 +265,7 @@ export default function ProfileClientView({
             </div>
 
             {/* Tabs Row */}
-            <div className="flex border-b border-[rgba(28,28,30,0.08)] pt-4 gap-6 text-xs font-bold overflow-x-auto no-scrollbar">
+            <div className="flex border-b border-slate-200/80 dark:border-slate-800 pt-4 gap-6 text-xs font-bold overflow-x-auto no-scrollbar">
               {(["about", "education", "lifestyle", "family", "preference"] as const).map((tab) => (
                 <button
                   key={tab}
@@ -273,7 +273,7 @@ export default function ProfileClientView({
                   className={`pb-3 capitalize transition-all border-b-2 whitespace-nowrap ${
                     activeTab === tab
                       ? "border-[#C81D45] text-[#C81D45]"
-                      : "border-transparent text-[#636366] hover:text-[#0A1F44]"
+                      : "border-transparent text-[#636366] dark:text-slate-400 hover:text-[#0A1F44] dark:text-white"
                   }`}
                 >
                   {tab === "preference" ? "Partner Preference" : tab === "education" ? "Career & Education" : tab}
@@ -294,17 +294,17 @@ export default function ProfileClientView({
           
           {/* TAB: PARTNER PREFERENCES */}
           {activeTab === "preference" && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-6">
+            <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44]">Partner Preferences & Expectations</h3>
-                <p className="text-xs text-[#636366] mt-1">What {targetProfile.firstName} is looking for in a prospective life partner</p>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44] dark:text-white">Partner Preferences & Expectations</h3>
+                <p className="text-xs text-[#636366] dark:text-slate-400 mt-1">What {targetProfile.firstName} is looking for in a prospective life partner</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Age Preference</span>
-                  <span className="font-bold text-[#0A1F44] block">
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">
                     {targetProfile.partnerAgeMin ? `${targetProfile.partnerAgeMin} - ${targetProfile.partnerAgeMax} yrs` : (targetProfile.gender === "MALE" ? "22 - 27 yrs" : "26 - 32 yrs")}
                   </span>
                   {targetProfile.partnerAgeStrict && <span className="text-[10px] font-bold text-[#C81D45]">Strict Requirement</span>}
@@ -312,58 +312,58 @@ export default function ProfileClientView({
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Height Preference</span>
-                  <span className="font-bold text-[#0A1F44] block">
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">
                     {targetProfile.partnerHeightMin ? `${targetProfile.partnerHeightMin} cm - ${targetProfile.partnerHeightMax} cm` : (targetProfile.gender === "MALE" ? "155 cm - 170 cm" : "170 cm - 185 cm")}
                   </span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Marital Status</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.partnerMaritalStatus || "Never Married"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.partnerMaritalStatus || "Never Married"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Mother Tongue</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.partnerMotherTongue || "Malayalam"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.partnerMotherTongue || "Malayalam"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Religion & Caste</span>
-                  <span className="font-bold text-[#0A1F44] block">
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">
                     {targetProfile.partnerReligion || targetProfile.religion} · {targetProfile.partnerCaste || (targetProfile.caste ? `${targetProfile.caste} / Any` : "Caste No Bar")}
                   </span>
                   {targetProfile.partnerSubCaste && targetProfile.partnerSubCaste !== "Any" && (
-                    <span className="text-[10px] text-[#636366] block">Sub-caste: {targetProfile.partnerSubCaste}</span>
+                    <span className="text-[10px] text-[#636366] dark:text-slate-400 block">Sub-caste: {targetProfile.partnerSubCaste}</span>
                   )}
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Education Qualification</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.partnerEducation || "Graduate / Post Graduate"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.partnerEducation || "Graduate / Post Graduate"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Profession / Occupation</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.partnerProfession || "Any Profession / Working"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.partnerProfession || "Any Profession / Working"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Food & Habits</span>
-                  <span className="font-bold text-[#0A1F44] block">
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">
                     {targetProfile.partnerFoodHabits || "Open to Any"} · {targetProfile.partnerSmoking || "Non-Smoker"} · {targetProfile.partnerDrinking || "Non-Drinker"}
                   </span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Location & Residency</span>
-                  <span className="font-bold text-[#0A1F44] block">
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">
                     {targetProfile.partnerCountry || "Living in Kerala / India"} ({targetProfile.partnerDistrict || "Any District"})
                   </span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Astrology & Dosham</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.partnerDosham || (targetProfile.horoscopeRequired ? "Mandatory / Required" : "Flexible / Optional")}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.partnerDosham || (targetProfile.horoscopeRequired ? "Mandatory / Required" : "Flexible / Optional")}</span>
                 </div>
 
               </div>
@@ -372,31 +372,31 @@ export default function ProfileClientView({
 
           {/* TAB: CAREER & EDUCATION */}
           {activeTab === "education" && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-6">
+            <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44]">Career & Educational Background</h3>
-                <p className="text-xs text-[#636366] mt-1">Professional qualifications and occupation standing</p>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44] dark:text-white">Career & Educational Background</h3>
+                <p className="text-xs text-[#636366] dark:text-slate-400 mt-1">Professional qualifications and occupation standing</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Highest Qualification</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.education || "B.Tech Computer Science"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.education || "B.Tech Computer Science"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Profession / Role</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.profession || "Senior Software Engineer"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.profession || "Senior Software Engineer"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Company / Employer</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.company || "Reputed Organization"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.company || "Reputed Organization"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Annual Income</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.incomeBracket || "₹15 - 25 Lakhs / year"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.incomeBracket || "₹15 - 25 Lakhs / year"}</span>
                 </div>
               </div>
             </div>
@@ -404,31 +404,31 @@ export default function ProfileClientView({
 
           {/* TAB: LIFESTYLE */}
           {activeTab === "lifestyle" && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-6">
+            <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44]">Lifestyle & Habits</h3>
-                <p className="text-xs text-[#636366] mt-1">Daily habits, dietary choices, and lifestyle attributes</p>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44] dark:text-white">Lifestyle & Habits</h3>
+                <p className="text-xs text-[#636366] dark:text-slate-400 mt-1">Daily habits, dietary choices, and lifestyle attributes</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Dietary Habit</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.foodHabits || "Non-Vegetarian"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.foodHabits || "Non-Vegetarian"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Smoking</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.smoking || "No"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.smoking || "No"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Drinking</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.drinking || "No"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.drinking || "No"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Fitness Level</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.fitnessLevel || "Active"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.fitnessLevel || "Active"}</span>
                 </div>
               </div>
             </div>
@@ -436,31 +436,31 @@ export default function ProfileClientView({
 
           {/* TAB: FAMILY BACKGROUND */}
           {activeTab === "family" && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-6">
+            <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44]">Family Hierarchy & Heritage</h3>
-                <p className="text-xs text-[#636366] mt-1">Family status, values, and parents' background</p>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44] dark:text-white">Family Hierarchy & Heritage</h3>
+                <p className="text-xs text-[#636366] dark:text-slate-400 mt-1">Family status, values, and parents' background</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Family Status</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.familyStatus || "Upper Middle Class"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.familyStatus || "Upper Middle Class"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Family Type & Values</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.familyType || "Nuclear"} · {targetProfile.familyValues || "Moderate Traditional"}</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.familyType || "Nuclear"} · {targetProfile.familyValues || "Moderate Traditional"}</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Father</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.fatherName || "Father"} ({targetProfile.fatherOccupation || "Retd. Officer"})</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.fatherName || "Father"} ({targetProfile.fatherOccupation || "Retd. Officer"})</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1">
                   <span className="text-[#8E8E93] text-[10px] uppercase font-bold block">Mother</span>
-                  <span className="font-bold text-[#0A1F44] block">{targetProfile.motherName || "Mother"} ({targetProfile.motherOccupation || "Homemaker"})</span>
+                  <span className="font-bold text-[#0A1F44] dark:text-white block">{targetProfile.motherName || "Mother"} ({targetProfile.motherOccupation || "Homemaker"})</span>
                 </div>
               </div>
             </div>
@@ -470,66 +470,66 @@ export default function ProfileClientView({
           {activeTab === "about" && (
             <>
               {/* About Section */}
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44]">About Me</h3>
-                <p className="text-xs text-[#636366] leading-relaxed">
+              <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44] dark:text-white">About Me</h3>
+                <p className="text-xs text-[#636366] dark:text-slate-400 leading-relaxed">
                   {targetProfile.bio || "No description provided yet."}
                 </p>
               </div>
 
               {/* Key Attributes Grid */}
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-6">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44]">Personal & Career Attributes</h3>
+              <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A1F44] dark:text-white">Personal & Career Attributes</h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
                   <div>
                     <span className="text-[#8E8E93] block">Date of Birth (DD/MM/YYYY)</span>
-                    <span className="font-semibold text-[#0A1F44] block mt-0.5">
+                    <span className="font-semibold text-[#0A1F44] dark:text-white block mt-0.5">
                       {targetProfile.dateOfBirth ? formatDateDDMMYYYY(targetProfile.dateOfBirth) : "15/06/1996"} ({age} yrs)
                     </span>
                   </div>
 
                   <div>
                     <span className="text-[#8E8E93] block">Education</span>
-                    <span className="font-semibold text-[#0A1F44] block mt-0.5">{targetProfile.education || "Not specified"}</span>
+                    <span className="font-semibold text-[#0A1F44] dark:text-white block mt-0.5">{targetProfile.education || "Not specified"}</span>
                   </div>
 
                   <div>
                     <span className="text-[#8E8E93] block">Profession</span>
-                    <span className="font-semibold text-[#0A1F44] block mt-0.5">{targetProfile.profession || "Not specified"}</span>
+                    <span className="font-semibold text-[#0A1F44] dark:text-white block mt-0.5">{targetProfile.profession || "Not specified"}</span>
                   </div>
 
                   <div>
                     <span className="text-[#8E8E93] block">Mother Tongue</span>
-                    <span className="font-semibold text-[#0A1F44] block mt-0.5">{targetProfile.motherTongue || "Malayalam"}</span>
+                    <span className="font-semibold text-[#0A1F44] dark:text-white block mt-0.5">{targetProfile.motherTongue || "Malayalam"}</span>
                   </div>
 
                   <div>
                     <span className="text-[#8E8E93] block">Marital Status</span>
-                    <span className="font-semibold text-[#0A1F44] block mt-0.5">{targetProfile.maritalStatus}</span>
+                    <span className="font-semibold text-[#0A1F44] dark:text-white block mt-0.5">{targetProfile.maritalStatus}</span>
                   </div>
 
                   <div>
                     <span className="text-[#8E8E93] block">District & Location</span>
-                    <span className="font-semibold text-[#0A1F44] block mt-0.5">{targetProfile.district}, Kerala</span>
+                    <span className="font-semibold text-[#0A1F44] dark:text-white block mt-0.5">{targetProfile.district}, Kerala</span>
                   </div>
 
                   <div>
                     <span className="text-[#8E8E93] block">Religion & Caste</span>
-                    <span className="font-semibold text-[#0A1F44] block mt-0.5">{targetProfile.religion} ({targetProfile.caste || "General"})</span>
+                    <span className="font-semibold text-[#0A1F44] dark:text-white block mt-0.5">{targetProfile.religion} ({targetProfile.caste || "General"})</span>
                   </div>
                 </div>
               </div>
 
               {/* Horoscope Card */}
-              <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-4">
+              <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                   <div className="space-y-0.5">
                     <div className="flex items-center space-x-2">
                       <span className="text-[#C81D45] font-extrabold text-base">ॐ</span>
-                      <h3 className="text-sm font-bold text-[#0A1F44]">Horoscope Details (ജാതകം)</h3>
+                      <h3 className="text-sm font-bold text-[#0A1F44] dark:text-white">Horoscope Details (ജാതകം)</h3>
                     </div>
-                    <p className="text-xs text-[#636366]">
+                    <p className="text-xs text-[#636366] dark:text-slate-400">
                       {targetProfile.horoscopeRequired
                         ? "Horoscope match is mandatory for this profile · Traditional 10-Porutham analysis"
                         : "Horoscope available · SoftAstro calculations & uploaded copy available on request"}
@@ -600,8 +600,8 @@ export default function ProfileClientView({
         <div className="lg:col-span-4 space-y-8">
           
           {/* Verified Details Card (Matching Reference 1.6) */}
-          <div className="bg-white rounded-3xl p-6 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A1F44]">Verified Details</h3>
+          <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A1F44] dark:text-white">Verified Details</h3>
             
             <div className="space-y-3 text-xs">
               <div className="flex items-center justify-between text-emerald-700">
@@ -639,13 +639,13 @@ export default function ProfileClientView({
           </div>
 
           {/* Ephemeral Contact Reveal Card */}
-          <div className="bg-white rounded-3xl p-6 border border-[rgba(28,28,30,0.08)] shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
             <div className="flex items-center space-x-2">
               <Lock className="h-4 w-4 text-[#C81D45]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A1F44]">Contact Access</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A1F44] dark:text-white">Contact Access</h3>
             </div>
             
-            <p className="text-xs text-[#636366] leading-relaxed">
+            <p className="text-xs text-[#636366] dark:text-slate-400 leading-relaxed">
               Upon mutual consent, phone number and email credentials unlock for exactly 24 hours.
             </p>
 
@@ -666,8 +666,8 @@ export default function ProfileClientView({
             ) : contactRequest.status === "PENDING" ? (
               <div className="p-4 bg-[#FCFBF7] rounded-2xl text-center space-y-1">
                 <Clock className="h-5 w-5 text-[#C81D45] mx-auto animate-pulse" />
-                <span className="text-xs font-bold text-[#0A1F44] block">Contact Request Pending</span>
-                <span className="text-[10px] text-[#636366] block">Awaiting member consent.</span>
+                <span className="text-xs font-bold text-[#0A1F44] dark:text-white block">Contact Request Pending</span>
+                <span className="text-[10px] text-[#636366] dark:text-slate-400 block">Awaiting member consent.</span>
               </div>
             ) : contactRequest.status === "ACCEPTED" && timeLeft > 0 ? (
               <div className="space-y-3">
@@ -677,7 +677,7 @@ export default function ProfileClientView({
                 </div>
 
                 {unlockedDetails ? (
-                  <div className="p-4 bg-[#FCFBF7] rounded-2xl space-y-2 text-xs font-semibold text-[#0A1F44]">
+                  <div className="p-4 bg-[#FCFBF7] rounded-2xl space-y-2 text-xs font-semibold text-[#0A1F44] dark:text-white">
                     <div className="flex items-center space-x-2">
                       <Phone className="h-4 w-4 text-[#C81D45]" />
                       <span>{unlockedDetails.phone}</span>
@@ -700,11 +700,11 @@ export default function ProfileClientView({
             ) : (
               <div className="p-4 bg-[#FCFBF7] rounded-2xl text-center space-y-2">
                 <Lock className="h-5 w-5 text-[#8E8E93] mx-auto" />
-                <span className="text-xs font-bold text-[#0A1F44] block">24h Access Expired</span>
+                <span className="text-xs font-bold text-[#0A1F44] dark:text-white block">24h Access Expired</span>
                 <button
                   onClick={handleRequestContact}
                   disabled={loading}
-                  className="px-4 py-1.5 rounded-full border border-[rgba(28,28,30,0.12)] text-xs font-bold text-[#0A1F44]"
+                  className="px-4 py-1.5 rounded-full border border-[rgba(28,28,30,0.12)] text-xs font-bold text-[#0A1F44] dark:text-white"
                 >
                   Request Again
                 </button>

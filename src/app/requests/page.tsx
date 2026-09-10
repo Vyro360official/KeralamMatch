@@ -80,7 +80,7 @@ export default function RequestsPage() {
   const displayList = getFilteredList();
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFBF7] text-[#1C1C1E]">
+    <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] text-[#1C1C1E] dark:text-white transition-colors">
       <Header />
 
       <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 mb-16 lg:mb-0">
@@ -90,8 +90,8 @@ export default function RequestsPage() {
           <main className="lg:col-span-9 space-y-6">
             {/* Header info */}
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F44] tracking-tight">Contact Requests</h1>
-              <p className="text-xs text-[#636366] font-medium mt-1">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F44] dark:text-white tracking-tight">Contact Requests</h1>
+              <p className="text-xs text-[#636366] dark:text-slate-400 font-medium mt-1">
                 Manage your ephemeral 24-hour contact reveal requests and user consents.
               </p>
             </div>
@@ -104,7 +104,7 @@ export default function RequestsPage() {
             )}
 
             {/* Horizontal tab rows */}
-            <div className="flex rounded-xl bg-white p-1 border border-[rgba(28,28,30,0.06)] shadow-xs text-xs font-semibold">
+            <div className="flex rounded-2xl bg-white dark:bg-[#0D1E3D] p-1.5 border border-slate-200/80 dark:border-slate-800 shadow-sm text-xs font-semibold">
               {(["received", "sent", "active", "expired"] as const).map((tab) => {
                 const count =
                   tab === "received"
@@ -121,8 +121,8 @@ export default function RequestsPage() {
                     onClick={() => setActiveTab(tab)}
                     className={`flex-1 py-2.5 rounded-lg capitalize transition-all ${
                       activeTab === tab
-                        ? "bg-[#C81D45] text-white font-bold shadow-xs"
-                        : "text-slate-500 hover:text-[#0A1F44]"
+                        ? "bg-gradient-to-r from-[#FF1475] to-[#C81D45] text-white font-bold shadow-xs"
+                        : "text-slate-500 dark:text-slate-400 hover:text-[#0A1F44] dark:hover:text-white"
                     }`}
                   >
                     {tab} ({count})
@@ -139,7 +139,7 @@ export default function RequestsPage() {
                 ))}
               </div>
             ) : displayList.length === 0 ? (
-              <div className="bg-white rounded-2xl p-16 text-center text-xs text-[#636366] border border-[rgba(28,28,30,0.06)] shadow-xs font-medium">
+              <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-16 text-center text-xs text-[#636366] dark:text-slate-400 border border-slate-200/80 dark:border-slate-800 shadow-sm font-medium">
                 No {activeTab} contact requests found.
               </div>
             ) : (
@@ -164,7 +164,7 @@ export default function RequestsPage() {
                   return (
                     <div
                       key={r.id}
-                      className="bg-white rounded-2xl p-5 border border-[rgba(28,28,30,0.06)] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5"
+                      className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all hover:shadow-md"
                     >
                       <div className="flex items-start space-x-4">
                         <div className="h-11 w-11 rounded-full bg-[#FCE8EC] text-[#C81D45] flex items-center justify-center font-extrabold text-sm flex-shrink-0 border border-[#FAD2DA]">
@@ -172,15 +172,15 @@ export default function RequestsPage() {
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <h3 className="text-xs font-bold text-[#0A1F44]">
+                            <h3 className="text-xs font-bold text-[#0A1F44] dark:text-white">
                               {otherName}
                             </h3>
-                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 uppercase tracking-wider">
+                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                               {r.isIncoming ? "Incoming" : "Outgoing"}
                             </span>
                           </div>
                           
-                          <p className="text-[11px] text-[#636366] font-medium leading-normal">
+                          <p className="text-[11px] text-[#636366] dark:text-slate-400 font-medium leading-normal">
                             {r.isIncoming
                               ? "Requested to unlock your verified contact details"
                               : "You requested to view their contact details"}
@@ -188,12 +188,12 @@ export default function RequestsPage() {
 
                           {/* Reveal Data display for active window */}
                           {isCurrentlyActive ? (
-                            <div className="p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl space-y-1.5 mt-2 animate-fadeIn">
-                              <div className="text-[10px] font-extrabold text-emerald-800 flex items-center gap-1">
+                            <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl space-y-1.5 mt-2 animate-fadeIn">
+                              <div className="text-[10px] font-extrabold text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
                                 <Clock className="h-3.5 w-3.5" />
                                 <span>Contact access available for {hoursRemaining} hours</span>
                               </div>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-bold text-slate-700 pt-1">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 pt-1">
                                 <div className="flex items-center gap-1.5">
                                   <Phone className="h-3.5 w-3.5 text-emerald-600" />
                                   <span>{profileInfo?.phone || currentUserProfile?.phone || "+91 9400983851"}</span>
@@ -205,8 +205,8 @@ export default function RequestsPage() {
                               </div>
                             </div>
                           ) : isCurrentlyExpired ? (
-                            <div className="p-3 bg-red-50/50 border border-red-100 rounded-xl space-y-1 mt-2">
-                              <div className="text-[10px] font-extrabold text-red-800 flex items-center gap-1">
+                            <div className="p-3 bg-red-50/70 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-2xl space-y-1 mt-2">
+                              <div className="text-[10px] font-extrabold text-red-800 dark:text-red-300 flex items-center gap-1">
                                 <ShieldAlert className="h-3.5 w-3.5 text-red-600" />
                                 <span>Contact access expired</span>
                               </div>
@@ -277,7 +277,7 @@ export default function RequestsPage() {
         </div>
       </div>
 
-      <Footer />
+      <Footer variant="dashboard" />
     </div>
   );
 }

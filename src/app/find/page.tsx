@@ -192,10 +192,10 @@ export default function DiscoverPage() {
   const FilterPanelContent = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold text-[#0A1F44] uppercase tracking-wider">Filters</h3>
+        <h3 className="text-xs font-bold text-[#0A1F44] dark:text-white uppercase tracking-wider">Filters</h3>
         <button
           onClick={resetFilters}
-          className="text-[10px] font-bold text-[#C81D45] hover:underline"
+          className="text-[10px] font-bold text-[#FF1475] hover:underline"
         >
           Reset
         </button>
@@ -213,7 +213,7 @@ export default function DiscoverPage() {
               <select
                 value={minAge}
                 onChange={(e) => setMinAge(Number(e.target.value))}
-                className="flex-1 h-9 rounded-lg border border-slate-200 bg-[#FCFBF7] text-xs font-semibold px-2 focus:outline-none"
+                className="flex-1 h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-[#FCFBF7] dark:bg-[#07132B] text-slate-900 dark:text-white text-xs font-semibold px-2 focus:outline-none"
               >
                 {[18, 20, 22, 24, 26, 28, 30].map(v => <option key={v} value={v}>{v}</option>)}
               </select>
@@ -221,7 +221,7 @@ export default function DiscoverPage() {
               <select
                 value={maxAge}
                 onChange={(e) => setMaxAge(Number(e.target.value))}
-                className="flex-1 h-9 rounded-lg border border-slate-200 bg-[#FCFBF7] text-xs font-semibold px-2 focus:outline-none"
+                className="flex-1 h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-[#FCFBF7] dark:bg-[#07132B] text-slate-900 dark:text-white text-xs font-semibold px-2 focus:outline-none"
               >
                 {[25, 27, 30, 33, 36, 40, 50].map(v => <option key={v} value={v}>{v}</option>)}
               </select>
@@ -234,7 +234,7 @@ export default function DiscoverPage() {
             <select
               value={minHeight}
               onChange={(e) => setMinHeight(e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-[#FCFBF7] text-xs font-semibold px-3 focus:outline-none"
+              className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-[#FCFBF7] dark:bg-[#07132B] text-slate-900 dark:text-white text-xs font-semibold px-3 focus:outline-none"
             >
               <option value="">Any</option>
               <option value="150">150 cm +</option>
@@ -249,7 +249,7 @@ export default function DiscoverPage() {
             <select
               value={selectedDistrict}
               onChange={(e) => setSelectedDistrict(e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-[#FCFBF7] text-xs font-semibold px-3 focus:outline-none"
+              className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-[#FCFBF7] dark:bg-[#07132B] text-slate-900 dark:text-white text-xs font-semibold px-3 focus:outline-none"
             >
               <option value="">Any Location</option>
               <option value="Kochi">Kochi</option>
@@ -265,7 +265,7 @@ export default function DiscoverPage() {
             <select
               value={religion}
               onChange={(e) => setReligion(e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-[#FCFBF7] text-xs font-semibold px-3 focus:outline-none"
+              className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-[#FCFBF7] dark:bg-[#07132B] text-slate-900 dark:text-white text-xs font-semibold px-3 focus:outline-none"
             >
               <option value="">Any</option>
               <option value="Hindu">Hindu</option>
@@ -280,7 +280,7 @@ export default function DiscoverPage() {
             <select
               value={selectedCaste}
               onChange={(e) => setSelectedCaste(e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-[#FCFBF7] text-xs font-semibold px-3 focus:outline-none"
+              className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-[#FCFBF7] dark:bg-[#07132B] text-slate-900 dark:text-white text-xs font-semibold px-3 focus:outline-none"
             >
               <option value="">Any</option>
               <option value="Nair">Nair</option>
@@ -295,7 +295,7 @@ export default function DiscoverPage() {
             <select
               value={education}
               onChange={(e) => setEducation(e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-[#FCFBF7] text-xs font-semibold px-3 focus:outline-none"
+              className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-[#FCFBF7] dark:bg-[#07132B] text-slate-900 dark:text-white text-xs font-semibold px-3 focus:outline-none"
             >
               <option value="">Any</option>
               <option value="Doctor">Doctoral / MD</option>
@@ -310,7 +310,7 @@ export default function DiscoverPage() {
             <select
               value={profession}
               onChange={(e) => setProfession(e.target.value)}
-              className="w-full h-9 rounded-lg border border-slate-200 bg-[#FCFBF7] text-xs font-semibold px-3 focus:outline-none"
+              className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-[#FCFBF7] dark:bg-[#07132B] text-slate-900 dark:text-white text-xs font-semibold px-3 focus:outline-none"
             >
               <option value="">Any</option>
               <option value="Engineer">Software Engineer</option>
@@ -379,7 +379,7 @@ export default function DiscoverPage() {
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFBF7] text-[#1C1C1E]">
+    <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] text-[#1C1C1E] dark:text-white transition-colors">
       <Header />
 
       <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 mb-16 lg:mb-0">
@@ -393,24 +393,24 @@ export default function DiscoverPage() {
             
             {/* Header Title & Subtitle */}
             <div className="space-y-1">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F44] tracking-tight">Find Matches</h1>
-              <p className="text-xs text-[#636366] font-medium">Discover compatible matches based on your preferences.</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F44] dark:text-white tracking-tight">Find Matches</h1>
+              <p className="text-xs text-[#636366] dark:text-slate-400 font-medium">Discover compatible matches based on your preferences.</p>
             </div>
 
             {/* Top view filter tabs */}
             <div className="flex items-center justify-between border-b border-[rgba(28,28,30,0.08)] pb-2 flex-wrap gap-4">
-              <div className="flex space-x-5 text-xs font-bold text-[#636366]">
+              <div className="flex space-x-5 text-xs font-bold text-[#636366] dark:text-slate-400">
                 {(["Recommended", "Recently Active", "New Members", "Premium Matches"] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`pb-2 transition-all relative ${
-                      activeTab === tab ? "text-[#C81D45]" : "hover:text-[#0A1F44]"
+                      activeTab === tab ? "text-[#FF1475]" : "hover:text-[#0A1F44] dark:hover:text-white"
                     }`}
                   >
                     <span>{tab}</span>
                     {activeTab === tab && (
-                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C81D45] rounded-full" />
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF1475] rounded-full" />
                     )}
                   </button>
                 ))}
@@ -419,7 +419,7 @@ export default function DiscoverPage() {
               {/* Sort selector dropdown */}
               <div className="flex items-center space-x-1 text-xs font-bold text-slate-500">
                 <span>Sort by:</span>
-                <button className="text-slate-800 flex items-center gap-0.5">
+                <button className="text-slate-800 dark:text-white flex items-center gap-0.5">
                   <span>Best Match</span>
                   <ChevronDown className="h-3.5 w-3.5" />
                 </button>
@@ -427,7 +427,7 @@ export default function DiscoverPage() {
             </div>
 
             {/* Conversational AI search input prompt */}
-            <div className="bg-white rounded-2xl p-4 border border-[rgba(28,28,30,0.06)] shadow-xs space-y-3">
+            <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
               <div className="flex items-center space-x-2 text-[10px] font-bold text-[#C81D45] uppercase tracking-wider">
                 <Sparkles className="h-4 w-4" />
                 <span>AI Smart Search</span>
@@ -485,7 +485,7 @@ export default function DiscoverPage() {
                       ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400"
                       : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400";
                   return (
-                    <div key={item.id} className="group bg-white rounded-2xl border border-[rgba(28,28,30,0.06)] overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+                    <div key={item.id} className="group bg-white dark:bg-[#0D1E3D] rounded-3xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
                       <div>
                         {/* Portrait photo frame */}
                         <div className="aspect-[4/5] relative bg-slate-50 overflow-hidden">
@@ -501,15 +501,15 @@ export default function DiscoverPage() {
                         {/* Profiles body details */}
                         <div className="p-4 space-y-2">
                           <div className="flex items-center gap-1.5">
-                            <h3 className="text-sm font-bold text-[#0A1F44]">
+                            <h3 className="text-sm font-bold text-[#0A1F44] dark:text-white">
                               {item.firstName} {item.lastName}
                             </h3>
                             <span className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[9px] font-bold" title="Verified Member">✓</span>
                           </div>
-                          <p className="text-[11px] text-[#636366] font-medium leading-normal">
+                          <p className="text-[11px] text-[#636366] dark:text-slate-400 font-medium leading-normal">
                             {age} yrs · {item.height ? `${item.height} cm` : "160 cm"} · {item.profession || "Professional"}
                           </p>
-                          <p className="text-[10px] text-[#8E8E93] font-semibold">
+                          <p className="text-[10px] text-[#8E8E93] dark:text-slate-400 font-semibold">
                             {item.caste || "General"} · {item.district}, Kerala
                           </p>
                         </div>
@@ -517,7 +517,7 @@ export default function DiscoverPage() {
 
                       {/* Compatibility match percentages and quick actions */}
                       <div className="p-4 pt-0 space-y-3.5">
-                        <div className="flex items-center justify-between text-[10px] font-bold pt-2 border-t border-slate-100 text-slate-600">
+                        <div className="flex items-center justify-between text-[10px] font-bold pt-2 border-t border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400">
                           <span className="text-emerald-600 flex items-center gap-1">
                             <Star className="h-3 w-3 fill-emerald-500 text-emerald-500" />
                             <span>88% Match</span>
@@ -532,13 +532,13 @@ export default function DiscoverPage() {
                           <div className="flex gap-2">
                             <Link
                               href={`/profile/${item.id}`}
-                              className="flex-1 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-[10px] font-bold text-center transition-colors"
+                              className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-[10px] font-bold text-center transition-colors"
                             >
                               View Profile
                             </Link>
                             <button
                               onClick={() => alert("Interest sent successfully!")}
-                              className="flex-1 py-1.5 rounded-lg bg-[#C81D45] hover:bg-[#A51436] text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
+                              className="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#FF1475] to-[#C81D45] hover:opacity-95 text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-all shadow-xs"
                             >
                               <Send className="h-3 w-3" />
                               <span>Send Interest</span>
@@ -580,7 +580,7 @@ export default function DiscoverPage() {
 
           {/* Desktop Right Filter Sidebar Column (Reference 4.4) */}
           <aside className="hidden lg:block lg:col-span-3">
-            <div className="sticky top-24 bg-white border border-[rgba(28,28,30,0.06)] rounded-2xl p-5 shadow-xs">
+            <div className="sticky top-24 bg-white dark:bg-[#0D1E3D] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
               <FilterPanelContent />
             </div>
           </aside>
@@ -592,7 +592,7 @@ export default function DiscoverPage() {
       {isFilterDrawerOpen && (
         <>
           <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs" onClick={() => setIsFilterDrawerOpen(false)} />
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto animate-slideUp">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#0D1E3D] text-[#1C1C1E] dark:text-white rounded-t-3xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto animate-slideUp border-t border-slate-200/80 dark:border-slate-800">
             <div className="flex justify-center mb-4">
               <div className="w-10 h-1 bg-slate-300 rounded-full" />
             </div>
@@ -601,7 +601,7 @@ export default function DiscoverPage() {
         </>
       )}
 
-      <Footer />
+      <Footer variant="dashboard" />
     </div>
   );
 }

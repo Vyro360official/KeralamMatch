@@ -314,10 +314,10 @@ export default function HoroscopeMatchView({
               ॐ
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F44] tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F44] dark:text-white tracking-tight">
                 HOROSCOPE MATCH
               </h1>
-              <p className="text-xs text-[#636366] mt-0.5 font-medium">
+              <p className="text-xs text-[#636366] dark:text-slate-400 mt-0.5 font-medium">
                 Check horoscope compatibility with someone who is not registered on KeralamMatch.
               </p>
             </div>
@@ -360,7 +360,7 @@ export default function HoroscopeMatchView({
       )}
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-200 bg-white rounded-2xl p-1.5 shadow-xs">
+      <div className="flex border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1E3D] rounded-2xl p-1.5 shadow-xs">
         <button
           onClick={() => {
             setActiveTab("manual");
@@ -369,7 +369,7 @@ export default function HoroscopeMatchView({
           className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer ${
             activeTab === "manual"
               ? "bg-[#0A1F44] text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
           }`}
         >
           <User className="h-4 w-4" />
@@ -385,7 +385,7 @@ export default function HoroscopeMatchView({
           className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer ${
             activeTab === "registered"
               ? "bg-[#0A1F44] text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
           }`}
         >
           <Users className="h-4 w-4" />
@@ -400,7 +400,7 @@ export default function HoroscopeMatchView({
           className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer ${
             activeTab === "history"
               ? "bg-[#0A1F44] text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
           }`}
         >
           <HistoryIcon className="h-4 w-4" />
@@ -410,12 +410,12 @@ export default function HoroscopeMatchView({
 
       {/* Tab 1: Option B - Match with New Person (Non-Registered) */}
       {activeTab === "manual" && (
-        <div className="bg-white rounded-3xl p-5 sm:p-7 border border-[rgba(28,28,30,0.06)] shadow-xs space-y-6">
+        <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-4">
-            <h2 className="text-base font-extrabold text-[#0A1F44] flex items-center space-x-2">
+            <h2 className="text-base font-extrabold text-[#0A1F44] dark:text-white flex items-center space-x-2">
               <span>Enter {candidateRole} Details</span>
             </h2>
-            <p className="text-xs text-[#636366] mt-1 leading-relaxed">
+            <p className="text-xs text-[#636366] dark:text-slate-400 mt-1 leading-relaxed">
               Calculate genuine 10-Porutham compatibility with any {candidateRole.toLowerCase()} without creating a user account.
               The details you enter are kept private and never published.
             </p>
@@ -424,7 +424,7 @@ export default function HoroscopeMatchView({
           <form onSubmit={handleManualMatchSubmit} className="space-y-5">
             {/* Candidate Name (Opposite Role determined automatically) */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-[#0A1F44]">
+              <label className="block text-xs font-bold text-[#0A1F44] dark:text-white">
                 {candidateRole} Name <span className="text-rose-600">*</span>
               </label>
               <div className="relative">
@@ -435,7 +435,7 @@ export default function HoroscopeMatchView({
                   placeholder={`Enter ${candidateRole.toLowerCase()} name`}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#C81D45] focus:ring-1 focus:ring-[#C81D45]"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#07132B] text-slate-900 dark:text-white focus:outline-hidden focus:border-[#FF1475] focus:ring-1 focus:ring-[#FF1475]"
                 />
               </div>
             </div>
@@ -443,7 +443,7 @@ export default function HoroscopeMatchView({
             {/* Date of Birth & Time of Birth */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-[#0A1F44]">
+                <label className="block text-xs font-bold text-[#0A1F44] dark:text-white">
                   Date of Birth <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
@@ -454,13 +454,13 @@ export default function HoroscopeMatchView({
                     max={new Date().toISOString().split("T")[0]}
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#C81D45] focus:ring-1 focus:ring-[#C81D45]"
+                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#07132B] text-slate-900 dark:text-white focus:outline-hidden focus:border-[#FF1475] focus:ring-1 focus:ring-[#FF1475]"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-[#0A1F44]">
+                <label className="block text-xs font-bold text-[#0A1F44] dark:text-white">
                   Time of Birth <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
@@ -470,7 +470,7 @@ export default function HoroscopeMatchView({
                     required
                     value={tob}
                     onChange={(e) => setTob(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#C81D45] focus:ring-1 focus:ring-[#C81D45]"
+                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#07132B] text-slate-900 dark:text-white focus:outline-hidden focus:border-[#FF1475] focus:ring-1 focus:ring-[#FF1475]"
                   />
                 </div>
                 <p className="text-[10px] text-slate-400">Exact time produces the most precise Lagna and Grahanila</p>
@@ -480,7 +480,7 @@ export default function HoroscopeMatchView({
             {/* Place of Birth & Mobile Number */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-[#0A1F44]">
+                <label className="block text-xs font-bold text-[#0A1F44] dark:text-white">
                   Place of Birth <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
@@ -488,7 +488,7 @@ export default function HoroscopeMatchView({
                   <select
                     value={place}
                     onChange={(e) => setPlace(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#C81D45] focus:ring-1 focus:ring-[#C81D45] bg-white"
+                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#07132B] text-slate-900 dark:text-white focus:outline-hidden focus:border-[#FF1475] focus:ring-1 focus:ring-[#FF1475] bg-white"
                   >
                     {KERALA_DISTRICTS.map((d) => (
                       <option key={d} value={d}>
@@ -510,7 +510,7 @@ export default function HoroscopeMatchView({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-[#0A1F44]">
+                <label className="block text-xs font-bold text-[#0A1F44] dark:text-white">
                   Mobile Number (Optional)
                 </label>
                 <div className="relative">
@@ -520,7 +520,7 @@ export default function HoroscopeMatchView({
                     placeholder="+91 __________"
                     value={mobileNumber}
                     onChange={(e) => setMobileNumber(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#C81D45] focus:ring-1 focus:ring-[#C81D45]"
+                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#07132B] text-slate-900 dark:text-white focus:outline-hidden focus:border-[#FF1475] focus:ring-1 focus:ring-[#FF1475]"
                   />
                 </div>
                 <p className="text-[10px] text-slate-400 flex items-center gap-1">
@@ -540,7 +540,7 @@ export default function HoroscopeMatchView({
                 className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#C81D45] focus:ring-[#C81D45] cursor-pointer"
               />
               <label htmlFor="marketingConsent" className="text-xs text-slate-700 cursor-pointer">
-                <span className="font-bold block text-[#0A1F44]">
+                <span className="font-bold block text-[#0A1F44] dark:text-white">
                   Marketing Contact Permission (Optional)
                 </span>
                 <span className="text-[11px] text-slate-500 block mt-0.5">
@@ -597,12 +597,12 @@ export default function HoroscopeMatchView({
 
       {/* Tab 2: Option A - Match with KeralamMatch Member */}
       {activeTab === "registered" && (
-        <div className="bg-white rounded-3xl p-5 sm:p-7 border border-[rgba(28,28,30,0.06)] shadow-xs space-y-6">
+        <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-4">
-            <h2 className="text-base font-extrabold text-[#0A1F44]">
+            <h2 className="text-base font-extrabold text-[#0A1F44] dark:text-white">
               Match with Registered KeralamMatch Profiles
             </h2>
-            <p className="text-xs text-[#636366] mt-1">
+            <p className="text-xs text-[#636366] dark:text-slate-400 mt-1">
               Select a member profile to calculate authentic astrological compatibility against your registered birth details.
             </p>
           </div>
@@ -641,21 +641,21 @@ export default function HoroscopeMatchView({
                       className="h-12 w-12 rounded-full object-cover border border-slate-200 flex-shrink-0"
                     />
                   ) : (
-                    <div className="h-12 w-12 rounded-full bg-[#FCFBF7] border border-slate-200 flex items-center justify-center font-bold text-sm text-[#0A1F44] flex-shrink-0">
+                    <div className="h-12 w-12 rounded-full bg-[#FCFBF7] border border-slate-200 flex items-center justify-center font-bold text-sm text-[#0A1F44] dark:text-white flex-shrink-0">
                       {c.firstName?.charAt(0) || "M"}
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#0A1F44] truncate">
+                      <span className="text-xs font-bold text-[#0A1F44] dark:text-white truncate">
                         {c.firstName} {c.lastName || ""}
                       </span>
                       {isSelected && (
                         <CheckCircle2 className="h-4 w-4 text-[#C81D45] flex-shrink-0 ml-1" />
                       )}
                     </div>
-                    <p className="text-[10px] text-[#636366] truncate">
+                    <p className="text-[10px] text-[#636366] dark:text-slate-400 truncate">
                       {c.district || "Kerala"} · {c.religion || "Vedic"}
                     </p>
                     {c.starNakshatram && (
@@ -720,11 +720,11 @@ export default function HoroscopeMatchView({
 
       {/* Tab 3: Match History */}
       {activeTab === "history" && (
-        <div className="bg-white rounded-3xl p-5 sm:p-7 border border-[rgba(28,28,30,0.06)] shadow-xs space-y-6">
+        <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-extrabold text-[#0A1F44]">Your Horoscope Match History</h2>
-              <p className="text-xs text-[#636366] mt-0.5">
+              <h2 className="text-base font-extrabold text-[#0A1F44] dark:text-white">Your Horoscope Match History</h2>
+              <p className="text-xs text-[#636366] dark:text-slate-400 mt-0.5">
                 Past compatibility checks calculated on KeralamMatch. Stored privately for your account.
               </p>
             </div>
@@ -759,7 +759,7 @@ export default function HoroscopeMatchView({
                 >
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">
-                      <span className="text-xs font-bold text-[#0A1F44]">
+                      <span className="text-xs font-bold text-[#0A1F44] dark:text-white">
                         {item.targetName}
                       </span>
                       <span
@@ -804,7 +804,7 @@ export default function HoroscopeMatchView({
 
       {/* Match Result Display (When calculation succeeds) */}
       {result && (
-        <div className="bg-white rounded-3xl p-5 sm:p-7 border border-rose-200 shadow-lg space-y-6 animate-in fade-in duration-300">
+        <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-5 sm:p-7 border border-rose-200 shadow-lg space-y-6 animate-in fade-in duration-300">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div className="flex items-center space-x-2.5">
@@ -812,10 +812,10 @@ export default function HoroscopeMatchView({
                 ॐ
               </div>
               <div>
-                <h3 className="text-sm sm:text-base font-extrabold text-[#0A1F44]">
+                <h3 className="text-sm sm:text-base font-extrabold text-[#0A1F44] dark:text-white">
                   Horoscope Compatibility Analysis
                 </h3>
-                <p className="text-[10px] text-[#636366]">
+                <p className="text-[10px] text-[#636366] dark:text-slate-400">
                   Calculated by {result.engine || "SoftAstro Ephemeris Engine"}
                 </p>
               </div>
@@ -837,7 +837,7 @@ export default function HoroscopeMatchView({
             const isBrideSelf = !isCurrentUserMale;
 
             return (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)]">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 p-4 rounded-2xl bg-[#FCFBF7] border border-slate-200/80 dark:border-slate-800">
                 {/* Groom Section */}
                 <div className="space-y-1.5 text-left border-r border-slate-200/80 pr-2">
                   <div className="flex items-center justify-between">
@@ -862,12 +862,12 @@ export default function HoroscopeMatchView({
                         {groomUser.displayName?.charAt(0) || "G"}
                       </div>
                     )}
-                    <span className="text-xs font-bold text-[#0A1F44] truncate block">
+                    <span className="text-xs font-bold text-[#0A1F44] dark:text-white truncate block">
                       {groomUser.displayName}
                     </span>
                   </div>
-                  <div className="text-[10px] text-[#636366] space-y-0.5 pt-1">
-                    <div className="font-semibold text-[#0A1F44]">
+                  <div className="text-[10px] text-[#636366] dark:text-slate-400 space-y-0.5 pt-1">
+                    <div className="font-semibold text-[#0A1F44] dark:text-white">
                       ★ {groomUser.starNakshatram} ({groomUser.rasi})
                     </div>
                     <div className="flex items-center gap-1 text-[9px] text-[#8E8E93]">
@@ -901,12 +901,12 @@ export default function HoroscopeMatchView({
                         {brideUser.displayName?.charAt(0) || "B"}
                       </div>
                     )}
-                    <span className="text-xs font-bold text-[#0A1F44] truncate block">
+                    <span className="text-xs font-bold text-[#0A1F44] dark:text-white truncate block">
                       {brideUser.displayName}
                     </span>
                   </div>
-                  <div className="text-[10px] text-[#636366] space-y-0.5 pt-1">
-                    <div className="font-semibold text-[#0A1F44]">
+                  <div className="text-[10px] text-[#636366] dark:text-slate-400 space-y-0.5 pt-1">
+                    <div className="font-semibold text-[#0A1F44] dark:text-white">
                       ★ {brideUser.starNakshatram} ({brideUser.rasi})
                     </div>
                     <div className="flex items-center gap-1 text-[9px] text-[#8E8E93]">
@@ -925,7 +925,7 @@ export default function HoroscopeMatchView({
               Overall Compatibility
             </span>
             <div className="flex items-baseline justify-center gap-2">
-              <span className="text-4xl sm:text-5xl font-extrabold text-[#0A1F44]">
+              <span className="text-4xl sm:text-5xl font-extrabold text-[#0A1F44] dark:text-white">
                 {result.compatibility.traditionalScore}
               </span>
               <span className="text-lg font-bold text-slate-400">/ 36</span>
@@ -966,23 +966,23 @@ export default function HoroscopeMatchView({
           {/* 10-Porutham Breakdown */}
           {result.poruthams && result.poruthams.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0A1F44]">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0A1F44] dark:text-white">
                 Traditional 10-Porutham Breakdown
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {result.poruthams.map((p: any) => (
                   <div
                     key={p.name}
-                    className="p-3 rounded-xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] flex items-start justify-between space-x-2 text-left"
+                    className="p-3 rounded-xl bg-[#FCFBF7] border border-slate-200/80 dark:border-slate-800 flex items-start justify-between space-x-2 text-left"
                   >
                     <div className="space-y-0.5">
                       <div className="flex items-center space-x-1.5">
-                        <span className="text-xs font-bold text-[#0A1F44]">{p.name}</span>
+                        <span className="text-xs font-bold text-[#0A1F44] dark:text-white">{p.name}</span>
                         {p.malayalamName && (
                           <span className="text-[10px] text-[#8E8E93]">({p.malayalamName})</span>
                         )}
                       </div>
-                      <p className="text-[10px] text-[#636366] leading-tight">{p.explanation}</p>
+                      <p className="text-[10px] text-[#636366] dark:text-slate-400 leading-tight">{p.explanation}</p>
                     </div>
                     <span
                       className={`text-[9px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap ${
@@ -1002,7 +1002,7 @@ export default function HoroscopeMatchView({
           {/* Papasamya & Kuja Dosha Highlights */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Papasamya */}
-            <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1.5 text-left">
+            <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-slate-200/80 dark:border-slate-800 space-y-1.5 text-left">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93]">
                   Papasamya Balance
@@ -1017,16 +1017,16 @@ export default function HoroscopeMatchView({
                   {result.papasamya.isBalanced ? "Harmonious" : "Difference"}
                 </span>
               </div>
-              <div className="text-xs font-bold text-[#0A1F44]">
+              <div className="text-xs font-bold text-[#0A1F44] dark:text-white">
                 Bride: {result.papasamya.brideScore} pts · Groom: {result.papasamya.groomScore} pts (Diff: {result.papasamya.difference})
               </div>
-              <p className="text-[10px] text-[#636366] leading-normal">
+              <p className="text-[10px] text-[#636366] dark:text-slate-400 leading-normal">
                 {result.papasamya.verdictDescription}
               </p>
             </div>
 
             {/* Kuja Dosha */}
-            <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] space-y-1.5 text-left">
+            <div className="p-4 rounded-2xl bg-[#FCFBF7] border border-slate-200/80 dark:border-slate-800 space-y-1.5 text-left">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93]">
                   Kuja Dosha (Mars)
@@ -1041,10 +1041,10 @@ export default function HoroscopeMatchView({
                   {result.kujaDosha.isResolved ? "Resolved ✓" : "Present"}
                 </span>
               </div>
-              <div className="text-xs font-bold text-[#0A1F44]">
+              <div className="text-xs font-bold text-[#0A1F44] dark:text-white">
                 {result.kujaDosha.isResolved ? "Pariharam / Exempted" : "Astrological review"}
               </div>
-              <p className="text-[10px] text-[#636366] leading-normal">
+              <p className="text-[10px] text-[#636366] dark:text-slate-400 leading-normal">
                 {result.kujaDosha.verdictDescription}
               </p>
             </div>
@@ -1056,7 +1056,7 @@ export default function HoroscopeMatchView({
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93]">
                 Dasa Sandhi & Timeline
               </span>
-              <p className="text-xs text-[#0A1F44] font-medium">
+              <p className="text-xs text-[#0A1F44] dark:text-white font-medium">
                 {result.dasa.verdictDescription}
               </p>
             </div>
@@ -1085,7 +1085,7 @@ export default function HoroscopeMatchView({
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full max-w-4xl h-[94vh] flex flex-col bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+          <div className="relative w-full max-w-4xl h-[94vh] flex flex-col bg-white dark:bg-[#0D1E3D] rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
             {/* Top Bar */}
             <div className="px-6 py-4 bg-[#0A1F44] text-white flex items-center justify-between flex-shrink-0">
               <div className="flex items-center space-x-3">

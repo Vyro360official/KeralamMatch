@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #FCFBF7;      /* Warm Ivory */
   --foreground: #1C1C1E;      /* Near Black */
@@ -30,31 +32,30 @@
   --shadow-premium-hover: 0 10px 40px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0A0A0C;      /* Obsidian */
-    --foreground: #F2F2F7;
-    
-    --color-bg-primary: #0A0A0C;
-    --color-bg-secondary: #141416;
-    --color-bg-tertiary: #1C1C1E;
-    
-    --color-text-primary: #F2F2F7;
-    --color-text-secondary: #AEAEB2;
-    --color-text-tertiary: #636366;
-    
-    --color-brand-primary: #3A7DFF;
-    --color-brand-primary-hover: #5A93FF;
-    
-    --color-accent-rose: #F2C1B6;
-    --color-accent-gold: #E5C158;
-    
-    --color-border-subtle: rgba(242, 242, 247, 0.08);
-    --color-border-hover: rgba(242, 242, 247, 0.16);
-    
-    --shadow-premium: 0 4px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-premium-hover: 0 10px 40px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.4);
-  }
+:root.dark,
+.dark {
+  --background: #07132B;      /* Deep Navy Member Background */
+  --foreground: #F2F2F7;
+  
+  --color-bg-primary: #07132B;
+  --color-bg-secondary: #0D1E3D; /* Card Navy */
+  --color-bg-tertiary: #13274F;
+  
+  --color-text-primary: #F2F2F7;
+  --color-text-secondary: #CBD5E1;
+  --color-text-tertiary: #94A3B8;
+  
+  --color-brand-primary: #FF1475;
+  --color-brand-primary-hover: #E01853;
+  
+  --color-accent-rose: #F2C1B6;
+  --color-accent-gold: #E5C158;
+  
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(255, 255, 255, 0.16);
+  
+  --shadow-premium: 0 4px 30px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-premium-hover: 0 10px 40px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 @theme {

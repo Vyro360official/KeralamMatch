@@ -18,6 +18,7 @@ import {
   Sun,
 } from "lucide-react";
 import { logoutAction } from "@/modules/auth/auth.controller";
+import { useTheme } from "@/components/providers/theme-provider";
 
 export default function Header() {
   const [stats, setStats] = useState<any>(null);
@@ -25,33 +26,8 @@ export default function Header() {
     "upgrade" | "messages" | "notifications" | "profile" | null
   >(null);
 
-  // Theme state (Light / Dark / System)
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-
-  useEffect(() => {
-    try {
-      const savedTheme = localStorage.getItem("km_theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      setTheme(savedTheme as "light" | "dark");
-      if (savedTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    } catch {}
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
-    try {
-      localStorage.setItem("km_theme", nextTheme);
-      if (nextTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    } catch {}
-  };
+  // Global Theme Hook (Light / Dark / System)
+  const { resolvedTheme, toggleTheme } = useTheme();
 
   // Load stats dynamically from route handler
   const loadStats = async () => {
@@ -108,7 +84,7 @@ export default function Header() {
   return (
     <header
       id="header-container"
-      className="sticky top-0 z-40 w-full border-b border-[rgba(28,28,30,0.08)] bg-white/95 backdrop-blur-md transition-all shadow-xs"
+      className="sticky top-0 z-40 w-full border-b border-[rgba(28,28,30,0.08)] bg-white/95 dark:bg-[#07132B]/95 dark:border-slate-800 backdrop-blur-md transition-all shadow-xs"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
@@ -118,7 +94,7 @@ export default function Header() {
 
         {/* Desktop Navigation Links (Unauthenticated) */}
         {!stats && (
-          <nav className="hidden lg:flex items-center space-x-8 text-xs font-semibold uppercase tracking-wider text-[#636366]">
+          <nav className="hidden lg:flex items-center space-x-8 text-xs font-semibold uppercase tracking-wider text-[#636366] dark:text-slate-400">
             <Link href="/" className="hover:text-[#FF1475] transition-colors">
               Home
             </Link>
@@ -331,9 +307,10 @@ export default function Header() {
               <button
                 onClick={toggleTheme}
                 className="h-8 w-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                title={resolvedTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                aria-label="Toggle dark mode"
               >
-                {theme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-600" />}
+                {resolvedTheme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-600" />}
               </button>
 
               {/* User Avatar Circle + Name Dropdown (MEMBER DASHBOARD.png) */}
@@ -360,13 +337,13 @@ export default function Header() {
                 </button>
 
                 {activeDropdown === "profile" && (
-                  <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-64 max-w-xs ml-auto sm:max-w-none rounded-2xl border border-slate-100 bg-white p-3 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-64 max-w-xs ml-auto sm:max-w-none rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#0D1E3D] p-3 shadow-xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     {/* Header */}
-                    <div className="px-3 py-2 border-b border-slate-50 mb-2 text-left">
-                      <div className="text-xs font-extrabold text-[#0A1F44]">
+                    <div className="px-3 py-2 border-b border-slate-50 dark:border-slate-800 mb-2 text-left">
+                      <div className="text-xs font-extrabold text-[#0A1F44] dark:text-white">
                         {profile?.firstName || "Member"} {profile?.lastName || ""}
                       </div>
-                      <div className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full inline-block mt-1">
+                      <div className="text-[9px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full inline-block mt-1">
                         {stats?.subscription?.plan?.name || "Free Plan"}
                       </div>
                     </div>
@@ -375,7 +352,7 @@ export default function Header() {
                       <Link
                         href={profile?.id ? `/profile/${profile.id}` : "/join"}
                         onClick={() => setActiveDropdown(null)}
-                        className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-[#FCFBF7] hover:text-[#0A1F44] transition-colors"
+                        className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-[#FCFBF7] dark:hover:bg-white/5 hover:text-[#0A1F44] dark:hover:text-white transition-colors"
                       >
                         <User className="h-4 w-4 text-slate-400" />
                         <span>View My Profile</span>
@@ -383,7 +360,7 @@ export default function Header() {
                       <Link
                         href="/settings"
                         onClick={() => setActiveDropdown(null)}
-                        className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-[#FCFBF7] hover:text-[#0A1F44] transition-colors"
+                        className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-[#FCFBF7] dark:hover:bg-white/5 hover:text-[#0A1F44] dark:hover:text-white transition-colors"
                       >
                         <Settings className="h-4 w-4 text-slate-400" />
                         <span>Account Settings</span>
@@ -391,14 +368,14 @@ export default function Header() {
                       <Link
                         href="/trust"
                         onClick={() => setActiveDropdown(null)}
-                        className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-[#FCFBF7] hover:text-[#0A1F44] transition-colors"
+                        className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-[#FCFBF7] dark:hover:bg-white/5 hover:text-[#0A1F44] dark:hover:text-white transition-colors"
                       >
                         <HelpCircle className="h-4 w-4 text-slate-400" />
                         <span>Help & Support</span>
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors text-left font-semibold cursor-pointer"
+                        className="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 transition-colors text-left font-semibold cursor-pointer"
                       >
                         <LogOut className="h-4 w-4 text-slate-400" />
                         <span>Log Out</span>
@@ -414,7 +391,7 @@ export default function Header() {
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent("km:open-sidebar"));
                 }}
-                className="lg:hidden flex items-center justify-center h-8 px-3 rounded-full bg-[#1C1C1E] hover:bg-black text-white shadow-sm transition-all cursor-pointer focus:outline-hidden ml-1"
+                className="lg:hidden flex items-center justify-center h-8 px-3 rounded-full bg-[#1C1C1E] hover:bg-black dark:bg-white dark:hover:bg-slate-200 text-white dark:text-[#0A1F44] shadow-sm transition-all cursor-pointer focus:outline-hidden ml-1"
                 aria-label="Open navigation menu"
               >
                 <Menu className="h-4.5 w-4.5 text-white" />

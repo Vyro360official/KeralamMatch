@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Send, UserX, MessageSquare, AlertCircle, Check, CheckCheck, Lock, ChevronLeft, ShieldCheck } from "lucide-react";
 import HoroscopeMatchButton from "@/components/astrology/horoscope-match-button";
+import { getProfileDetailsAction } from "@/modules/profile/profile.controller";
 
 interface Thread {
   partnerId: string;
@@ -36,6 +37,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any | null>(null);
 
   const [loadingThreads, setLoadingThreads] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -51,6 +53,9 @@ export default function ChatPage() {
       .then((data) => {
         if (data.isAuthenticated && data.user) {
           setCurrentUserId(data.user.id);
+          getProfileDetailsAction().then(pRes => {
+            if (pRes.success && pRes.profile) setCurrentUserProfile(pRes.profile);
+          }).catch(() => {});
         }
       })
       .catch(console.error);
@@ -208,25 +213,25 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFBF7] text-[#1C1C1E]">
+    <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] text-[#1C1C1E] dark:text-white transition-colors">
       <Header />
 
       <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 mb-16 lg:mb-0">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <DashboardSidebar />
+          <DashboardSidebar userProfile={currentUserProfile} />
 
           <main className="lg:col-span-9">
-            <div className="bg-white rounded-3xl border border-[rgba(28,28,30,0.06)] shadow-sm overflow-hidden flex h-[72vh] relative">
+            <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden flex h-[72vh] relative">
               
               {/* Left Conversation Thread Panel */}
-              <div className={`w-full lg:w-1/3 border-r border-[rgba(28,28,30,0.06)] flex flex-col bg-[#FCFBF7] ${
+              <div className={`w-full lg:w-1/3 border-r border-slate-200/80 dark:border-slate-800 flex flex-col bg-[#FCFBF7] dark:bg-[#07132B] ${
                 mobileChatActive ? "hidden lg:flex" : "flex"
               }`}>
-                <div className="p-5 border-b border-[rgba(28,28,30,0.06)] bg-white">
-                  <h2 className="text-sm font-extrabold text-[#0A1F44]">Messages</h2>
+                <div className="p-5 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0D1E3D]">
+                  <h2 className="text-sm font-extrabold text-[#0A1F44] dark:text-white">Messages</h2>
                 </div>
 
-                <div className="flex-1 overflow-y-auto divide-y divide-slate-100 bg-white">
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-[#0D1E3D]">
                   {loadingThreads ? (
                     <div className="p-4 space-y-3">
                       <Skeleton className="h-11 w-full rounded-xl" />
@@ -243,7 +248,7 @@ export default function ChatPage() {
                           key={t.partnerId}
                           onClick={() => { setActiveThread(t); setMobileChatActive(true); }}
                           className={`w-full text-left p-4 flex items-center justify-between transition-colors ${
-                            isSelected ? "bg-slate-50 border-r-2 border-[#C81D45]" : "hover:bg-slate-50/50"
+                            isSelected ? "bg-slate-50 dark:bg-slate-800/60 border-r-2 border-[#FF1475]" : "hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
                           }`}
                         >
                           <div className="flex items-center space-x-3 overflow-hidden">
@@ -251,10 +256,10 @@ export default function ChatPage() {
                               {initial}
                             </div>
                             <div className="overflow-hidden">
-                              <span className="text-xs font-bold text-[#0A1F44] block truncate">
+                              <span className="text-xs font-bold text-[#0A1F44] dark:text-white block truncate">
                                 {t.firstName} {t.lastName}
                               </span>
-                              <span className="text-[10px] text-[#636366] font-medium block truncate mt-0.5">
+                              <span className="text-[10px] text-[#636366] dark:text-slate-400 font-medium block truncate mt-0.5">
                                 {t.lastMessage}
                               </span>
                             </div>
@@ -275,13 +280,13 @@ export default function ChatPage() {
               </div>
 
               {/* Right/Active Chat Panel */}
-              <div className={`w-full lg:w-2/3 flex flex-col bg-white ${
+              <div className={`w-full lg:w-2/3 flex flex-col bg-white dark:bg-[#0D1E3D] ${
                 mobileChatActive ? "flex" : "hidden lg:flex"
               }`}>
                 {activeThread ? (
                   <>
                     {/* Chat Header */}
-                    <div className="p-4 px-6 border-b border-slate-100 flex justify-between items-center bg-white">
+                    <div className="p-4 px-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-[#0D1E3D]">
                       <div className="flex items-center space-x-3">
                         <button
                           onClick={() => setMobileChatActive(false)}
@@ -294,7 +299,7 @@ export default function ChatPage() {
                         </div>
                         <div>
                           <div className="flex items-center gap-1">
-                            <h3 className="text-xs font-bold text-[#0A1F44]">
+                            <h3 className="text-xs font-bold text-[#0A1F44] dark:text-white">
                               {activeThread.firstName} {activeThread.lastName}
                             </h3>
                             <span className="h-3.5 w-3.5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[8px] font-bold">✓</span>
@@ -327,13 +332,13 @@ export default function ChatPage() {
                     </div>
 
                     {/* Security warning banner */}
-                    <div className="px-6 py-2 bg-slate-50 border-b border-slate-100 flex items-center space-x-2 text-[10px] font-semibold text-slate-500">
+                    <div className="px-6 py-2 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 flex items-center space-x-2 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                       <Lock className="h-3 w-3 text-slate-400" />
                       <span>Conversations are private. KeralamMatch implements strict security protocols.</span>
                     </div>
 
                     {/* Messages Body */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#FCFBF7]">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#FCFBF7] dark:bg-[#07132B]">
                       {error && (
                         <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl p-3 flex items-center space-x-2">
                           <AlertCircle className="h-4 w-4 text-red-500" />
@@ -360,7 +365,7 @@ export default function ChatPage() {
                                 className={`px-4 py-2 rounded-2xl text-xs leading-relaxed ${
                                   isMe
                                     ? "bg-[#C81D45] text-white rounded-tr-none shadow-2xs font-medium"
-                                    : "bg-white text-[#1C1C1E] border border-[rgba(28,28,30,0.06)] rounded-tl-none shadow-2xs font-medium"
+                                    : "bg-white dark:bg-[#0D1E3D] text-[#1C1C1E] dark:text-white border border-slate-200/80 dark:border-slate-800 rounded-tl-none shadow-xs font-medium"
                                 }`}
                               >
                                 {m.content}
@@ -387,14 +392,14 @@ export default function ChatPage() {
                     </div>
 
                     {/* Message Composer */}
-                    <form onSubmit={handleSend} className="p-4 border-t border-slate-100 flex items-center space-x-3 bg-white">
+                    <form onSubmit={handleSend} className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center space-x-3 bg-white dark:bg-[#0D1E3D]">
                       <Input
                         type="text"
                         placeholder="Type a secure message..."
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
                         disabled={sending}
-                        className="flex-1 rounded-xl h-10 border-slate-200 text-xs font-medium focus:border-[#C81D45]"
+                        className="flex-1 rounded-xl h-10 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#07132B] text-[#1C1C1E] dark:text-white text-xs font-medium focus:border-[#FF1475]"
                       />
                       <button
                         type="submit"
@@ -406,9 +411,9 @@ export default function ChatPage() {
                     </form>
                   </>
                 ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-12 text-[#636366] text-xs bg-[#FCFBF7]">
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-12 text-[#636366] dark:text-slate-400 text-xs bg-[#FCFBF7] dark:bg-[#07132B]">
                     <MessageSquare className="h-10 w-10 text-[#C81D45] mb-3" />
-                    <p className="font-extrabold text-[#0A1F44]">Select a conversation to start messaging</p>
+                    <p className="font-extrabold text-[#0A1F44] dark:text-white">Select a conversation to start messaging</p>
                     <p className="text-[10px] text-slate-400 mt-1">Keep conversations respectul and professional.</p>
                   </div>
                 )}
@@ -419,7 +424,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      <Footer />
+      <Footer variant="dashboard" />
     </div>
   );
 }

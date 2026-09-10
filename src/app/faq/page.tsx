@@ -43,33 +43,35 @@ export default function FAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] text-[#1C1C1E] dark:text-white transition-colors">
       <Header />
-      <main className="flex-grow mx-auto max-w-3xl w-full px-6 md:px-8 py-24">
-        <h1 className="text-4xl font-bold tracking-tight text-text-primary mb-3">Frequently Asked Questions</h1>
-        <p className="text-sm text-text-secondary mb-14">
-          Everything you need to know about KeralamMatch. Can't find your answer?{" "}
-          <a href="mailto:support@keralammatch.com" className="text-brand-primary hover:underline">Contact support</a>.
-        </p>
-        <div className="space-y-4">
+      <main className="flex-grow mx-auto max-w-4xl w-full px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-6">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#0A1F44] dark:text-white mb-2">Frequently Asked Questions</h1>
+          <p className="text-xs text-[#636366] dark:text-slate-400">
+            Everything you need to know about KeralamMatch. Can't find your answer?{" "}
+            <a href="mailto:support@keralammatch.com" className="text-[#FF1475] font-semibold hover:underline">Contact support</a>.
+          </p>
+        </div>
+        <div className="space-y-3">
           {faqs.map((faq, i) => (
             <div
               key={i}
-              className="premium-card overflow-hidden transition-all"
+              className="bg-white dark:bg-[#0D1E3D] rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden transition-all"
             >
               <button
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                className="w-full text-left px-6 py-5 flex items-center justify-between gap-4 cursor-pointer"
+                className="w-full text-left px-6 py-4.5 flex items-center justify-between gap-4 cursor-pointer"
               >
-                <span className="text-sm font-semibold text-text-primary">{faq.question}</span>
-                <span className={`text-text-tertiary transition-transform duration-200 flex-shrink-0 ${openIndex === i ? "rotate-45" : ""}`}>
+                <span className="text-xs sm:text-sm font-bold text-[#0A1F44] dark:text-white">{faq.question}</span>
+                <span className={`text-[#8E8E93] dark:text-slate-400 transition-transform duration-200 flex-shrink-0 ${openIndex === i ? "rotate-45" : ""}`}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
                 </span>
               </button>
               {openIndex === i && (
-                <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-border-subtle pt-4">
+                <div className="px-6 pb-5 text-xs text-[#636366] dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-slate-800/80 pt-4">
                   {faq.answer}
                 </div>
               )}
@@ -77,7 +79,7 @@ export default function FAQPage() {
           ))}
         </div>
       </main>
-      <Footer />
+      <Footer variant="dashboard" />
     </div>
   );
 }

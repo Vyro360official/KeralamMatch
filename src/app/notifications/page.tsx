@@ -67,10 +67,10 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFBF7] text-[#1C1C1E]">
+    <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] text-[#1C1C1E] dark:text-white transition-colors">
       <Header />
 
-      <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 mb-16 lg:mb-0">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Frozen Left Menu */}
@@ -80,8 +80,8 @@ export default function NotificationsPage() {
           <main className="lg:col-span-9 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#0A1F44]">Notifications</h1>
-                <p className="text-xs text-[#636366] mt-0.5">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F44] dark:text-white tracking-tight">Notifications</h1>
+                <p className="text-xs text-[#636366] dark:text-slate-400 font-medium mt-0.5">
                   Real-time updates on contact reveals, chats & profile verification
                 </p>
               </div>
@@ -89,7 +89,7 @@ export default function NotificationsPage() {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="px-4 py-2 rounded-full border border-[rgba(28,28,30,0.12)] text-xs font-bold text-[#0A1F44] hover:bg-gray-50 flex items-center space-x-1.5"
+                  className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#0A1F44] dark:text-white hover:bg-gray-50 dark:hover:bg-slate-800/60 flex items-center space-x-1.5 transition-colors"
                 >
                   <Check className="h-3.5 w-3.5" />
                   <span>Mark All Read</span>
@@ -111,9 +111,9 @@ export default function NotificationsPage() {
                 ))}
               </div>
             ) : notifications.length === 0 ? (
-              <div className="bg-white rounded-3xl p-16 text-center space-y-3 border border-[rgba(28,28,30,0.08)]">
+              <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl p-16 text-center space-y-3 border border-slate-200/80 dark:border-slate-800 shadow-sm">
                 <BellOff className="h-10 w-10 text-[#8E8E93] mx-auto" />
-                <p className="text-xs text-[#636366]">No notifications yet. You will receive updates here when other members interact with your profile.</p>
+                <p className="text-xs text-[#636366] dark:text-slate-400">No notifications yet. You will receive updates here when other members interact with your profile.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -123,23 +123,23 @@ export default function NotificationsPage() {
                     <div
                       key={n.id}
                       onClick={() => !n.isRead && markRead(n.id)}
-                      className={`bg-white rounded-3xl p-5 border border-[rgba(28,28,30,0.08)] shadow-sm flex items-start space-x-4 transition-all cursor-pointer ${
-                        !n.isRead ? "border-l-4 border-l-[#C81D45]" : "opacity-80"
+                      className={`bg-white dark:bg-[#0D1E3D] rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-start space-x-4 transition-all cursor-pointer hover:shadow-md ${
+                        !n.isRead ? "border-l-4 border-l-[#FF1475]" : "opacity-80"
                       }`}
                     >
-                      <div className="h-10 w-10 rounded-full bg-[#FCFBF7] border border-[rgba(28,28,30,0.08)] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="h-10 w-10 rounded-full bg-[#FCFBF7] dark:bg-[#07132B] border border-slate-200/80 dark:border-slate-800 flex items-center justify-center flex-shrink-0 mt-0.5">
                         {icon}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h3 className={`text-xs ${!n.isRead ? "font-bold text-[#0A1F44]" : "font-semibold text-[#636366]"}`}>
+                          <h3 className={`text-xs ${!n.isRead ? "font-bold text-[#0A1F44] dark:text-white" : "font-semibold text-[#636366] dark:text-slate-400"}`}>
                             {n.title}
                           </h3>
-                          <span className="text-[10px] text-[#8E8E93]">
+                          <span className="text-[10px] text-[#8E8E93] dark:text-slate-400">
                             {new Date(n.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-xs text-[#636366] mt-1">{n.body || n.message}</p>
+                        <p className="text-xs text-[#636366] dark:text-slate-400 mt-1">{n.body || n.message}</p>
                         {(() => {
                           const profileMatch = n.link ? n.link.match(/\/profile\/([a-zA-Z0-9_-]+)/) : null;
                           const userMatch = n.link ? n.link.match(/[?&]userId=([a-zA-Z0-9_-]+)/) : null;
@@ -152,7 +152,7 @@ export default function NotificationsPage() {
                               {n.link && (
                                 <Link
                                   href={n.link}
-                                  className="text-[11px] font-bold text-[#0A369D] hover:underline"
+                                  className="text-[11px] font-bold text-[#0A369D] dark:text-blue-400 hover:underline"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   View Details →
@@ -183,7 +183,7 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      <Footer />
+      <Footer variant="dashboard" />
     </div>
   );
 }

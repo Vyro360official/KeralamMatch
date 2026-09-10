@@ -51,21 +51,23 @@ const sections = [
 
 export default function TermsPage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-[#FCFBF7] dark:bg-[#07132B] text-[#1C1C1E] dark:text-white transition-colors">
       <Header />
-      <main className="flex-grow mx-auto max-w-3xl w-full px-6 md:px-8 py-24">
-        <h1 className="text-4xl font-bold tracking-tight text-text-primary mb-4">Terms of Service</h1>
-        <p className="text-sm text-text-secondary mb-12">Last updated: August 2026</p>
-        <div className="space-y-10">
-          {sections.map((s) => (
-            <div key={s.title}>
-              <h2 className="text-lg font-bold text-text-primary mb-3">{s.title}</h2>
-              <p className="text-sm text-text-secondary leading-relaxed">{s.body}</p>
+      <main className="flex-grow mx-auto max-w-4xl w-full px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-6">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#0A1F44] dark:text-white mb-2">Terms of Service</h1>
+          <p className="text-xs text-[#636366] dark:text-slate-400">Last updated: August 2026</p>
+        </div>
+        <div className="bg-white dark:bg-[#0D1E3D] rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 sm:p-10 space-y-6 divide-y divide-slate-100 dark:divide-slate-800/80">
+          {sections.map((s, idx) => (
+            <div key={s.title} className={idx > 0 ? "pt-6" : ""}>
+              <h2 className="text-sm sm:text-base font-bold text-[#0A1F44] dark:text-white mb-2">{s.title}</h2>
+              <p className="text-xs text-[#636366] dark:text-slate-400 leading-relaxed">{s.body}</p>
             </div>
           ))}
         </div>
       </main>
-      <Footer />
+      <Footer variant="dashboard" />
     </div>
   );
 }

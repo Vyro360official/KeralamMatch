@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { HoroscopeMatchProvider } from "@/components/astrology/horoscope-match-context";
 import HoroscopeMatchModal from "@/components/astrology/horoscope-match-modal";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import { LoadingProvider } from "@/components/providers/loading-provider";
 
 const inter = Inter({
@@ -73,7 +74,7 @@ export default function RootLayout({
   const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID;
 
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#C81D45" />
@@ -81,6 +82,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <link rel="icon" href="/icons/icon-192.png" />
+        {/* Anti-Flash Synchronous Theme Initializer */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("km_theme")||"system";var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d){document.documentElement.classList.add("dark");document.documentElement.setAttribute("data-theme","dark");document.documentElement.style.colorScheme="dark";}else{document.documentElement.classList.remove("dark");document.documentElement.setAttribute("data-theme","light");document.documentElement.style.colorScheme="light";}}catch(e){}})();`,
+          }}
+        />
         {/* Structured Data: Organization */}
         <script
           type="application/ld+json"
@@ -107,12 +114,14 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <LoadingProvider>
-          <HoroscopeMatchProvider>
-            {children}
-            <HoroscopeMatchModal />
-          </HoroscopeMatchProvider>
-        </LoadingProvider>
+        <ThemeProvider>
+          <LoadingProvider>
+            <HoroscopeMatchProvider>
+              {children}
+              <HoroscopeMatchModal />
+            </HoroscopeMatchProvider>
+          </LoadingProvider>
+        </ThemeProvider>
 
         {/* Google Analytics 4 */}
         {gaId && (
