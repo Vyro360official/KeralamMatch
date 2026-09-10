@@ -60,48 +60,26 @@ export default function GrowthCenterPage() {
     );
   }
 
-  // Fallback defaults if no DB items
+  // Strict Zero-Mock Rule: Default to 0 or empty if DB has no records yet
   const growth = data || {
-    totalMembers: 2840,
-    newBridesToday: 18,
-    newGroomsToday: 16,
-    femaleMaleRatio: "48% / 52%",
-    verifiedProfiles: 2103,
-    profileCompletion: 74,
-    activeUsers: 890,
-    matchesGenerated: 1240,
-    interestsSent: 483,
-    messagesStarted: 210,
-    successfulMatches: 127,
-    referralMembers: 94,
-    topLocations: [
-      { location: "Thiruvananthapuram", count: 1278, percentage: 45 },
-      { location: "Ernakulam", count: 710, percentage: 25 },
-      { location: "Kozhikode", count: 426, percentage: 15 },
-      { location: "Kollam", count: 284, percentage: 10 },
-      { location: "Thrissur", count: 142, percentage: 5 }
-    ],
-    topTrafficSources: [
-      { source: "Direct App Traffic", share: 38, count: 1079 },
-      { source: "Google Organic SEO", share: 29, count: 823 },
-      { source: "Instagram Campaigns", share: 18, count: 511 },
-      { source: "WhatsApp Share invites", share: 10, count: 284 },
-      { source: "Referrals (Members)", share: 5, count: 142 }
-    ],
-    conversionFunnel: [
-      { stage: "Funnel Layer 1: Registered Accounts", count: 2840, percentage: 100 },
-      { stage: "Funnel Layer 2: Completed Profiles (70%+)", count: 2328, percentage: 82 },
-      { stage: "Funnel Layer 3: Verified Candidates", count: 2103, percentage: 74 },
-      { stage: "Funnel Layer 4: Paid Subscriptions", count: 891, percentage: 31 }
-    ],
-    fakeSpamFlagged: 3,
-    inactiveUsers: 142,
-    campaignPerformance: [
-      { name: "Kerala-Matrimony-FB-Ads-2026", impressions: 12500, clicks: 1840, registrations: 342, conversionRate: 18.5, costPerLead: 24.5 },
-      { name: "Google-Search-Malayali-Christian", impressions: 8400, clicks: 920, registrations: 198, conversionRate: 21.5, costPerLead: 18.2 },
-      { name: "Trivandrum-Local-Influencer-Promo", impressions: 45000, clicks: 3100, registrations: 540, conversionRate: 17.4, costPerLead: 15.0 },
-      { name: "Malayali-Nair-Community-Campaign", impressions: 6200, clicks: 710, registrations: 112, conversionRate: 15.7, costPerLead: 28.6 }
-    ]
+    totalMembers: 0,
+    newBridesToday: 0,
+    newGroomsToday: 0,
+    femaleMaleRatio: "0% / 0%",
+    verifiedProfiles: 0,
+    profileCompletion: 0,
+    activeUsers: 0,
+    matchesGenerated: 0,
+    interestsSent: 0,
+    messagesStarted: 0,
+    successfulMatches: 0,
+    referralMembers: 0,
+    topLocations: [],
+    topTrafficSources: [],
+    conversionFunnel: [],
+    fakeSpamFlagged: 0,
+    inactiveUsers: 0,
+    campaignPerformance: []
   };
 
   return (

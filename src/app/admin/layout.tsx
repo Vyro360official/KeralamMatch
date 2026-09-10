@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Logo from "@/components/shared/logo";
@@ -16,103 +16,190 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  ChevronDown,
   Search,
   Bell,
   TrendingUp,
   Key,
   Heart,
-  PhoneCall,
   MessageSquare,
   Crown,
   Menu,
-  Sparkles
+  Sparkles,
+  UserPlus,
+  UserCheck,
+  FileSpreadsheet,
+  Megaphone,
+  ShieldAlert,
+  Flag,
+  Activity,
+  CheckCircle2,
+  ExternalLink,
+  X,
 } from "lucide-react";
 
-interface SidebarItem {
+interface SubItem {
   href: string;
   label: string;
-  icon: any;
+  badge?: string;
   requiredPermission?: string;
 }
 
-interface SidebarCategory {
+interface NavCategory {
+  id: string;
   title: string;
-  items: SidebarItem[];
+  icon: any;
+  items: SubItem[];
 }
 
-const sidebarCategories: SidebarCategory[] = [
+const NAVIGATION_SECTIONS: NavCategory[] = [
   {
-    title: "USER MANAGEMENT",
+    id: "overview",
+    title: "Overview",
+    icon: LayoutDashboard,
     items: [
-      { href: "/admin/users", label: "Users", icon: Users, requiredPermission: "MANAGE_USERS" },
-      { href: "/admin/verification", label: "Profile Verification", icon: ShieldCheck, requiredPermission: "VERIFY_PROFILES" },
-      { href: "/admin/staff", label: "Permissions & Roles", icon: Key, requiredPermission: "MANAGE_STAFF" },
-    ]
+      { href: "/admin", label: "Dashboard Overview" },
+      { href: "/admin/growth", label: "Live Business Activity" },
+    ],
   },
   {
-    title: "MATCH & ENGAGEMENT",
+    id: "users",
+    title: "User Management",
+    icon: Users,
     items: [
-      { href: "/admin/horoscope-matches", label: "Horoscope Matches", icon: Sparkles, requiredPermission: "MANAGE_USERS" },
-      { href: "/admin/users", label: "Matches", icon: Heart, requiredPermission: "MANAGE_USERS" },
-      { href: "/admin/reports", label: "Safety & Moderation", icon: AlertTriangle, requiredPermission: "MANAGE_REPORTS" },
-    ]
+      { href: "/admin/users", label: "All Users" },
+      { href: "/admin/users/create", label: "+ Create Profile (Wizard)", badge: "NEW" },
+      { href: "/admin/verification", label: "Verification Queue" },
+      { href: "/admin/staff", label: "Staff & Permissions", requiredPermission: "MANAGE_STAFF" },
+    ],
   },
   {
-    title: "SUBSCRIPTIONS & PAYMENTS",
+    id: "match",
+    title: "Match & Engagement",
+    icon: Sparkles,
     items: [
-      { href: "/admin/payments", label: "Subscriptions", icon: Crown, requiredPermission: "VIEW_PAYMENTS" },
-      { href: "/admin/payments", label: "Payments", icon: CreditCard, requiredPermission: "VIEW_PAYMENTS" },
-      { href: "/admin/payments", label: "Transactions", icon: ClipboardList, requiredPermission: "VIEW_PAYMENTS" },
-    ]
+      { href: "/admin/analytics/horoscope", label: "Horoscope Analytics", badge: "PRO" },
+      { href: "/admin/horoscope-leads", label: "Horoscope Leads CRM", badge: "LEADS" },
+      { href: "/admin/horoscope-matches", label: "Horoscope Matches" },
+      { href: "/admin/users", label: "Matches & Compatibility" },
+      { href: "/admin/reports", label: "Chat & Moderation" },
+    ],
   },
   {
-    title: "CONTENT MANAGEMENT",
+    id: "growth",
+    title: "Growth & Marketing",
+    icon: TrendingUp,
     items: [
-      { href: "/admin/blog", label: "Blog CMS", icon: BookOpen, requiredPermission: "MANAGE_CMS" },
-      { href: "/admin/faq", label: "FAQs", icon: HelpCircle, requiredPermission: "MANAGE_CMS" },
-    ]
+      { href: "/admin/growth", label: "Attribution & Funnels" },
+      { href: "/admin/growth", label: "Campaign Performance" },
+    ],
   },
   {
-    title: "SYSTEM & SETTINGS",
+    id: "payments",
+    title: "Subscriptions & Payments",
+    icon: CreditCard,
     items: [
-      { href: "/admin/growth", label: "Reports & Analytics", icon: TrendingUp, requiredPermission: "VIEW_GROWTH" },
-      { href: "/admin/audit", label: "Audit Logs", icon: ClipboardList, requiredPermission: "VIEW_AUDIT_LOGS" },
-      { href: "/admin/settings", label: "Settings", icon: Settings, requiredPermission: "MANAGE_SETTINGS" },
-    ]
-  }
+      { href: "/admin/payments", label: "Transactions" },
+      { href: "/admin/payments", label: "Membership Plans" },
+    ],
+  },
+  {
+    id: "content",
+    title: "Content Management",
+    icon: BookOpen,
+    items: [
+      { href: "/admin/blog", label: "Blog CMS" },
+      { href: "/admin/faq", label: "FAQs" },
+    ],
+  },
+  {
+    id: "safety",
+    title: "Safety & Trust",
+    icon: ShieldAlert,
+    items: [
+      { href: "/admin/reports", label: "Reported Users" },
+      { href: "/admin/verification", label: "Document Approvals" },
+    ],
+  },
+  {
+    id: "system",
+    title: "System & Settings",
+    icon: Settings,
+    items: [
+      { href: "/admin/audit", label: "Audit Logs" },
+      { href: "/admin/settings", label: "Platform Settings" },
+    ],
+  },
 ];
 
 function hasPermission(user: any, requiredPermission?: string): boolean {
   if (!user) return false;
-  
   const role = user.role;
   const permissions = user.permissions || [];
-  
   if (role === "SUPER_ADMIN" || permissions.includes("ACCESS_ALL")) return true;
-  
   if (!requiredPermission) return true;
   if (permissions.includes(requiredPermission)) return true;
-
-  if (role === "ADMIN") {
-    return requiredPermission !== "MANAGE_STAFF";
-  }
-  if (role === "STAFF" || role === "PROFILE_MANAGER") {
-    return ["MANAGE_USERS", "VERIFY_PROFILES", "EDIT_PROFILE", "CREATE_PROFILE"].includes(requiredPermission);
-  }
-  if (role === "SUPPORT_STAFF") {
-    return ["VERIFY_PROFILES", "MANAGE_REPORTS"].includes(requiredPermission);
-  }
-  
+  if (role === "ADMIN") return requiredPermission !== "MANAGE_STAFF";
   return false;
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
-  const [activeUser, setActiveUser] = useState<any>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Sidebar collapse & local storage persistence
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeUser, setActiveUser] = useState<any>(null);
+
+  // Accordion state (which category is expanded)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    overview: true,
+    users: true,
+    match: true,
+  });
+
+  // Global search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // Notifications dropdown state
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [pendingVerifCount, setPendingVerifCount] = useState(0);
+  const [pendingReportsCount, setPendingReportsCount] = useState(0);
+
+  // Quick Action menu
+  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+
+  // Load sidebar preference from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("km_admin_sidebar_collapsed");
+      if (saved !== null) {
+        setCollapsed(saved === "true");
+      }
+    } catch {}
+  }, []);
+
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    try {
+      localStorage.setItem("km_admin_sidebar_collapsed", String(next));
+    } catch {}
+  };
+
+  const toggleSection = (sectionId: string) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }));
+  };
+
+  // Auth guard & notifications check
   useEffect(() => {
     if (pathname === "/admin/login") return;
 
@@ -126,7 +213,53 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
       })
       .catch(() => router.replace("/admin/login"));
+
+    // Fetch live notification counts
+    fetch("/api/admin/dashboard/stats?range=today")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success) {
+          setPendingVerifCount(res.kpis?.pendingVerifications || 0);
+          setPendingReportsCount(res.smartAlerts?.unresolvedReportsCount || 0);
+        }
+      })
+      .catch(() => {});
   }, [pathname, router]);
+
+  // Global Search debounce
+  useEffect(() => {
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    const t = setTimeout(() => {
+      fetch(`/api/admin/search?q=${encodeURIComponent(searchQuery)}`)
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.success) {
+            setSearchResults(res.results || []);
+          }
+          setSearchLoading(false);
+        })
+        .catch(() => setSearchLoading(false));
+    }, 280);
+
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Outside click for search dropdown
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -137,161 +270,424 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
+  // Generate dynamic breadcrumb items
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const breadcrumbs = pathSegments.map((seg, idx) => {
+    const url = "/" + pathSegments.slice(0, idx + 1).join("/");
+    const label = seg
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+    return { url, label };
+  });
+
+  const totalAlerts = pendingVerifCount + pendingReportsCount;
+
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-[#07152E]">
+    <div className="flex flex-col h-full bg-[#0A1F44] text-white select-none">
       {/* Brand Header */}
-      <div className="h-16 flex items-center px-4 border-b border-white/5 flex-shrink-0">
+      <div className="h-16 flex items-center px-4 border-b border-white/10 flex-shrink-0 bg-[#07152E]">
         {!collapsed ? (
-          <Logo variant="admin" href="/admin" />
+          <div className="flex items-center gap-3">
+            <Logo variant="admin" href="/admin" />
+            <span className="text-[10px] uppercase font-extrabold tracking-widest px-2 py-0.5 rounded-full bg-[#D4A853]/20 text-[#D4A853] border border-[#D4A853]/30">
+              Console
+            </span>
+          </div>
         ) : (
           <div className="mx-auto">
             <Logo variant="compact" href="/admin" />
           </div>
         )}
         <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:flex ml-auto h-7 w-7 rounded-lg items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+          onClick={toggleCollapsed}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="hidden lg:flex ml-auto h-7 w-7 rounded-lg items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
         >
-          <ChevronRight className={`h-4 w-4 transition-transform ${collapsed ? "" : "rotate-180"}`} />
+          <ChevronRight className={`h-4 w-4 transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`} />
         </button>
       </div>
 
-      {/* Main dashboard navigation shortcut */}
-      <div className="p-3">
-        <Link
-          href="/admin"
-          className={`flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-bold transition-all ${
-            pathname === "/admin"
-              ? "bg-[#C81D45] text-white shadow-md"
-              : "text-white/70 hover:text-white hover:bg-white/5"
-          }`}
-        >
-          <LayoutDashboard className="h-4.5 w-4.5 flex-shrink-0" />
-          {!collapsed && <span>Dashboard Overview</span>}
-        </Link>
-      </div>
-
-      {/* Categorized menu body */}
-      <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-4 select-none">
-        {sidebarCategories.map((cat) => {
-          const allowedItems = cat.items.filter(item => hasPermission(activeUser, item.requiredPermission));
+      {/* Accordion Categories Navigation */}
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-3 custom-scrollbar">
+        {NAVIGATION_SECTIONS.map((sec) => {
+          const allowedItems = sec.items.filter((item) => hasPermission(activeUser, item.requiredPermission));
           if (allowedItems.length === 0) return null;
 
+          const isSectionActive = allowedItems.some((item) =>
+            item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href)
+          );
+          const isOpen = openSections[sec.id] ?? true;
+          const Icon = sec.icon;
+
           return (
-            <div key={cat.title} className="space-y-1.5">
-              {!collapsed && (
-                <span className="block text-[9px] font-extrabold tracking-widest text-slate-500 px-3.5">
-                  {cat.title}
-                </span>
+            <div key={sec.id} className="space-y-1">
+              {/* Category Header (collapsible accordion) */}
+              {!collapsed ? (
+                <button
+                  type="button"
+                  onClick={() => toggleSection(sec.id)}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase transition-colors ${
+                    isSectionActive ? "text-[#D4A853]" : "text-white/50 hover:text-white/80"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Icon className="h-3.5 w-3.5 opacity-80" />
+                    <span>{sec.title}</span>
+                  </span>
+                  <ChevronDown
+                    className={`h-3 w-3 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`}
+                  />
+                </button>
+              ) : (
+                <div
+                  className="w-full flex items-center justify-center py-2 text-white/50 hover:text-white"
+                  title={sec.title}
+                >
+                  <Icon className="h-4 w-4" />
+                </div>
               )}
-              <div className="space-y-1">
-                {allowedItems.map((item) => {
-                  const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                        active
-                          ? "bg-[#C81D45] text-white shadow-sm font-bold"
-                          : "text-white/70 hover:text-white hover:bg-white/5"
-                      }`}
-                      title={collapsed ? item.label : undefined}
-                    >
-                      <Icon className="h-4 w-4 flex-shrink-0" />
-                      {!collapsed && <span>{item.label}</span>}
-                    </Link>
-                  );
-                })}
-              </div>
+
+              {/* Sub-items list */}
+              {(!collapsed ? isOpen : true) && (
+                <div className="space-y-0.5">
+                  {allowedItems.map((item) => {
+                    const isActive =
+                      item.href === "/admin"
+                        ? pathname === "/admin"
+                        : pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
+
+                    return (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        title={collapsed ? item.label : undefined}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                          isActive
+                            ? "bg-gradient-to-r from-[#FF1475] to-[#C81D45] text-white shadow-md font-bold"
+                            : "text-white/70 hover:text-white hover:bg-white/5"
+                        } ${collapsed ? "justify-center px-0" : ""}`}
+                      >
+                        {!collapsed ? (
+                          <>
+                            <span className="truncate flex-1">{item.label}</span>
+                            {item.badge && (
+                              <span
+                                className={`text-[9px] font-black px-1.5 py-0.2 rounded-md ${
+                                  item.badge === "NEW"
+                                    ? "bg-[#D4A853] text-[#0A1F44]"
+                                    : item.badge === "PRO"
+                                    ? "bg-purple-500 text-white"
+                                    : "bg-emerald-500 text-white"
+                                }`}
+                              >
+                                {item.badge}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="h-2 w-2 rounded-full bg-white/40" />
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}
       </nav>
 
-      {/* Logout control */}
-      <div className="p-3 border-t border-white/5 flex-shrink-0">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-bold text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-all cursor-pointer"
-        >
-          <LogOut className="h-4.5 w-4.5 flex-shrink-0" />
-          {!collapsed && <span>Sign Out</span>}
-        </button>
+      {/* Admin User Badge & Logout */}
+      <div className="p-3 border-t border-white/10 flex-shrink-0 bg-[#07152E]">
+        {!collapsed ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="h-8 w-8 rounded-full bg-[#D4A853] text-[#0A1F44] font-black flex items-center justify-center text-xs flex-shrink-0 shadow-xs">
+                {activeUser?.email?.[0]?.toUpperCase() || "A"}
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-bold text-white block truncate">
+                  {activeUser?.designation || "Administrator"}
+                </span>
+                <span className="text-[10px] text-[#D4A853] font-semibold block uppercase tracking-wider">
+                  {activeUser?.role || "SUPER_ADMIN"}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              title="Sign Out"
+              className="p-1.5 rounded-lg text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleLogout}
+            title="Sign Out"
+            className="w-full flex items-center justify-center py-1 text-white/50 hover:text-red-400 transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] text-[#1C1C1E] overflow-hidden">
-      
-      {/* Desktop Sidebar Panel */}
-      <aside className={`hidden lg:flex flex-col flex-shrink-0 bg-[#07152E] text-white transition-all duration-300 ${
-        collapsed ? "w-16" : "w-60"
-      }`}>
+    <div className="flex h-screen bg-[#F8FAFC] text-[#0A1F44] overflow-hidden font-sans">
+      {/* Desktop Collapsible Sidebar */}
+      <aside
+        className={`hidden lg:flex flex-col flex-shrink-0 transition-all duration-300 shadow-xl z-30 ${
+          collapsed ? "w-18" : "w-64"
+        }`}
+      >
         <SidebarContent />
       </aside>
 
-      {/* Mobile Drawer menu backdrop */}
+      {/* Mobile Drawer Backdrop */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs" onClick={() => setMobileMenuOpen(false)} />
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs"
+          onClick={() => setMobileMenuOpen(false)}
+        />
       )}
 
-      {/* Mobile menu panel slider */}
-      <div className={`lg:hidden fixed top-0 bottom-0 left-0 z-50 w-64 bg-[#07152E] transform transition-transform duration-300 ${
-        mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-      }`}>
+      {/* Mobile Drawer Panel */}
+      <div
+        className={`lg:hidden fixed top-0 bottom-0 left-0 z-50 w-72 bg-[#0A1F44] transform transition-transform duration-300 ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <SidebarContent />
       </div>
 
-      {/* Main Content canvas body */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        
-        {/* Admin Header Bar */}
-        <header className="h-16 bg-white border-b border-[rgba(28,28,30,0.06)] flex items-center justify-between px-6 flex-shrink-0 shadow-xs">
-          
-          <div className="flex items-center space-x-3">
+        {/* Persistent Enterprise Top Bar */}
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 flex-shrink-0 shadow-xs z-20">
+          {/* Left: Mobile Toggle & Dynamic Breadcrumbs */}
+          <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors"
+              className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+              aria-label="Toggle menu"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="relative w-56 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#8E8E93]" />
+
+            {/* Breadcrumb Navigation */}
+            <nav className="hidden sm:flex items-center space-x-1.5 text-xs text-slate-500 font-medium truncate">
+              {breadcrumbs.map((b, idx) => (
+                <React.Fragment key={b.url}>
+                  {idx > 0 && <span className="text-slate-300">/</span>}
+                  <Link
+                    href={b.url}
+                    className={`hover:text-[#FF1475] transition-colors truncate ${
+                      idx === breadcrumbs.length - 1 ? "font-bold text-[#0A1F44]" : ""
+                    }`}
+                  >
+                    {b.label}
+                  </Link>
+                </React.Fragment>
+              ))}
+            </nav>
+          </div>
+
+          {/* Center: Global Multi-Entity Search Bar */}
+          <div ref={searchRef} className="relative flex-1 max-w-xs sm:max-w-md mx-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search candidates, reports..."
-                className="w-full h-8 rounded-lg bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] pl-9 pr-3 text-[11px] font-semibold focus:outline-none focus:border-[#C81D45]"
+                value={searchQuery}
+                onFocus={() => setSearchOpen(true)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setSearchOpen(true);
+                }}
+                placeholder="Search candidates, phone, horoscope..."
+                className="w-full h-9 rounded-xl bg-slate-50 border border-slate-200 pl-9 pr-8 text-xs font-medium text-[#0A1F44] placeholder-slate-400 focus:outline-none focus:border-[#0A1F44] focus:bg-white transition-all shadow-inner"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSearchResults([]);
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
+
+            {/* Search Results Dropdown */}
+            {searchOpen && (searchLoading || searchResults.length > 0) && (
+              <div className="absolute top-11 left-0 right-0 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in duration-150">
+                <div className="p-2 border-b border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <span>Search Results</span>
+                  {searchLoading && <span>Searching...</span>}
+                </div>
+                <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                  {searchResults.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={item.link}
+                      onClick={() => setSearchOpen(false)}
+                      className="flex items-center justify-between p-3 hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${
+                              item.type === "USER"
+                                ? "bg-blue-100 text-blue-700"
+                                : item.type === "HOROSCOPE"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-emerald-100 text-emerald-700"
+                            }`}
+                          >
+                            {item.type}
+                          </span>
+                          <span className="text-xs font-bold text-[#0A1F44] truncate">{item.title}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5">{item.subtitle}</p>
+                      </div>
+                      <ExternalLink className="h-3.5 w-3.5 text-slate-400 flex-shrink-0 ml-2" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center space-x-4">
-            <button className="h-8 w-8 rounded-lg bg-[#FCFBF7] border border-[rgba(28,28,30,0.06)] flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors">
-              <Bell className="h-4 w-4" />
-            </button>
-            
-            <div className="flex items-center space-x-2 border-l border-slate-100 pl-3">
-              <div className="h-8 w-8 rounded-lg bg-[#C81D45] text-white flex items-center justify-center font-extrabold text-xs">
-                A
+          {/* Right: Quick Action Shortcuts, Notifications & Profile */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Quick Actions Button */}
+            <div className="relative">
+              <button
+                onClick={() => setQuickActionsOpen(!quickActionsOpen)}
+                className="h-9 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-[#0A1F44] flex items-center gap-1.5 transition-colors"
+              >
+                <span className="text-[#FF1475] font-black text-sm">+</span>
+                <span className="hidden sm:inline">Actions</span>
+              </button>
+
+              {quickActionsOpen && (
+                <div className="absolute right-0 top-11 w-52 bg-white rounded-xl shadow-2xl border border-slate-200 py-1 z-50 animate-in fade-in">
+                  <Link
+                    href="/admin/users/create"
+                    onClick={() => setQuickActionsOpen(false)}
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#FF1475] transition-colors"
+                  >
+                    <UserPlus className="h-4 w-4 text-[#FF1475]" />
+                    <span>+ Create Profile (Wizard)</span>
+                  </Link>
+                  <Link
+                    href="/admin/verification"
+                    onClick={() => setQuickActionsOpen(false)}
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-emerald-600 transition-colors"
+                  >
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    <span>Verification Queue</span>
+                  </Link>
+                  <Link
+                    href="/admin/analytics/horoscope"
+                    onClick={() => setQuickActionsOpen(false)}
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-purple-600 transition-colors"
+                  >
+                    <Sparkles className="h-4 w-4 text-purple-600" />
+                    <span>Horoscope Analytics</span>
+                  </Link>
+                  <Link
+                    href="/admin/horoscope-leads"
+                    onClick={() => setQuickActionsOpen(false)}
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                  >
+                    <Users className="h-4 w-4 text-blue-600" />
+                    <span>Horoscope Leads CRM</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Notifications Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                className="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 hover:text-[#0A1F44] transition-colors"
+                aria-label="Notifications"
+              >
+                <Bell className="h-4 w-4" />
+                {totalAlerts > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#FF1475] text-white text-[9px] font-black flex items-center justify-center border-2 border-white">
+                    {totalAlerts}
+                  </span>
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <div className="absolute right-0 top-11 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-3 z-50 animate-in fade-in">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-xs font-bold text-[#0A1F44]">
+                    <span>Operational Alerts</span>
+                    <span className="text-[10px] text-slate-400 font-semibold">{totalAlerts} pending</span>
+                  </div>
+                  <div className="py-2 space-y-2 text-xs">
+                    <Link
+                      href="/admin/verification"
+                      onClick={() => setNotificationsOpen(false)}
+                      className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      <ShieldCheck className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-bold text-[#0A1F44] block">Pending Verifications</span>
+                        <span className="text-[11px] text-slate-500">
+                          {pendingVerifCount > 0 ? `${pendingVerifCount} profiles awaiting Aadhaar/selfie check` : "No pending verifications"}
+                        </span>
+                      </div>
+                    </Link>
+                    <Link
+                      href="/admin/reports"
+                      onClick={() => setNotificationsOpen(false)}
+                      className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-bold text-[#0A1F44] block">Safety Reports</span>
+                        <span className="text-[11px] text-slate-500">
+                          {pendingReportsCount > 0 ? `${pendingReportsCount} reported profiles require review` : "Zero unhandled reports"}
+                        </span>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Admin Profile & Role Badge */}
+            <div className="flex items-center gap-2 border-l border-slate-200 pl-2 sm:pl-3">
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-[#0A1F44] to-[#1E3A8A] text-[#D4A853] flex items-center justify-center font-extrabold text-xs shadow-xs">
+                {activeUser?.email?.[0]?.toUpperCase() || "A"}
               </div>
-              <div className="hidden sm:block text-left">
-                <span className="text-[11px] font-bold text-[#0A1F44] block">Administrator</span>
-                <span className="text-[9px] text-[#8E8E93] block font-semibold">Super User</span>
+              <div className="hidden md:block text-left">
+                <span className="text-xs font-bold text-[#0A1F44] block leading-tight">
+                  {activeUser?.designation || "Administrator"}
+                </span>
+                <span className="text-[9px] text-[#D4A853] block font-bold uppercase tracking-wider">
+                  {activeUser?.role || "SUPER_ADMIN"}
+                </span>
               </div>
             </div>
           </div>
-
         </header>
 
-        {/* Dynamic page container */}
-        <main className="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]">
+        {/* Dynamic Page Body */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8FAFC]">
           {children}
         </main>
       </div>
-
     </div>
   );
 }

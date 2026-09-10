@@ -107,6 +107,8 @@ model User {
   notes                String?
   tempPassword         String?
   mustChangePassword   Boolean              @default(false)
+  activationToken      String?
+  activationTokenExpiry DateTime?
   
   // Profile & Core Settings
   profile              Profile?
@@ -243,6 +245,7 @@ model Profile {
   creatorDocumentUrl String?
 
   // Admin and Staff Metadata
+  profileSource      String              @default("SELF_REGISTERED") // SELF_REGISTERED, ADMIN_CREATED, HOROSCOPE_LEAD
   createdBy          String?             @default("USER") // USER, STAFF, ADMIN
   createdById        String?             // ID of the Staff member who created the profile
   lastModifiedBy     String?             // Name of the Staff member who edited it last
@@ -788,6 +791,12 @@ model HoroscopeMatchCheck {
   targetMobile     String?
   marketingConsent Boolean   @default(false)
   consentTimestamp DateTime?
+  consentSource    String?
+  consentRecordedBy String?
+  leadStatus       String?   @default("NEW") // NEW, CONTACTED, INTERESTED, ACCOUNT_CREATED, CONVERTED, DISQUALIFIED
+  leadNotes        String?   @db.Text
+  leadAssignedTo   String?
+  leadLastContactedAt DateTime?
   score            Float
   verdict          String
   verdictMalayalam String?
@@ -800,5 +809,6 @@ model HoroscopeMatchCheck {
   @@index([createdAt])
   @@index([targetProfileId])
   @@index([userId, createdAt])
+  @@index([marketingConsent, matchType])
 }
 

@@ -452,7 +452,7 @@ const INITIAL_USERS: UserItem[] = [
 ];
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<UserItem[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<UserItem[]>([]);
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive" | "blocked" | "premium">("all");
 
   const fetchUsers = () => {
@@ -460,15 +460,7 @@ export default function AdminUsersPage() {
       .then((r) => r.json())
       .then((d) => {
         if (d.success && d.users) {
-          const dbUsers = d.users;
-          const dbEmails = new Set(dbUsers.map((u: any) => u.email.toLowerCase()));
-          const dbContacts = new Set(dbUsers.map((u: any) => u.contact));
-
-          const filteredMocks = INITIAL_USERS.filter(
-            (m) => !dbEmails.has(m.email.toLowerCase()) && !dbContacts.has(m.contact)
-          );
-
-          setUsers([...dbUsers, ...filteredMocks]);
+          setUsers(d.users);
         }
       })
       .catch((err) => console.error("Failed to load live database users:", err));
@@ -622,13 +614,13 @@ export default function AdminUsersPage() {
           <p className="text-xs text-[#636366]">Inspect full candidate profiles (Bride/Groom), family, horoscope, creator proofs, partner preferences, and telemetry</p>
         </div>
 
-        <button
-          onClick={() => setIsAddUserOpen(true)}
-          className="px-5 py-2.5 rounded-full bg-[#C81D45] hover:bg-[#A51436] text-white text-xs font-bold shadow-sm flex items-center space-x-1.5 self-start sm:self-auto"
+        <Link
+          href="/admin/users/create"
+          className="px-5 py-2.5 rounded-full bg-[#0A1F44] hover:bg-[#132A57] text-white text-xs font-bold shadow-sm flex items-center space-x-1.5 self-start sm:self-auto transition-colors"
         >
-          <Plus className="h-4 w-4" />
-          <span>Add New User</span>
-        </button>
+          <Plus className="h-4 w-4 text-[#FF1475]" />
+          <span>+ Create Profile (Wizard)</span>
+        </Link>
       </div>
 
       {notification && (
