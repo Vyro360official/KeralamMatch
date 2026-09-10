@@ -11,19 +11,24 @@ export interface MatrimonialLogoLoaderProps {
   overlay?: boolean;
   className?: string;
   staticLogo?: boolean;
-  variant?: "webp" | "video" | "sequence";
+  variant?: "webp" | "video" | "sequence" | "spinner";
   useVideo?: boolean;
 }
 
-// Increased sizes from 100% up for bold, prominent branding
-const SIZE_MAP = {
-  xs: { w: 60, h: 44 },
-  sm: { w: 120, h: 88 },
-  md: { w: 200, h: 146 },
-  lg: { w: 280, h: 204 },
-  xl: { w: 380, h: 277 },
+// Crisp sizing for the Antigravity-style "O" ring spinner
+const SIZE_MAP: Record<string, { size: number; stroke: number }> = {
+  xs: { size: 18, stroke: 3.5 },
+  sm: { size: 26, stroke: 3.5 },
+  md: { size: 42, stroke: 4.0 },
+  lg: { size: 58, stroke: 4.5 },
+  xl: { size: 76, stroke: 5.0 },
 };
 
+/**
+ * Antigravity-Style "O" Circular Loader
+ * Ultra-fast 0ms initial render, 0KB network payload, zero video/image dependencies.
+ * Renders a sleek spinning "O" ring with a subtle track and animated gradient arc.
+ */
 export default function MatrimonialLogoLoader({
   size = "md",
   text,
@@ -32,294 +37,88 @@ export default function MatrimonialLogoLoader({
   inline = false,
   overlay = false,
   className = "",
-  staticLogo = false,
-  variant = "webp",
-  useVideo,
 }: MatrimonialLogoLoaderProps) {
-  const dimensions =
-    typeof size === "number"
-      ? { w: size, h: Math.round(size * 0.729) }
-      : SIZE_MAP[size] || SIZE_MAP.md;
+  const isNumeric = typeof size === "number";
+  const pixelSize = isNumeric ? size : SIZE_MAP[size]?.size || SIZE_MAP.md.size;
+  const strokeWidth = isNumeric
+    ? Math.max(2.5, Math.round(size / 9))
+    : SIZE_MAP[size]?.stroke || SIZE_MAP.md.stroke;
 
   const isMini = typeof size === "string" && size === "xs";
-  const shouldPlayVideo = useVideo === true || (variant === "video" && useVideo !== false);
-  const isSequenceMode = variant === "sequence";
 
-  const emblemVisual = (
+  // The sleek "O" ring spinner element
+  const spinnerVisual = (
     <div
-      className={`relative select-none pointer-events-none flex items-center justify-center ${
-        staticLogo ? "km-flow-static" : "km-flow-animated"
-      }`}
-      style={{
-        width: `${dimensions.w}px`,
-        height: `${dimensions.h}px`,
-      }}
+      className="relative inline-flex items-center justify-center flex-shrink-0 select-none"
+      style={{ width: `${pixelSize}px`, height: `${pixelSize}px` }}
       aria-hidden="true"
     >
-      <style>{`
-        /*
-          EXACT 4-STEP USER FLOW (3.0s loop):
-          1. FIRST BLUE
-          2. SECOND PINK
-          3. THIRD TWO RINGS COME
-          4. THEN BRIGHT
-        */
-
-        @keyframes kmFirstBlue {
-          0% {
-            opacity: 0;
-            transform: translate(-38px, 10px) scale(0.9);
-            filter: brightness(1.3) drop-shadow(-8px 0 16px #0088FF);
-          }
-          18%, 86% {
-            opacity: 1;
-            transform: translate(0, 0) scale(1);
-            filter: none;
-          }
-          94%, 100% {
-            opacity: 0;
-            transform: scale(0.97);
-          }
-        }
-
-        @keyframes kmSecondPink {
-          0%, 18% {
-            opacity: 0;
-            transform: translate(38px, 10px) scale(0.9);
-            filter: brightness(1.3) drop-shadow(8px 0 16px #FF1475);
-          }
-          36%, 86% {
-            opacity: 1;
-            transform: translate(0, 0) scale(1);
-            filter: none;
-          }
-          94%, 100% {
-            opacity: 0;
-            transform: scale(0.97);
-          }
-        }
-
-        @keyframes kmThirdRings {
-          0%, 38% {
-            opacity: 0;
-            transform: translateY(30px) scale(0.72);
-            filter: brightness(1.2);
-          }
-          52% {
-            opacity: 1;
-            transform: translateY(-3px) scale(1.04);
-            filter: drop-shadow(0 0 12px rgba(0, 136, 255, 0.4)) drop-shadow(0 0 12px rgba(255, 20, 117, 0.4));
-          }
-          58%, 86% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            filter: none;
-          }
-          94%, 100% {
-            opacity: 0;
-            transform: scale(0.97);
-          }
-        }
-
-        @keyframes kmThenBrightSparks {
-          0%, 56% {
-            opacity: 0;
-            transform: scale(0.2);
-            transform-origin: 50% 18%;
-          }
-          64% {
-            opacity: 1;
-            transform: scale(1.35);
-            transform-origin: 50% 18%;
-            filter: drop-shadow(0 0 12px #FFD700) brightness(1.5);
-          }
-          72%, 86% {
-            opacity: 1;
-            transform: scale(1);
-            transform-origin: 50% 18%;
-            filter: drop-shadow(0 0 6px #FFD700);
-          }
-          94%, 100% {
-            opacity: 0;
-          }
-        }
-
-        @keyframes kmThenBrightShine {
-          0%, 58% {
-            opacity: 0;
-            transform: scale(1);
-            filter: none;
-          }
-          66% {
-            opacity: 1;
-            transform: scale(1.05);
-            filter: brightness(1.3) drop-shadow(0 0 30px rgba(0, 136, 255, 0.7)) drop-shadow(0 0 30px rgba(255, 20, 117, 0.7));
-          }
-          76% {
-            opacity: 0.95;
-            transform: scale(1.02);
-            filter: brightness(1.15) drop-shadow(0 0 18px rgba(0, 136, 255, 0.4)) drop-shadow(0 0 18px rgba(255, 20, 117, 0.4));
-          }
-          86% {
-            opacity: 0.9;
-            transform: scale(1);
-            filter: drop-shadow(0 0 10px rgba(0, 136, 255, 0.2)) drop-shadow(0 0 10px rgba(255, 20, 117, 0.2));
-          }
-          94%, 100% {
-            opacity: 0;
-          }
-        }
-
-        .km-flow-animated .km-flow-blue {
-          animation: kmFirstBlue 3.0s cubic-bezier(0.2, 1, 0.35, 1) infinite;
-        }
-        .km-flow-animated .km-flow-pink {
-          animation: kmSecondPink 3.0s cubic-bezier(0.2, 1, 0.35, 1) infinite;
-        }
-        .km-flow-animated .km-flow-rings {
-          animation: kmThirdRings 3.0s cubic-bezier(0.34, 1.35, 0.64, 1) infinite;
-        }
-        .km-flow-animated .km-flow-sparks {
-          animation: kmThenBrightSparks 3.0s ease-out infinite;
-        }
-        .km-flow-animated .km-flow-bright {
-          animation: kmThenBrightShine 3.0s ease-in-out infinite;
-        }
-
-        /* Static Mode / Reduced Motion */
-        .km-flow-static .km-flow-blue,
-        .km-flow-static .km-flow-pink,
-        .km-flow-static .km-flow-rings,
-        .km-flow-static .km-flow-sparks,
-        .km-flow-static .km-flow-webp,
-        .km-flow-static .km-flow-video {
-          display: none !important;
-        }
-        .km-flow-static .km-flow-bright {
-          opacity: 1 !important;
-          animation: none !important;
-          transform: none !important;
-          filter: none !important;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .km-flow-animated .km-flow-blue,
-          .km-flow-animated .km-flow-pink,
-          .km-flow-animated .km-flow-rings,
-          .km-flow-animated .km-flow-sparks,
-          .km-flow-animated .km-flow-webp,
-          .km-flow-animated .km-flow-video {
-            display: none !important;
-          }
-          .km-flow-animated .km-flow-bright {
-            opacity: 1 !important;
-            animation: none !important;
-            transform: none !important;
-            filter: none !important;
-          }
-        }
-      `}</style>
-
-      {staticLogo ? (
-        /* Static Official Emblem */
-        <img
-          src="/brand/emblem.png"
-          alt="KeralamMatch Official Logo"
-          className="w-full h-full object-contain drop-shadow-xs"
+      <svg
+        className="animate-spin w-full h-full"
+        viewBox="0 0 48 48"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Track circle: complete "O" ring base with low opacity */}
+        <circle
+          cx="24"
+          cy="24"
+          r="19"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-slate-300 dark:text-slate-700 opacity-30"
         />
-      ) : shouldPlayVideo ? (
-        /* Video Animation Mode */
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          aria-label="KeralamMatch Loading Animation"
-          className="km-flow-video w-full h-full object-contain pointer-events-none"
-        >
-          <source src="/brand/loader/video-project-2.webm" type="video/webm" />
-          <source src="/brand/loader/video-project-2.mp4" type="video/mp4" />
-          <img
-            src="/brand/loader/matrimonial-loader.webp"
-            alt="KeralamMatch Loading Animation"
-            className="w-full h-full object-contain"
-          />
-        </video>
-      ) : isSequenceMode ? (
-        /* 4-Step Sequence: Blue -> Pink -> Rings -> Bright */
-        <div className="absolute inset-0 w-full h-full pointer-events-none">
-          {/* 1. FIRST BLUE */}
-          <img
-            src="/brand/loader/layer-blue.png"
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain km-flow-blue"
-          />
-          {/* 2. SECOND PINK */}
-          <img
-            src="/brand/loader/layer-pink.png"
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain km-flow-pink"
-          />
-          {/* 3. THIRD TWO RINGS COME */}
-          <img
-            src="/brand/loader/layer-rings.png"
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain km-flow-rings"
-          />
-          {/* 4. THEN BRIGHT */}
-          <img
-            src="/brand/loader/layer-sparks.png"
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain km-flow-sparks"
-          />
-          <img
-            src="/brand/emblem.png"
-            alt="KeralamMatch Official Logo"
-            className="absolute inset-0 w-full h-full object-contain km-flow-bright drop-shadow-xs"
-          />
-        </div>
-      ) : (
-        /* Single Animated WebP Mode (Instant 0ms, Zero Video Latency, Scaled Up) */
-        <>
-          <img
-            src="/brand/loader/matrimonial-loader.webp"
-            alt="KeralamMatch Loading Animation"
-            className="km-flow-webp w-full h-full object-contain pointer-events-none"
-          />
-          {/* Hidden layer references to preserve CSS pipeline & testing contracts */}
-          <div className="hidden" aria-hidden="true">
-            <span className="km-flow-blue" />
-            <span className="km-flow-pink" />
-            <span className="km-flow-rings" />
-            <span className="km-flow-sparks" />
-            <span className="km-flow-bright" />
-          </div>
-        </>
-      )}
+        {/* Spinning "O" active arc */}
+        <circle
+          cx="24"
+          cy="24"
+          r="19"
+          stroke="url(#antigravity-loader-gradient)"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray="119.4"
+          strokeDashoffset="75"
+        />
+        <defs>
+          <linearGradient
+            id="antigravity-loader-gradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stopColor="#FF1475" />
+            <stop offset="50%" stopColor="#E01853" />
+            <stop offset="100%" stopColor="#C81D45" />
+          </linearGradient>
+        </defs>
+      </svg>
     </div>
   );
 
+  // 1. Inline mode (e.g. inside buttons, badges, table cells)
   if (inline) {
     return (
       <span className={`inline-flex items-center gap-2 ${className}`}>
-        {emblemVisual}
-        {text && <span className="text-xs font-semibold">{text}</span>}
+        {spinnerVisual}
+        {text && <span className="text-xs font-medium">{text}</span>}
       </span>
     );
   }
 
+  // 2. Fullscreen overlay mode (used during explicit critical blocking actions)
   if (fullscreen) {
     return (
       <div
-        className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/92 dark:bg-[#0A1F44]/92 backdrop-blur-md transition-all animate-in fade-in duration-200"
+        className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/75 dark:bg-[#07132B]/80 backdrop-blur-xs transition-all animate-in fade-in duration-150"
         role="alert"
         aria-busy="true"
+        aria-label={text || "Loading"}
       >
-        <div className="flex flex-col items-center justify-center p-8 text-center max-w-sm">
-          {emblemVisual}
+        <div className="flex flex-col items-center justify-center p-6 text-center max-w-sm">
+          {spinnerVisual}
           {text && (
-            <p className="mt-4 text-sm font-bold tracking-wide text-[#0A1F44] dark:text-white animate-pulse">
+            <p className="mt-4 text-sm font-semibold tracking-wide text-[#0A1F44] dark:text-white">
               {text}
             </p>
           )}
@@ -333,16 +132,18 @@ export default function MatrimonialLogoLoader({
     );
   }
 
+  // 3. Container overlay mode (used for card/modal content loaders)
   if (overlay) {
     return (
       <div
-        className={`absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/85 dark:bg-[#0A1F44]/85 backdrop-blur-xs rounded-2xl transition-all ${className}`}
+        className={`absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/75 dark:bg-[#07132B]/80 backdrop-blur-xs rounded-2xl transition-all ${className}`}
         role="alert"
         aria-busy="true"
+        aria-label={text || "Loading"}
       >
-        {emblemVisual}
+        {spinnerVisual}
         {text && (
-          <p className="mt-3 text-xs font-bold text-[#0A1F44] dark:text-white tracking-wide">
+          <p className="mt-3 text-xs font-semibold text-[#0A1F44] dark:text-white tracking-wide">
             {text}
           </p>
         )}
@@ -355,11 +156,20 @@ export default function MatrimonialLogoLoader({
     );
   }
 
+  // 4. Standard block loader (used for page loading and fallback boundaries)
   return (
-    <div className={`flex flex-col items-center justify-center py-6 px-4 text-center ${className}`}>
-      {emblemVisual}
+    <div
+      className={`flex flex-col items-center justify-center py-6 px-4 text-center ${className}`}
+      role="status"
+      aria-label={text || "Loading"}
+    >
+      {spinnerVisual}
       {text && (
-        <p className={`mt-3.5 text-xs font-bold tracking-wide text-[#0A1F44] dark:text-white ${isMini ? "text-[11px]" : ""}`}>
+        <p
+          className={`mt-3 text-xs font-semibold tracking-wide text-[#0A1F44] dark:text-white ${
+            isMini ? "text-[11px]" : ""
+          }`}
+        >
           {text}
         </p>
       )}
@@ -371,3 +181,10 @@ export default function MatrimonialLogoLoader({
     </div>
   );
 }
+
+// Named exports for convenient modern usage
+export {
+  MatrimonialLogoLoader as SimpleLoader,
+  MatrimonialLogoLoader as CircularLoader,
+  MatrimonialLogoLoader as AntigravityLoader,
+};

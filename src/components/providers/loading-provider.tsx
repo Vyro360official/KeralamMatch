@@ -115,40 +115,6 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     setLoadingCount((prev) => Math.max(0, prev - 1));
   }, [pathname]);
 
-  // Intercept internal link navigation clicks to trigger branded transition loader
-  useEffect(() => {
-    function handleDocumentClick(e: MouseEvent) {
-      const target = (e.target as HTMLElement)?.closest("a");
-      if (!target) return;
-
-      const href = target.getAttribute("href");
-      if (!href) return;
-
-      // Only handle internal navigation links, skip anchors, downloads, external, or modifier keys
-      if (
-        href.startsWith("/") &&
-        !href.startsWith("//") &&
-        !href.startsWith("/#") &&
-        !target.getAttribute("download") &&
-        target.getAttribute("target") !== "_blank" &&
-        !e.ctrlKey &&
-        !e.metaKey &&
-        !e.shiftKey &&
-        !e.altKey
-      ) {
-        const currentUrl = window.location.pathname + window.location.search;
-        if (href !== currentUrl) {
-          startLoading("Connecting Kerala Hearts...");
-        }
-      }
-    }
-
-    document.addEventListener("click", handleDocumentClick, { capture: true });
-    return () => {
-      document.removeEventListener("click", handleDocumentClick, { capture: true });
-    };
-  }, [startLoading]);
-
   // Global window event listeners
   useEffect(() => {
     function handleGlobalStart(e: any) {
@@ -181,8 +147,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
       {showOverlay && (
         <MatrimonialLogoLoader
           fullscreen
-          text={activeMessage || "Connecting Kerala Hearts..."}
-          subtext="Kerala's Trusted Matrimonial Platform"
+          text={activeMessage}
         />
       )}
     </LoadingContext.Provider>

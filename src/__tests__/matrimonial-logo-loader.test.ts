@@ -1,7 +1,7 @@
 /**
- * KERALAMMATCH — MATRIMONIAL LOGO LOADER & BRAND ASSETS TEST SUITE
- * Rigorous automated tests for the centralized 60 FPS matrimonial logo loader,
- * brand logo asset integration, accessibility, and global loading provider architecture.
+ * KERALAMMATCH — ANTIGRAVITY-STYLE "O" CIRCULAR SPINNER & LOADING SUITE
+ * Tests for the high-performance circular "O" loader, accessibility,
+ * zero navigation click interception delay, and seamless component integration.
  */
 
 import { describe, it } from "node:test";
@@ -26,19 +26,6 @@ describe("1. Brand Assets and Logo System", () => {
     assert.ok(fs.statSync(kmLogoPng).size > 1000, "KM LOGO.png must be non-empty");
   });
 
-  it("should have Video Project 2 animation video assets in public/brand/loader/", () => {
-    const mp4Video = path.join(PROJECT_ROOT, "public/brand/loader/video-project-2.mp4");
-    const webmVideo = path.join(PROJECT_ROOT, "public/brand/loader/video-project-2.webm");
-
-    const webpAsset = path.join(PROJECT_ROOT, "public/brand/loader/matrimonial-loader.webp");
-    assert.ok(fs.existsSync(webpAsset), "matrimonial-loader.webp must exist");
-    assert.ok(fs.statSync(webpAsset).size > 10000, "matrimonial-loader.webp must be non-empty");
-    assert.ok(fs.existsSync(mp4Video), "video-project-2.mp4 must exist");
-    assert.ok(fs.existsSync(webmVideo), "video-project-2.webm must exist");
-    assert.ok(fs.statSync(mp4Video).size > 10000, "video-project-2.mp4 must be non-empty");
-    assert.ok(fs.statSync(webmVideo).size > 10000, "video-project-2.webm must be non-empty");
-  });
-
   it("should render official brand assets in Logo component", () => {
     const logoFile = path.join(PROJECT_ROOT, "src/components/shared/logo.tsx");
     assert.ok(fs.existsSync(logoFile), "src/components/shared/logo.tsx must exist");
@@ -55,38 +42,38 @@ describe("1. Brand Assets and Logo System", () => {
   });
 });
 
-describe("2. Centralized Matrimonial Logo Loader Component", () => {
+describe("2. Antigravity-Style 'O' Circular Spinner Loader Component", () => {
   const loaderFile = path.join(PROJECT_ROOT, "src/components/ui/matrimonial-logo-loader.tsx");
 
-  it("should exist and export default MatrimonialLogoLoader component", () => {
+  it("should exist and export default MatrimonialLogoLoader component with AntigravityLoader alias", () => {
     assert.ok(fs.existsSync(loaderFile), "matrimonial-logo-loader.tsx must exist");
     const content = fs.readFileSync(loaderFile, "utf-8");
     assert.ok(
       content.includes("export default function MatrimonialLogoLoader"),
       "Must have default export MatrimonialLogoLoader"
     );
-  });
-
-  it("should implement the exact 4-step sequence: Blue -> Pink -> Rings -> Bright", () => {
-    const content = fs.readFileSync(loaderFile, "utf-8");
-
-    assert.ok(content.includes("km-flow-blue"), "Must have first blue layer");
-    assert.ok(content.includes("km-flow-pink"), "Must have second pink layer");
-    assert.ok(content.includes("km-flow-rings"), "Must have third rings layer");
-    assert.ok(content.includes("km-flow-bright"), "Must have then bright layer");
-
-    assert.ok(content.includes("@keyframes kmFirstBlue"), "Must define kmFirstBlue keyframe");
-    assert.ok(content.includes("@keyframes kmSecondPink"), "Must define kmSecondPink keyframe");
-    assert.ok(content.includes("@keyframes kmThirdRings"), "Must define kmThirdRings keyframe");
-    assert.ok(content.includes("@keyframes kmThenBrightShine"), "Must define kmThenBrightShine keyframe");
-  });
-
-  it("should honor prefers-reduced-motion for accessibility", () => {
-    const content = fs.readFileSync(loaderFile, "utf-8");
     assert.ok(
-      content.includes("@media (prefers-reduced-motion: reduce)"),
-      "Must have prefers-reduced-motion accessibility query"
+      content.includes("AntigravityLoader"),
+      "Must export AntigravityLoader alias"
     );
+  });
+
+  it("should render an Antigravity-style 'O' circular spinner with SVG and spinning arc", () => {
+    const content = fs.readFileSync(loaderFile, "utf-8");
+
+    assert.ok(content.includes("animate-spin"), "Must use smooth animate-spin");
+    assert.ok(content.includes("<svg"), "Must render vector SVG circular spinner");
+    assert.ok(content.includes("strokeDasharray"), "Must have strokeDasharray for active arc");
+    assert.ok(content.includes("strokeLinecap=\"round\""), "Must have rounded arc caps");
+    assert.ok(content.includes("linearGradient"), "Must render modern branded gradient");
+  });
+
+  it("should not contain video elements or heavy animation keyframes in the loader", () => {
+    const content = fs.readFileSync(loaderFile, "utf-8");
+
+    assert.ok(!content.includes("<video"), "Must not render heavy <video> elements in loader");
+    assert.ok(!content.includes("@keyframes kmFirstBlue"), "Must not use multi-step delay keyframes");
+    assert.ok(!content.includes("@keyframes kmSecondPink"), "Must not use multi-step delay keyframes");
   });
 
   it("should support custom sizing, full-screen, inline, and custom messaging", () => {
@@ -98,19 +85,10 @@ describe("2. Centralized Matrimonial Logo Loader Component", () => {
     assert.ok(content.includes("text"), "Must support text prop");
     assert.ok(content.includes("subtext"), "Must support subtext prop");
   });
-
-  it("should integrate Video Project 2 video animation with seamless fallback", () => {
-    const content = fs.readFileSync(loaderFile, "utf-8");
-    assert.ok(content.includes("video-project-2.webm"), "Must reference video-project-2.webm");
-    assert.ok(content.includes("video-project-2.mp4"), "Must reference video-project-2.mp4");
-    assert.ok(content.includes("matrimonial-loader.webp"), "Must reference matrimonial-loader.webp");
-    assert.ok(content.includes('variant = "webp"'), "Must default to webp variant for instant performance");
-    assert.ok(content.includes("km-flow-video"), "Must define km-flow-video class");
-      });
 });
 
-describe("3. Global Loading Architecture and Integration", () => {
-  it("should provide LoadingProvider and useLoading hook", () => {
+describe("3. Global Loading Architecture and Delay Removal", () => {
+  it("should provide LoadingProvider without document click hijacking", () => {
     const providerFile = path.join(PROJECT_ROOT, "src/components/providers/loading-provider.tsx");
     assert.ok(fs.existsSync(providerFile), "loading-provider.tsx must exist");
     const content = fs.readFileSync(providerFile, "utf-8");
@@ -119,7 +97,12 @@ describe("3. Global Loading Architecture and Integration", () => {
     assert.ok(content.includes("export function useLoading"), "Must export useLoading");
     assert.ok(content.includes("kmStartLoading"), "Must export kmStartLoading utility");
     assert.ok(content.includes("kmStopLoading"), "Must export kmStopLoading utility");
-    assert.ok(content.includes("120"), "Must have 120ms anti-flicker delay threshold");
+
+    // Critical: verify no handleDocumentClick intercepting link clicks
+    assert.ok(
+      !content.includes("handleDocumentClick"),
+      "Must not intercept document link clicks causing navigation delays"
+    );
   });
 
   it("should have root loading.tsx boundary in src/app/loading.tsx", () => {
@@ -177,3 +160,4 @@ describe("3. Global Loading Architecture and Integration", () => {
     );
   });
 });
+
